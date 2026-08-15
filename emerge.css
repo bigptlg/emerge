@@ -1,0 +1,88 @@
+/*!
+ * Emerge.js — folha de estilos
+ *
+ * O motor JS injeta em cada elemento as custom properties:
+ *   --emerge-duration  (ex: "600ms")
+ *   --emerge-delay     (ex: "150ms")
+ *   --emerge-easing    (ex: "cubic-bezier(.175,.885,.32,1.275)")
+ */
+
+[data-emerge] {
+  pointer-events: none;
+  transition-property: opacity, transform;
+  transition-duration: var(--emerge-duration, 400ms);
+  transition-timing-function: var(--emerge-easing, ease);
+  transition-delay: 0s; /* delay só entra em jogo ao revelar, ver abaixo */
+}
+
+[data-emerge].emerge-animate {
+  pointer-events: auto;
+  transition-delay: var(--emerge-delay, 0s);
+}
+
+/* ------------------------------------------------------------------ */
+/* Presets de animação                                                 */
+/* ------------------------------------------------------------------ */
+@media screen {
+  html:not(.no-js) [data-emerge^='fade'] {
+    opacity: 0;
+    transition-property: opacity, transform;
+  }
+  html:not(.no-js) [data-emerge^='fade'].emerge-animate {
+    opacity: 1;
+    transform: none;
+  }
+  html:not(.no-js) [data-emerge='fade-up'] { transform: translate3d(0, 100px, 0); }
+  html:not(.no-js) [data-emerge='fade-down'] { transform: translate3d(0, -100px, 0); }
+  html:not(.no-js) [data-emerge='fade-right'] { transform: translate3d(-100px, 0, 0); }
+  html:not(.no-js) [data-emerge='fade-left'] { transform: translate3d(100px, 0, 0); }
+  html:not(.no-js) [data-emerge='fade-up-right'] { transform: translate3d(-100px, 100px, 0); }
+  html:not(.no-js) [data-emerge='fade-up-left'] { transform: translate3d(100px, 100px, 0); }
+  html:not(.no-js) [data-emerge='fade-down-right'] { transform: translate3d(-100px, -100px, 0); }
+  html:not(.no-js) [data-emerge='fade-down-left'] { transform: translate3d(100px, -100px, 0); }
+
+  html:not(.no-js) [data-emerge^='zoom'] {
+    opacity: 0;
+    transition-property: opacity, transform;
+  }
+  html:not(.no-js) [data-emerge^='zoom'].emerge-animate {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+  }
+  html:not(.no-js) [data-emerge='zoom-in'] { transform: scale(0.6); }
+  html:not(.no-js) [data-emerge='zoom-in-up'] { transform: translate3d(0, 100px, 0) scale(0.6); }
+  html:not(.no-js) [data-emerge='zoom-in-down'] { transform: translate3d(0, -100px, 0) scale(0.6); }
+  html:not(.no-js) [data-emerge='zoom-in-right'] { transform: translate3d(-100px, 0, 0) scale(0.6); }
+  html:not(.no-js) [data-emerge='zoom-in-left'] { transform: translate3d(100px, 0, 0) scale(0.6); }
+  html:not(.no-js) [data-emerge='zoom-out'] { transform: scale(1.2); }
+  html:not(.no-js) [data-emerge='zoom-out-up'] { transform: translate3d(0, 100px, 0) scale(1.2); }
+  html:not(.no-js) [data-emerge='zoom-out-down'] { transform: translate3d(0, -100px, 0) scale(1.2); }
+  html:not(.no-js) [data-emerge='zoom-out-right'] { transform: translate3d(-100px, 0, 0) scale(1.2); }
+  html:not(.no-js) [data-emerge='zoom-out-left'] { transform: translate3d(100px, 0, 0) scale(1.2); }
+
+  html:not(.no-js) [data-emerge^='slide'] {
+    visibility: hidden;
+    transition-property: transform;
+  }
+  html:not(.no-js) [data-emerge^='slide'].emerge-animate {
+    visibility: visible;
+    transform: translateZ(0);
+  }
+  html:not(.no-js) [data-emerge='slide-up'] { transform: translate3d(0, 100%, 0); }
+  html:not(.no-js) [data-emerge='slide-down'] { transform: translate3d(0, -100%, 0); }
+  html:not(.no-js) [data-emerge='slide-right'] { transform: translate3d(-100%, 0, 0); }
+  html:not(.no-js) [data-emerge='slide-left'] { transform: translate3d(100%, 0, 0); }
+
+  html:not(.no-js) [data-emerge^='flip'] {
+    backface-visibility: hidden;
+    transition-property: transform;
+  }
+  html:not(.no-js) [data-emerge='flip-left'] { transform: perspective(2500px) rotateY(-100deg); }
+  html:not(.no-js) [data-emerge='flip-left'].emerge-animate { transform: perspective(2500px) rotateY(0); }
+  html:not(.no-js) [data-emerge='flip-right'] { transform: perspective(2500px) rotateY(100deg); }
+  html:not(.no-js) [data-emerge='flip-right'].emerge-animate { transform: perspective(2500px) rotateY(0); }
+  html:not(.no-js) [data-emerge='flip-up'] { transform: perspective(2500px) rotateX(-100deg); }
+  html:not(.no-js) [data-emerge='flip-up'].emerge-animate { transform: perspective(2500px) rotateX(0); }
+  html:not(.no-js) [data-emerge='flip-down'] { transform: perspective(2500px) rotateX(100deg); }
+  html:not(.no-js) [data-emerge='flip-down'].emerge-animate { transform: perspective(2500px) rotateX(0); }
+}
