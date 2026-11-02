@@ -1,88 +1,915 @@
-/*!
- * Emerge.js — folha de estilos
- *
- * O motor JS injeta em cada elemento as custom properties:
- *   --emerge-duration  (ex: "600ms")
- *   --emerge-delay     (ex: "150ms")
- *   --emerge-easing    (ex: "cubic-bezier(.175,.885,.32,1.275)")
- */
+/*! Emerge.js v1.0.0 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight) */
 
+
+/* ==========================================================================
+   1. Tokens (override on :root, or inline on any element)
+   ========================================================================== */
+:root {
+  --emerge-distance: 40px;      /* fade-* / zoom-*-direction travel     */
+  --emerge-slide-distance: 100%;/* slide-* travel (relative to own size) */
+  --emerge-zoom-in: .6;         /* start scale of zoom-in-*             */
+  --emerge-zoom-out: 1.2;       /* start scale of zoom-out-*            */
+  --emerge-blur: 12px;          /* start blur of blur-*                 */
+  --emerge-perspective: 2500px; /* flip-*                               */
+  --emerge-rotate: 12deg;       /* rotate-left / rotate-right           */
+
+  /* ---- Extras tokens ---- */
+  --emerge-pop-overshoot: 1.15; /* peak scale of pop effect             */
+  --emerge-bounce-height: 30px; /* bounce drop height                   */
+  --emerge-swing-angle: 15deg;  /* swing pendulum amplitude             */
+  --emerge-rubber-x: 1.25;      /* rubber horizontal stretch            */
+  --emerge-rubber-y: .75;       /* rubber vertical squash               */
+  --emerge-jello-skew: 9deg;    /* jello skew amplitude                 */
+  --emerge-skew: 18deg;         /* skew-left / skew-right entry angle   */
+  --emerge-squeeze-x: .4;       /* squeeze horizontal compression      */
+  --emerge-stretch-y: 1.6;      /* stretch vertical elongation          */
+}
+
+
+/* ==========================================================================
+   2. Core — per-element effect variables
+   Distance can be set in HTML with data-emerge-distance="10%" (JS writes
+   --emerge-distance and --emerge-slide-distance inline). Plain numbers = px.
+   Custom properties inherit, so every [data-emerge] resets them first.
+   Effect rules below come later at the same specificity and win.
+   An empty / unknown data-emerge value behaves like "fade".
+   ========================================================================== */
 [data-emerge] {
+  --emerge-from-opacity: 0;
+  --emerge-from-translate: none;
+  --emerge-from-rotate: none;
+  --emerge-from-scale: none;
+  --emerge-from-transform: none;
+  --emerge-to-transform: none;
+  --emerge-from-filter: none;
+  --emerge-from-clip: inset(0);
+  --emerge-a-transform: emerge-none;
+  --emerge-a-filter: emerge-none;
+  --emerge-a-clip: emerge-none;
+}
+
+
+/* ---- Fade (direction = direction of movement) ---- */
+[data-emerge~="fade-up"]         { --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="fade-down"]       { --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="fade-left"]       { --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="fade-right"]      { --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+[data-emerge~="fade-up-left"]    { --emerge-from-translate: var(--emerge-distance) var(--emerge-distance); }
+[data-emerge~="fade-up-right"]   { --emerge-from-translate: calc(var(--emerge-distance) * -1) var(--emerge-distance); }
+[data-emerge~="fade-down-left"]  { --emerge-from-translate: var(--emerge-distance) calc(var(--emerge-distance) * -1); }
+[data-emerge~="fade-down-right"] { --emerge-from-translate: calc(var(--emerge-distance) * -1) calc(var(--emerge-distance) * -1); }
+
+
+/* ---- Slide (no fade, travels --emerge-slide-distance of its own size) ---- */
+[data-emerge~="slide-up"]    { --emerge-from-opacity: 1; --emerge-from-translate: 0 var(--emerge-slide-distance); }
+[data-emerge~="slide-down"]  { --emerge-from-opacity: 1; --emerge-from-translate: 0 calc(var(--emerge-slide-distance) * -1); }
+[data-emerge~="slide-left"]  { --emerge-from-opacity: 1; --emerge-from-translate: var(--emerge-slide-distance) 0; }
+[data-emerge~="slide-right"] { --emerge-from-opacity: 1; --emerge-from-translate: calc(var(--emerge-slide-distance) * -1) 0; }
+
+
+/* ---- Zoom ---- */
+[data-emerge~="zoom-in"]         { --emerge-from-scale: var(--emerge-zoom-in); }
+[data-emerge~="zoom-in-up"]      { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="zoom-in-down"]    { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="zoom-in-left"]    { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="zoom-in-right"]   { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+[data-emerge~="zoom-out"]        { --emerge-from-scale: var(--emerge-zoom-out); }
+[data-emerge~="zoom-out-up"]     { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="zoom-out-down"]   { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="zoom-out-left"]   { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="zoom-out-right"]  { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+
+
+/* ---- Rotate ---- */
+[data-emerge~="rotate-left"]  { --emerge-from-rotate: calc(var(--emerge-rotate) * -1); }
+[data-emerge~="rotate-right"] { --emerge-from-rotate: var(--emerge-rotate); }
+[data-emerge~="spin"]         { --emerge-from-rotate: -180deg; --emerge-from-scale: .4; }
+
+
+/* ---- Flip (uses `transform` so perspective can be applied) ---- */
+[data-emerge*="flip-"] {
+  --emerge-a-transform: emerge-flip;
+  --emerge-to-transform: perspective(var(--emerge-perspective)) rotateX(0deg) rotateY(0deg);
+  backface-visibility: hidden;
+}
+[data-emerge~="flip-up"]    { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateX(-90deg); }
+[data-emerge~="flip-down"]  { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateX(90deg); }
+[data-emerge~="flip-left"]  { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateY(-90deg); }
+[data-emerge~="flip-right"] { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateY(90deg); }
+
+
+/* ---- Blur (combine freely: data-emerge="fade-up blur") ---- */
+[data-emerge*="blur"] {
+  --emerge-a-filter: emerge-blur;
+  --emerge-from-filter: blur(var(--emerge-blur));
+}
+[data-emerge~="blur-up"]    { --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="blur-down"]  { --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="blur-left"]  { --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="blur-right"] { --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+
+
+/* ---- Reveal (clip-path wipe, no fade) ---- */
+[data-emerge*="reveal-"] {
+  --emerge-a-clip: emerge-clip;
+  --emerge-from-opacity: 1;
+}
+[data-emerge~="reveal-up"]    { --emerge-from-clip: inset(100% 0 0 0); }
+[data-emerge~="reveal-down"]  { --emerge-from-clip: inset(0 0 100% 0); }
+[data-emerge~="reveal-left"]  { --emerge-from-clip: inset(0 0 0 100%); }
+[data-emerge~="reveal-right"] { --emerge-from-clip: inset(0 100% 0 0); }
+
+
+/* ==========================================================================
+   3. Core — hidden (pre-animation) state
+   Only applies once JS has initialised the element (.emerge-init), or to
+   Text parts, so content stays visible without JS / with reduced motion.
+   ========================================================================== */
+[data-emerge]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  opacity: var(--emerge-from-opacity);
+  translate: var(--emerge-from-translate);
+  rotate: var(--emerge-from-rotate);
+  scale: var(--emerge-from-scale);
+}
+[data-emerge*="flip-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  transform: var(--emerge-from-transform);
+}
+[data-emerge*="blur"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  filter: var(--emerge-from-filter);
+}
+[data-emerge*="reveal-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  clip-path: var(--emerge-from-clip);
+}
+
+
+/* ==========================================================================
+   4. Core — animated state (class toggled by IntersectionObserver)
+   Timing comes from the inline vars JS sets on each element.
+   The end state is the element's own natural style (keyframes only define `from`).
+   ========================================================================== */
+[data-emerge].emerge-animate:not(.emerge-follow, .emerge-draw-path) {
+  animation-name: emerge-in;
+  animation-duration: var(--emerge-duration, 400ms);
+  animation-timing-function: var(--emerge-easing, ease);
+  animation-delay: var(--emerge-delay, 0ms);
+  animation-fill-mode: backwards;
+}
+
+
+/* Only effects that chain extra keyframes (flip, blur, reveal, pop, bounce, ...)
+   pay for the 3 additional animations. All others (fade, slide, zoom, rotate)
+   run just emerge-in: 1 animation per element instead of 4. */
+[data-emerge]:is(
+  [data-emerge*="flip-"], [data-emerge*="blur"], [data-emerge*="reveal-"],
+  [data-emerge~="pop"], [data-emerge~="pop-in"], [data-emerge~="pop-out"],
+  [data-emerge~="bounce"], [data-emerge~="swing"], [data-emerge~="rubber"], [data-emerge~="jello"],
+  [data-emerge~="tada"], [data-emerge~="pulse"], [data-emerge~="heartbeat"],
+  [data-emerge~="skew-left"], [data-emerge~="skew-right"]
+).emerge-animate:not(.emerge-follow, .emerge-draw-path) {
+  animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip);
+}
+
+
+@keyframes emerge-in {
+  from {
+    opacity: var(--emerge-from-opacity);
+    translate: var(--emerge-from-translate);
+    rotate: var(--emerge-from-rotate);
+    scale: var(--emerge-from-scale);
+  }
+}
+@keyframes emerge-flip  { from { transform: var(--emerge-from-transform); } to { transform: var(--emerge-to-transform); } }
+@keyframes emerge-blur  { from { filter: var(--emerge-from-filter); } }
+@keyframes emerge-clip  { from { clip-path: var(--emerge-from-clip); } to { clip-path: inset(0); } }
+@keyframes emerge-none  { }
+
+
+/* ==========================================================================
+   5. Range — scroll-linked ("follow") mode
+   JS pauses the animation and scrubs it with a negative animation-delay
+   across --emerge-clock (default 1000ms).
+   ========================================================================== */
+.emerge-follow {
+  animation-duration: var(--emerge-clock, 1000ms);
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+  transition: none;
+}
+[data-emerge].emerge-follow {
+  animation-name: emerge-in;
+}
+[data-emerge]:is(
+  [data-emerge*="flip-"], [data-emerge*="blur"], [data-emerge*="reveal-"],
+  [data-emerge~="pop"], [data-emerge~="pop-in"], [data-emerge~="pop-out"],
+  [data-emerge~="bounce"], [data-emerge~="swing"], [data-emerge~="rubber"], [data-emerge~="jello"],
+  [data-emerge~="tada"], [data-emerge~="pulse"], [data-emerge~="heartbeat"],
+  [data-emerge~="skew-left"], [data-emerge~="skew-right"]
+).emerge-follow {
+  animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip);
+}
+
+
+/* ==========================================================================
+   6. Text — split chars / words / lines
+   ========================================================================== */
+.emerge-split { font-kerning: normal; }
+.emerge-word  { display: inline-block; white-space: nowrap; }
+.emerge-part  { display: inline-block; }
+.emerge-char  { display: inline-block; white-space: pre; }
+.emerge-line  { display: block; }
+
+
+/* ==========================================================================
+   7. Draw — SVG stroke drawing
+   JS sets --emerge-draw-length / --emerge-draw-offset / --emerge-delay.
+   Inside <defs> masks the vars may not inherit, so fallbacks are provided.
+   ========================================================================== */
+svg.emerge-draw { overflow: visible; }
+
+
+.emerge-draw-path {
+  stroke-dasharray: var(--emerge-draw-length);
+  stroke-dashoffset: var(--emerge-draw-offset, var(--emerge-draw-length));
+  transition: stroke-dashoffset var(--emerge-duration, 1200ms) var(--emerge-easing, ease) var(--emerge-delay, 0ms);
+}
+.emerge-draw-path.emerge-animate { stroke-dashoffset: 0; }
+
+
+/* Scroll-linked: JS writes stroke-dashoffset inline each frame */
+.emerge-draw-follow { transition: none; }
+
+
+/* ==========================================================================
+   8. Horizontal — pinned vertical-scroll → horizontal-track
+   JS sets the spacer height, sticky position and track transform.
+   Note: no ancestor of the pinned element may use overflow: hidden/auto
+   (use overflow: clip instead) or sticky will not work.
+   ========================================================================== */
+.emerge-horizontal-space { position: relative; }
+
+
+.emerge-horizontal {
+  position: relative; /* JS overrides with sticky when pinned */
+  height: var(--emerge-horizontal-height, 100vh);
+  height: var(--emerge-horizontal-height, 100dvh);
+  overflow: hidden;
+}
+.emerge-horizontal-track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--emerge-horizontal-gap, 0);
+  width: max-content;
+  height: 100%;
+  padding-inline: var(--emerge-horizontal-padding, 0);
+  will-change: transform;
+}
+.emerge-horizontal-item {
+  flex: 0 0 auto;
+  width: var(--emerge-horizontal-item-width, auto);
+  max-width: none;
+}
+
+
+/* ==========================================================================
+   9. Media — scroll-scrubbed <video> / <canvas> frame sequences
+   ========================================================================== */
+.emerge-media { display: block; }
+canvas.emerge-media { width: 100%; height: 100%; }
+video.emerge-media { max-width: 100%; }
+video.emerge-media:not([controls]) { pointer-events: none; }
+
+
+/* ==========================================================================
+   10. Stack — pinned panels that swap while scrolling
+   Panel transition = data-emerge-stack-transition:
+   fade (default) | slide-up | slide-down | slide-left | slide-right |
+   zoom / zoom-in | zoom-out | blur | flip
+   Tokens: --emerge-stack-duration, --emerge-stack-easing, --emerge-stack-shift
+   ========================================================================== */
+.emerge-stack-space { position: relative; }
+
+
+.emerge-stack {
+  position: relative; /* JS overrides with sticky */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+
+.emerge-stack-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition-property: opacity, transform;
-  transition-duration: var(--emerge-duration, 400ms);
-  transition-timing-function: var(--emerge-easing, ease);
-  transition-delay: 0s; /* delay só entra em jogo ao revelar, ver abaixo */
+  transition:
+    opacity    var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    translate  var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    scale      var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    rotate     var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    filter     var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    visibility var(--emerge-stack-duration, .6s) linear;
 }
-
-[data-emerge].emerge-animate {
+.emerge-stack-item.emerge-active {
+  opacity: 1;
+  visibility: visible;
   pointer-events: auto;
-  transition-delay: var(--emerge-delay, 0s);
 }
 
-/* ------------------------------------------------------------------ */
-/* Presets de animação                                                 */
-/* ------------------------------------------------------------------ */
-@media screen {
-  html:not(.no-js) [data-emerge^='fade'] {
-    opacity: 0;
-    transition-property: opacity, transform;
-  }
-  html:not(.no-js) [data-emerge^='fade'].emerge-animate {
-    opacity: 1;
-    transform: none;
-  }
-  html:not(.no-js) [data-emerge='fade-up'] { transform: translate3d(0, 100px, 0); }
-  html:not(.no-js) [data-emerge='fade-down'] { transform: translate3d(0, -100px, 0); }
-  html:not(.no-js) [data-emerge='fade-right'] { transform: translate3d(-100px, 0, 0); }
-  html:not(.no-js) [data-emerge='fade-left'] { transform: translate3d(100px, 0, 0); }
-  html:not(.no-js) [data-emerge='fade-up-right'] { transform: translate3d(-100px, 100px, 0); }
-  html:not(.no-js) [data-emerge='fade-up-left'] { transform: translate3d(100px, 100px, 0); }
-  html:not(.no-js) [data-emerge='fade-down-right'] { transform: translate3d(-100px, -100px, 0); }
-  html:not(.no-js) [data-emerge='fade-down-left'] { transform: translate3d(100px, -100px, 0); }
 
-  html:not(.no-js) [data-emerge^='zoom'] {
-    opacity: 0;
-    transition-property: opacity, transform;
-  }
-  html:not(.no-js) [data-emerge^='zoom'].emerge-animate {
-    opacity: 1;
-    transform: translateZ(0) scale(1);
-  }
-  html:not(.no-js) [data-emerge='zoom-in'] { transform: scale(0.6); }
-  html:not(.no-js) [data-emerge='zoom-in-up'] { transform: translate3d(0, 100px, 0) scale(0.6); }
-  html:not(.no-js) [data-emerge='zoom-in-down'] { transform: translate3d(0, -100px, 0) scale(0.6); }
-  html:not(.no-js) [data-emerge='zoom-in-right'] { transform: translate3d(-100px, 0, 0) scale(0.6); }
-  html:not(.no-js) [data-emerge='zoom-in-left'] { transform: translate3d(100px, 0, 0) scale(0.6); }
-  html:not(.no-js) [data-emerge='zoom-out'] { transform: scale(1.2); }
-  html:not(.no-js) [data-emerge='zoom-out-up'] { transform: translate3d(0, 100px, 0) scale(1.2); }
-  html:not(.no-js) [data-emerge='zoom-out-down'] { transform: translate3d(0, -100px, 0) scale(1.2); }
-  html:not(.no-js) [data-emerge='zoom-out-right'] { transform: translate3d(-100px, 0, 0) scale(1.2); }
-  html:not(.no-js) [data-emerge='zoom-out-left'] { transform: translate3d(100px, 0, 0) scale(1.2); }
+/* Off-screen panels sit before/after the active one (--emerge-stack-i vs --emerge-stack-index) */
+.emerge-stack-item.slide-up:not(.emerge-active)    { translate: 0 calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%)); }
+.emerge-stack-item.slide-down:not(.emerge-active)  { translate: 0 calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%) * -1); }
+.emerge-stack-item.slide-left:not(.emerge-active)  { translate: calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%)) 0; }
+.emerge-stack-item.slide-right:not(.emerge-active) { translate: calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%) * -1) 0; }
+.emerge-stack-item.zoom:not(.emerge-active),
+.emerge-stack-item.zoom-in:not(.emerge-active)     { scale: .92; }
+.emerge-stack-item.zoom-out:not(.emerge-active)    { scale: 1.08; }
+.emerge-stack-item.blur:not(.emerge-active)        { filter: blur(var(--emerge-stack-blur, 12px)); }
+.emerge-stack-item.flip:not(.emerge-active)        { rotate: x calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * -25deg); }
 
-  html:not(.no-js) [data-emerge^='slide'] {
-    visibility: hidden;
-    transition-property: transform;
-  }
-  html:not(.no-js) [data-emerge^='slide'].emerge-animate {
-    visibility: visible;
-    transform: translateZ(0);
-  }
-  html:not(.no-js) [data-emerge='slide-up'] { transform: translate3d(0, 100%, 0); }
-  html:not(.no-js) [data-emerge='slide-down'] { transform: translate3d(0, -100%, 0); }
-  html:not(.no-js) [data-emerge='slide-right'] { transform: translate3d(-100%, 0, 0); }
-  html:not(.no-js) [data-emerge='slide-left'] { transform: translate3d(100%, 0, 0); }
 
-  html:not(.no-js) [data-emerge^='flip'] {
-    backface-visibility: hidden;
-    transition-property: transform;
+/* Scrub mode: JS drives opacity inline, so no transitions / transforms */
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item {
+  transition: none;
+  translate: none;
+  scale: none;
+  rotate: none;
+  filter: none;
+}
+
+
+/* ==========================================================================
+   11. Print — always show everything
+   ========================================================================== */
+@media print {
+  [data-emerge]:is(.emerge-init, .emerge-part) {
+    opacity: 1 !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+    animation: none !important;
   }
-  html:not(.no-js) [data-emerge='flip-left'] { transform: perspective(2500px) rotateY(-100deg); }
-  html:not(.no-js) [data-emerge='flip-left'].emerge-animate { transform: perspective(2500px) rotateY(0); }
-  html:not(.no-js) [data-emerge='flip-right'] { transform: perspective(2500px) rotateY(100deg); }
-  html:not(.no-js) [data-emerge='flip-right'].emerge-animate { transform: perspective(2500px) rotateY(0); }
-  html:not(.no-js) [data-emerge='flip-up'] { transform: perspective(2500px) rotateX(-100deg); }
-  html:not(.no-js) [data-emerge='flip-up'].emerge-animate { transform: perspective(2500px) rotateX(0); }
-  html:not(.no-js) [data-emerge='flip-down'] { transform: perspective(2500px) rotateX(100deg); }
-  html:not(.no-js) [data-emerge='flip-down'].emerge-animate { transform: perspective(2500px) rotateX(0); }
+}
+
+
+/* ==========================================================================
+   12. Counter - stable digit width while counting
+   ========================================================================== */
+[data-emerge-counter] { font-variant-numeric: tabular-nums; }
+
+
+/* ==========================================================================
+   13. Reduced motion - JS adds .emerge-reduced to <html> when it skips
+   animation (respectReducedMotion), so everything stays visible.
+   ========================================================================== */
+:root.emerge-reduced [data-emerge],
+:root.emerge-reduced .emerge-part {
+  opacity: 1 !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  transform: none !important;
+  filter: none !important;
+  clip-path: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+
+/* ==========================================================================
+   14. EXTRAS — Pop (scale with overshoot)
+   ========================================================================== */
+[data-emerge~="pop"] {
+  --emerge-a-transform: emerge-pop;
+  backface-visibility: hidden;
+}
+[data-emerge~="pop-in"] {
+  --emerge-a-transform: emerge-pop;
+  --emerge-from-scale: var(--emerge-zoom-in);
+  backface-visibility: hidden;
+}
+[data-emerge~="pop-out"] {
+  --emerge-a-transform: emerge-pop-out;
+  --emerge-from-scale: var(--emerge-zoom-out);
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   15. EXTRAS — Bounce / Swing / Rubber / Jello
+   ========================================================================== */
+[data-emerge~="bounce"] {
+  --emerge-a-transform: emerge-bounce;
+  --emerge-from-translate: 0 calc(var(--emerge-bounce-height) * -3);
+  --emerge-from-opacity: 0;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="swing"] {
+  --emerge-a-transform: emerge-swing;
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="rubber"] {
+  --emerge-a-transform: emerge-rubber;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="jello"] {
+  --emerge-a-transform: emerge-jello;
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   16. EXTRAS — Attention effects (tada, pulse, heartbeat)
+   ========================================================================== */
+[data-emerge~="tada"] {
+  --emerge-a-transform: emerge-tada;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="pulse"] {
+  --emerge-a-transform: emerge-pulse;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="heartbeat"] {
+  --emerge-a-transform: emerge-heartbeat;
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   17. EXTRAS — Geometric reveal (circle, diamond)
+   ========================================================================== */
+[data-emerge*="reveal-circle"] {
+  --emerge-a-clip: emerge-clip-circle;
+  --emerge-from-opacity: 1;
+  --emerge-from-clip: circle(0% at 50% 50%);
+}
+
+[data-emerge*="reveal-diamond"] {
+  --emerge-a-clip: emerge-clip-diamond;
+  --emerge-from-opacity: 1;
+  --emerge-from-clip: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+}
+
+
+/* ==========================================================================
+   18. EXTRAS — Skew (diagonal entry)
+   ========================================================================== */
+[data-emerge~="skew-left"] {
+  --emerge-from-transform: skewX(calc(var(--emerge-skew) * -1));
+  --emerge-a-transform: emerge-skew;
+  backface-visibility: hidden;
+}
+[data-emerge~="skew-right"] {
+  --emerge-from-transform: skewX(var(--emerge-skew));
+  --emerge-a-transform: emerge-skew;
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   19. EXTRAS — Squeeze & Stretch (scale distortion)
+   ========================================================================== */
+[data-emerge~="squeeze"] {
+  --emerge-from-scale: var(--emerge-squeeze-x) 1;
+}
+
+[data-emerge~="stretch"] {
+  --emerge-from-scale: 1 var(--emerge-stretch-y);
+}
+
+
+/* ==========================================================================
+   20. EXTRAS — Hidden (pre-animation) state for new effects
+   Applies only once JS has initialised the element (.emerge-init) so
+   content stays visible without JS / with reduced motion.
+   ========================================================================== */
+[data-emerge~="bounce"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  translate: var(--emerge-from-translate);
+  opacity: var(--emerge-from-opacity);
+}
+
+[data-emerge~="skew-left"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]),
+[data-emerge~="skew-right"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  transform: var(--emerge-from-transform);
+}
+
+[data-emerge*="reveal-circle"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]),
+[data-emerge*="reveal-diamond"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  clip-path: var(--emerge-from-clip);
+  opacity: var(--emerge-from-opacity);
+}
+
+
+/* ==========================================================================
+   21. EXTRAS — Keyframes for new effects
+   These are referenced via --emerge-a-transform / --emerge-a-clip variables,
+   so they are automatically chained with the core `emerge-in` keyframe.
+   ========================================================================== */
+
+/* ---- Pop — grows with overshoot and settles ---- */
+@keyframes emerge-pop {
+  0%   { scale: 0; opacity: 0; }
+  50%  { scale: var(--emerge-pop-overshoot); opacity: 1; }
+  70%  { scale: .92; }
+  100% { scale: 1;   opacity: 1; }
+}
+@keyframes emerge-pop-out {
+  0%   { scale: var(--emerge-zoom-out); opacity: 1; }
+  100% { scale: 1;                      opacity: 1; }
+}
+
+
+/* ---- Bounce — drop with gravity and rebound ---- */
+@keyframes emerge-bounce {
+  0%   { translate: 0 calc(var(--emerge-bounce-height) * -3); opacity: 0; }
+  40%  { translate: 0 0;                                       opacity: 1; }
+  60%  { translate: 0 calc(var(--emerge-bounce-height) * -1); }
+  75%  { translate: 0 0; }
+  87%  { translate: 0 calc(var(--emerge-bounce-height) * -.4); }
+  100% { translate: 0 0; }
+}
+
+
+/* ---- Swing — pendulum oscillation ---- */
+@keyframes emerge-swing {
+  0%   { rotate: 0deg;                            opacity: 0; }
+  20%  { rotate: var(--emerge-swing-angle);       opacity: 1; }
+  40%  { rotate: calc(var(--emerge-swing-angle) * -0.5); }
+  60%  { rotate: calc(var(--emerge-swing-angle) * 0.3); }
+  80%  { rotate: calc(var(--emerge-swing-angle) * -0.15); }
+  100% { rotate: 0deg; }
+}
+
+
+/* ---- Rubber — stretch & squash cycle ---- */
+@keyframes emerge-rubber {
+  0%   { scale: 1 1;                                                              opacity: 0; }
+  30%  { scale: var(--emerge-rubber-x) var(--emerge-rubber-y);                    opacity: 1; }
+  40%  { scale: calc(2 - var(--emerge-rubber-x)) calc(2 - var(--emerge-rubber-y)); }
+  50%  { scale: var(--emerge-rubber-x) var(--emerge-rubber-y); }
+  65%  { scale: .96 1.04; }
+  75%  { scale: 1.03 .97; }
+  100% { scale: 1 1; }
+}
+
+
+/* ---- Jello — skew oscillation ---- */
+@keyframes emerge-jello {
+  0%, 100% { transform: skewX(0deg) skewY(0deg); }
+  11.1%    { transform: skewX(calc(var(--emerge-jello-skew) * -1)) skewY(calc(var(--emerge-jello-skew) * -1)); }
+  22.2%    { transform: skewX(var(--emerge-jello-skew))             skewY(var(--emerge-jello-skew)); }
+  33.3%    { transform: skewX(calc(var(--emerge-jello-skew) * -0.66)) skewY(calc(var(--emerge-jello-skew) * -0.66)); }
+  44.4%    { transform: skewX(calc(var(--emerge-jello-skew) * 0.44))  skewY(calc(var(--emerge-jello-skew) * 0.44)); }
+  55.5%    { transform: skewX(calc(var(--emerge-jello-skew) * -0.3))  skewY(calc(var(--emerge-jello-skew) * -0.3)); }
+  66.6%    { transform: skewX(calc(var(--emerge-jello-skew) * 0.2))   skewY(calc(var(--emerge-jello-skew) * 0.2)); }
+  77.7%    { transform: skewX(calc(var(--emerge-jello-skew) * -0.13)) skewY(calc(var(--emerge-jello-skew) * -0.13)); }
+  88.8%    { transform: skewX(calc(var(--emerge-jello-skew) * 0.08))  skewY(calc(var(--emerge-jello-skew) * 0.08)); }
+}
+
+
+/* ---- Tada — scale + rotation attention grabber ---- */
+@keyframes emerge-tada {
+  0%   { scale: 1;   rotate: 0deg;  opacity: 0; }
+  10%  { scale: .9;  rotate: -3deg; opacity: 1; }
+  20%  { scale: .9;  rotate: -3deg; }
+  30%  { scale: 1.1; rotate: 3deg; }
+  40%  { scale: 1.1; rotate: -3deg; }
+  50%  { scale: 1.1; rotate: 3deg; }
+  60%  { scale: 1.1; rotate: -3deg; }
+  70%  { scale: 1.1; rotate: 3deg; }
+  80%  { scale: 1.1; rotate: -3deg; }
+  90%  { scale: 1.1; rotate: 3deg; }
+  100% { scale: 1;   rotate: 0deg; }
+}
+
+
+/* ---- Pulse — smooth scale pulse ---- */
+@keyframes emerge-pulse {
+  0%   { scale: 1;    opacity: 0; }
+  50%  { scale: 1.08; opacity: 1; }
+  100% { scale: 1;    opacity: 1; }
+}
+
+
+/* ---- Heartbeat — double-beat rhythm ---- */
+@keyframes emerge-heartbeat {
+  0%   { scale: 1;   opacity: 0; }
+  14%  { scale: 1.2; opacity: 1; }
+  28%  { scale: 1; }
+  42%  { scale: 1.2; }
+  70%  { scale: 1; }
+  100% { scale: 1; }
+}
+
+
+/* ---- Skew — skew entry resolves to identity ---- */
+@keyframes emerge-skew {
+  from { transform: var(--emerge-from-transform); }
+  to   { transform: skewX(0deg); }
+}
+
+
+/* ---- Geometric reveals ---- */
+@keyframes emerge-clip-circle {
+  from { clip-path: circle(0% at 50% 50%); }
+  to   { clip-path: circle(150% at 50% 50%); }
+}
+@keyframes emerge-clip-diamond {
+  from { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); }
+  to   { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+}
+
+
+/* ==========================================================================
+   22. EXTRAS — Reduced motion overrides for new effects
+   JS adds .emerge-reduced to <html>, so new animations also stay visible
+   and skip motion for accessibility.
+   ========================================================================== */
+:root.emerge-reduced [data-emerge~="pop"],
+:root.emerge-reduced [data-emerge~="pop-in"],
+:root.emerge-reduced [data-emerge~="pop-out"],
+:root.emerge-reduced [data-emerge~="bounce"],
+:root.emerge-reduced [data-emerge~="swing"],
+:root.emerge-reduced [data-emerge~="rubber"],
+:root.emerge-reduced [data-emerge~="jello"],
+:root.emerge-reduced [data-emerge~="tada"],
+:root.emerge-reduced [data-emerge~="pulse"],
+:root.emerge-reduced [data-emerge~="heartbeat"],
+:root.emerge-reduced [data-emerge~="skew-left"],
+:root.emerge-reduced [data-emerge~="skew-right"],
+:root.emerge-reduced [data-emerge~="squeeze"],
+:root.emerge-reduced [data-emerge~="stretch"],
+:root.emerge-reduced [data-emerge*="reveal-circle"],
+:root.emerge-reduced [data-emerge*="reveal-diamond"] {
+  opacity: 1 !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  transform: none !important;
+  clip-path: none !important;
+  animation: none !important;
+}
+
+
+/* ==========================================================================
+   Emerge Spotlight
+   ========================================================================== */
+/* A circular / elliptical spot that follows the pointer. Choose the mode with
+   data-emerge-spotlight="reveal | flashlight | focus" (see the plugin docs
+   for every data-emerge-spotlight-* option).
+
+     reveal      [data-emerge-spotlight-layer] elements are visible only inside
+                 the spot (CSS mask). Content underneath shows everywhere else.
+     flashlight  A dark ::after overlay covers the host; the spot cuts it out.
+     focus       Same overlay, plus a backdrop blur: the content outside the
+                 spot is blurred and dimmed, the spot stays sharp.
+
+   JS only writes the custom properties below on the host; every visual is CSS.
+   Without JS (or when the Core skips initialisation, e.g. reduced motion) none
+   of the classes exist, so nothing is hidden: layers simply stay in the flow.
+
+   Custom properties written by JS on the host element (per instance):
+     --emerge-spotlight-x / -y     spot centre, px from the host's top-left
+     --emerge-spotlight-size       spot radius: "100px" (circle) or
+                                   "100px 60px" (ellipse); animates 0 -> radius
+     --emerge-spotlight-shape      circle | ellipse
+     --emerge-spotlight-inner      where the soft edge starts, % of the radius
+     --emerge-spotlight-c0 / -c1   mask colours at the centre / outside
+                                   (swapped by data-emerge-spotlight-reverse)
+     --emerge-spotlight-strength   0..1 overlay opacity (flashlight / focus)
+     --emerge-spotlight-dim        overlay darkness, % of --emerge-spotlight-color
+     --emerge-spotlight-color      overlay colour (data-emerge-spotlight-color)
+     --emerge-spotlight-blur       backdrop blur radius (focus)
+     --emerge-spotlight-shape-img  SVG mask image of the shape (every shape but
+                                   circle / ellipse, data-emerge-spotlight-shape)
+     --emerge-spotlight-tw / -th   width / height of that mask tile, px
+                                   (shape="fluid": the shape-img is redrawn
+                                   every frame and covers the whole host)
+
+   Reveal framing — data-emerge-spotlight-fit="cover | contain" (default cover):
+   the base media and every layer share ONE frame (the host box) and ONE
+   object-fit / object-position, so they always line up, whatever their natural
+   size or aspect ratio. Proportions are never distorted. Written by JS on the
+   host as --emerge-spotlight-fit only when the option is set.
+
+   Custom properties you may override in your own CSS:
+     --emerge-spotlight-z              z-index of the overlay        (default 1)
+     --emerge-spotlight-layer-fit      object-fit of the reveal media (default cover)
+     --emerge-spotlight-layer-position object-position of the reveal media (default 50% 50%)
+
+   Classes: .emerge-spotlight (host), .emerge-spotlight-reveal | -flashlight |
+   -focus (mode), .emerge-spotlight-ellipse, .emerge-spotlight-reverse,
+   .emerge-spotlight-blurred, .emerge-spotlight-active (spot currently shown),
+   .emerge-spotlight-layer (reveal layer), .emerge-spotlight-shaped (shape other
+   than circle / ellipse), .emerge-spotlight-fluid (shape="fluid"),
+   .emerge-spotlight-outside (shaped, effect outside the
+   spot), .emerge-spotlight-touch-track |
+   -pan-y | -pan-x | -scroll (touch mode, see data-emerge-spotlight-touch),
+   .emerge-spotlight-touching (a finger / pen is down on the host). */
+
+/* Host: positioning context for the layer / overlay. :where() keeps the
+   specificity at zero so your own position / isolation rules always win. */
+:where(.emerge-spotlight) {
+  position: relative;
+  isolation: isolate;
+}
+
+:where(.emerge-spotlight-reveal) {
+  padding: 0;
+}
+
+.emerge-spotlight {
+  --emerge-spotlight-mask: radial-gradient(
+    var(--emerge-spotlight-shape, circle) var(--emerge-spotlight-size, .01px)
+      at var(--emerge-spotlight-x, 50%) var(--emerge-spotlight-y, 50%),
+    var(--emerge-spotlight-c0, #000) 0%,
+    var(--emerge-spotlight-c0, #000) var(--emerge-spotlight-inner, 70%),
+    var(--emerge-spotlight-c1, transparent) 100%
+  );
+}
+
+.emerge-spotlight-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: var(--emerge-spotlight-fit, var(--emerge-spotlight-layer-fit, cover));
+  object-position: var(--emerge-spotlight-layer-position, 50% 50%);
+  pointer-events: none;
+  -webkit-mask-image: var(--emerge-spotlight-mask);
+          mask-image: var(--emerge-spotlight-mask);
+}
+
+.emerge-spotlight-reveal > :where(img, video, canvas, picture):not(.emerge-spotlight-layer) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: var(--emerge-spotlight-fit, var(--emerge-spotlight-layer-fit, cover));
+  object-position: var(--emerge-spotlight-layer-position, 50% 50%);
+}
+
+.emerge-spotlight-layer > img,
+.emerge-spotlight-reveal > picture:not(.emerge-spotlight-layer) > img {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: var(--emerge-spotlight-fit, var(--emerge-spotlight-layer-fit, cover));
+  object-position: var(--emerge-spotlight-layer-position, 50% 50%);
+}
+
+.emerge-spotlight-flashlight::after,
+.emerge-spotlight-focus::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: var(--emerge-spotlight-z, 1);
+  pointer-events: none;
+  background: color-mix(in srgb, var(--emerge-spotlight-color, #000) var(--emerge-spotlight-dim, 85%), transparent);
+  opacity: var(--emerge-spotlight-strength, 0);
+  -webkit-mask-image: var(--emerge-spotlight-mask);
+          mask-image: var(--emerge-spotlight-mask);
+}
+
+.emerge-spotlight-blurred::after {
+  -webkit-backdrop-filter: blur(var(--emerge-spotlight-blur, 0px));
+          backdrop-filter: blur(var(--emerge-spotlight-blur, 0px));
+}
+
+.emerge-spotlight-shaped .emerge-spotlight-layer,
+.emerge-spotlight-shaped.emerge-spotlight-flashlight::after,
+.emerge-spotlight-shaped.emerge-spotlight-focus::after {
+  -webkit-mask-image: var(--emerge-spotlight-shape-img);
+          mask-image: var(--emerge-spotlight-shape-img);
+  -webkit-mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px);
+          mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px);
+  -webkit-mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2);
+          mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+}
+
+.emerge-spotlight-shaped.emerge-spotlight-outside .emerge-spotlight-layer,
+.emerge-spotlight-shaped.emerge-spotlight-outside.emerge-spotlight-flashlight::after,
+.emerge-spotlight-shaped.emerge-spotlight-outside.emerge-spotlight-focus::after {
+  -webkit-mask-image: var(--emerge-spotlight-shape-img), linear-gradient(#000, #000);
+          mask-image: var(--emerge-spotlight-shape-img), linear-gradient(#000, #000);
+  -webkit-mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px), 100% 100%;
+          mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px), 100% 100%;
+  -webkit-mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2),
+    0 0;
+          mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2),
+    0 0;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+          mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+
+.emerge-spotlight-fluid .emerge-spotlight-layer,
+.emerge-spotlight-fluid.emerge-spotlight-flashlight::after,
+.emerge-spotlight-fluid.emerge-spotlight-focus::after {
+  -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
+  -webkit-mask-position: 0 0;
+          mask-position: 0 0;
+}
+.emerge-spotlight-fluid.emerge-spotlight-outside .emerge-spotlight-layer,
+.emerge-spotlight-fluid.emerge-spotlight-outside.emerge-spotlight-flashlight::after,
+.emerge-spotlight-fluid.emerge-spotlight-outside.emerge-spotlight-focus::after {
+  -webkit-mask-size: 100% 100%, 100% 100%;
+          mask-size: 100% 100%, 100% 100%;
+  -webkit-mask-position: 0 0, 0 0;
+          mask-position: 0 0, 0 0;
+}
+
+:where(.emerge-spotlight-touch-track) {
+  touch-action: none;
+  touch-action: pinch-zoom;
+}
+:where(.emerge-spotlight-touch-pan-y) {
+  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
+}
+:where(.emerge-spotlight-touch-pan-x) {
+  touch-action: pan-x;
+  touch-action: pan-x pinch-zoom;
+}
+
+.emerge-spotlight-touching {
+  -webkit-user-select: none;
+          user-select: none;
+  -webkit-touch-callout: none;
+}
+.emerge-spotlight-touching :is(input, textarea, select, [contenteditable]) {
+  -webkit-user-select: text;
+          user-select: text;
+}
+
+.emerge-spotlight-reveal :where(img, picture, video, canvas, svg),
+.emerge-spotlight-touching :where(img, picture, video, canvas, svg) {
+  -webkit-user-drag: none;
+}
+
+@supports not ((-webkit-mask-image: none) or (mask-image: none)) {
+  .emerge-spotlight-layer {
+    clip-path: circle(var(--emerge-spotlight-size, .01px) at var(--emerge-spotlight-x, 50%) var(--emerge-spotlight-y, 50%));
+  }
+  .emerge-spotlight-ellipse .emerge-spotlight-layer {
+    clip-path: ellipse(var(--emerge-spotlight-size, .01px) at var(--emerge-spotlight-x, 50%) var(--emerge-spotlight-y, 50%));
+  }
+  .emerge-spotlight-reverse .emerge-spotlight-layer {
+    display: none;
+  }
+  .emerge-spotlight-flashlight::after,
+  .emerge-spotlight-focus::after {
+    display: none;
+  }
+}
+
+
+/* ---- Print — show the base content only ---- */
+@media print {
+  .emerge-spotlight-layer,
+  .emerge-spotlight-flashlight::after,
+  .emerge-spotlight-focus::after {
+    display: none !important;
+  }
 }
