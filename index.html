@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emerge.js — Documentação</title>
-<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + plugins Range, Draw, Horizontal, Media, Stack, Text e Spotlight.">
+<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + plugins Range, Draw, Horizontal, Media, Stack, Text, Spotlight e Scene.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -613,6 +613,58 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
   border: 1px solid var(--border); border-radius: 99px; padding: 3px 10px;
 }
 
+/* ---------- Scene ---------- */
+.sc-head { position: sticky; top: var(--topbar-h); z-index: 20; background: var(--surface-2); }
+.sc-switch { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.sc-switch label {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--text-3);
+}
+.sc-switch select {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+  color: var(--accent); background: var(--surface);
+  border: 1px solid var(--border-2); border-radius: 8px; padding: 6px 10px; cursor: pointer;
+}
+.sc-cena {
+  height: 68svh; min-height: 420px;
+  display: grid; place-items: center; text-align: center;
+  border-radius: 16px; border: 1px solid var(--border);
+  background:
+    linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 100% 26px,
+    linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 26px 100%,
+    var(--surface-2);
+}
+.sc-content { display: grid; justify-items: center; gap: 8px; padding: 24px; }
+.sc-chip {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent-2); background: var(--accent-soft-2);
+  border: 1px solid var(--border); border-radius: 99px; padding: 3px 10px;
+}
+.sc-content b { font-size: clamp(19px, 2.4vw, 28px); letter-spacing: -.02em; }
+.sc-content small { font-size: 13px; color: var(--text-2); }
+.sc-painel {
+  display: grid; place-content: center; justify-items: center; gap: 10px;
+  text-align: center; padding: 28px; overflow: hidden;
+  background: linear-gradient(150deg, #1256b8, #0aa2c0); color: #fff;
+}
+.sc-painel .sc-tag {
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  color: #fff; background: rgba(4, 20, 44, .55);
+  border: 1px solid rgba(255, 255, 255, .28); border-radius: 99px; padding: 3px 10px;
+}
+.sc-painel p { margin: 0; font-size: 14px; opacity: .9; max-width: 46ch; }
+.sc-meter {
+  flex: 1 1 110px; min-width: 90px;
+  height: 10px; border-radius: 99px; overflow: hidden;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.sc-meter div {
+  height: 100%; width: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform: scaleX(0); transform-origin: 0 50%;
+}
+.sc-readout { white-space: nowrap; }
+
 /* ---------- Lista de passos ---------- */
 .steps { counter-reset: passo; margin: 18px 0; padding: 0; list-style: none; }
 .steps li {
@@ -693,7 +745,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <path d="M4 13h12" stroke="url(#lg-brand)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
       <path d="M4 20.5h7" stroke="url(#lg-brand)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
     </svg>
-    Emerge.js <span class="ver">v1.0.0</span>
+    Emerge.js <span class="ver">v1.4.0</span>
   </a>
   <nav class="topnav" aria-label="Atalhos">
     <a href="#efeitos">Efeitos</a>
@@ -750,6 +802,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <a class="sb-link" href="#stack"><span class="dot"></span>Stack</a>
         <a class="sb-link" href="#text"><span class="dot"></span>Text</a>
         <a class="sb-link" href="#spotlight"><span class="dot"></span>Spotlight</a>
+        <a class="sb-link" href="#scene"><span class="dot"></span>Scene <span class="tag">novo</span></a>
       </div>
       <div class="sb-group">
         <p class="sb-label">Referência</p>
@@ -767,17 +820,17 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
     <section class="hero">
       <div class="hero-copy">
         <div class="hero-badges" data-emerge="fade-up" data-emerge-delay="0">
-          <span class="badge">v1.0.0</span>
+          <span class="badge">v1.4.0</span>
           <span class="badge">zero dependências</span>
           <span class="badge">HTML declarativo</span>
-          <span class="badge">7 plugins</span>
+          <span class="badge">8 plugins</span>
         </div>
         <h1 data-emerge="fade-up" data-emerge-delay="80">Animações de scroll que <span class="grad">emergem</span> do HTML.</h1>
         <p class="hero-lead" data-emerge="fade-up" data-emerge-delay="160">
           Emerge.js anima qualquer elemento quando ele entra na viewport — e vai além com
           scroll-linked progress, desenho de SVG, seções horizontais, scrub de vídeo,
-          painéis empilhados, texto dividido e spotlight interativo. Tudo com atributos
-          <code>data-*</code>, sem build e sem dependências.
+          painéis empilhados, texto dividido, spotlight interativo e cenas de hero pinadas
+          (Scene). Tudo com atributos <code>data-*</code>, sem build e sem dependências.
         </p>
         <div class="hero-cta" data-emerge="fade-up" data-emerge-delay="240">
           <a class="btn btn-primary" href="#instalacao">Começar agora
@@ -866,6 +919,12 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <b>Spotlight interativo</b>
           <span>Um foco de luz que segue o cursor: revela camadas, escurece ou desfoca o que está fora dele.</span>
         </div>
+        <div class="feature-card" data-emerge="fade-up" data-emerge-delay="480">
+          <div class="fc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 14h18M12 14v6"/></svg></div>
+          <span class="fc-tag">Scene</span>
+          <b>Cenas pinadas</b>
+          <span>A hero prende na tela e o scroll revela um painel em oito presets: unfold, fold, bloom, zoom, slide, wheel, curtain e blur.</span>
+        </div>
       </div>
 
       <div class="callout tip">
@@ -897,7 +956,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr>
               <td><code>emerge.bundle.js</code></td>
               <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.bundle.js</a></td>
-              <td>Core + Range, Draw, Horizontal, Media, Stack, Text e Spotlight <strong>já registrados</strong> + auto-loader de CSS.</td>
+              <td>Core + Range, Draw, Horizontal, Media, Stack, Text, Spotlight e Scene <strong>já registrados</strong> + auto-loader de CSS.</td>
             </tr>
             <tr>
               <td><code>emerge.css</code></td>
@@ -910,8 +969,8 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 
       <h3 class="sub">Opção A — Bundle (recomendado)</h3>
       <p>
-        O bundle embute o núcleo e os sete plugins. Eles são <strong>registrados
-        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight])</code>
+        O bundle embute o núcleo e os oito plugins. Eles são <strong>registrados
+        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene])</code>
         — então <strong>você não precisa chamar <code>addPlugin</code> manualmente</strong> ao usar o bundle.
       </p>
 
@@ -943,7 +1002,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         Distribuído separadamente, cada plugin é apenas uma <em>fábrica</em> exposta como global
         (<code>EmergeRange</code>, <code>EmergeDraw</code>, <code>EmergeHorizontal</code>,
         <code>EmergeMedia</code>, <code>EmergeStack</code>, <code>EmergeText</code>,
-        <code>EmergeSpotlight</code>). Registrar é responsabilidade sua, com
+        <code>EmergeSpotlight</code>, <code>EmergeScene</code>). Registrar é responsabilidade sua, com
         <code>Emerge.addPlugin(...)</code> — e aqui vem a regra de ouro:
       </p>
 
@@ -954,7 +1013,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         </div>
         <p>
           O <strong>Range</strong> é o motor de scroll (progresso 0&nbsp;→&nbsp;1) que Draw,
-          Horizontal, Media e Text usam nos modos <em>follow</em> / <em>scrub</em>. Registre-o
+          Horizontal, Media, Text e Scene usam nos modos <em>follow</em> / <em>scrub</em>. Registre-o
           <strong class="em">antes de todos os outros</strong>; os demais podem vir em qualquer ordem depois dele.
         </p>
         <div class="code-block">
@@ -962,14 +1021,14 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
           </div>
 <pre><code><span class="tk-c">// ✅ CORRETO — Range primeiro, sempre</span>
-<span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>, Draw, Horizontal, Media, Stack, Text, Spotlight);
+<span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene);
 
 <span class="tk-c">// ✅ também vale — em chamadas separadas, mantendo a ordem</span>
 <span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>);
-<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight);
+<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene);
 
 <span class="tk-c">// ❌ ERRADO — Range por último quebra os modos follow/scrub</span>
-<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Range);</code></pre>
+<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Range);</code></pre>
         </div>
         <p style="margin-top:12px">💡 No <strong>bundle</strong> nada disso é necessário: a ordem correta já vem embutida.</p>
       </div>
@@ -985,6 +1044,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>EmergeStack</code></td><td>Stack</td><td>Painéis empilhados.</td></tr>
             <tr><td><code>EmergeText</code></td><td>Text</td><td>Divisão de texto (chars / words / lines).</td></tr>
             <tr><td><code>EmergeSpotlight</code></td><td>Spotlight</td><td>Spotlight que segue o ponteiro.</td></tr>
+            <tr><td><code>EmergeScene</code></td><td>Scene</td><td>Cenas de hero pinadas — 8 presets (unfold, fold, bloom, zoom, slide, wheel, curtain, blur).</td></tr>
           </tbody>
         </table>
       </div>
@@ -992,6 +1052,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <h3 class="sub">Requisitos</h3>
       <ul>
         <li>Navegadores modernos com <code>IntersectionObserver</code>, <code>CSS custom properties</code> e <code>Pointer Events</code> (Spotlight).</li>
+        <li>O plugin <strong>Scene</strong> usa <code>position: sticky</code> e unidades <code>svh</code> — e <strong>nenhum ancestral da cena</strong> pode ter <code>overflow: hidden/auto</code> enquanto o pin estiver ativo (use <code>overflow: clip</code>).</li>
         <li>A folha <code>emerge.css</code> é <strong>obrigatória</strong> — sem ela os efeitos não têm estado inicial nem keyframes.</li>
         <li>Chame <code>Emerge.init()</code> <strong>depois</strong> do DOM existir (fim do <code>&lt;body&gt;</code> ou <code>DOMContentLoaded</code>).</li>
         <li>A folha oficial inclui a regra <code>[data-emerge-counter]</code> (dígitos tabulares), mas o bundle atual <strong>não traz um plugin Counter</strong> — contadores podem ser feitos com o <code>onProgress</code> do <a href="#range">Range</a>.</li>
@@ -1380,6 +1441,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>emerge:stack:build</code> / <code>emerge:stack:change</code></td><td>Painéis do Stack montados / painel ativo trocado — <a href="#stack">ver Stack</a>.</td></tr>
             <tr><td><code>emerge:horizontal:build</code></td><td>Faixa horizontal montada — <a href="#horizontal">ver Horizontal</a>.</td></tr>
             <tr><td><code>emerge-media-ready</code> / <code>emerge-media-progress</code></td><td>Canvas de frames pronto / progresso de pré-load — <a href="#media">ver Media</a>.</td></tr>
+            <tr><td><code>emerge:scene:build</code> / <code>:progress</code> / <code>:enter</code> / <code>:leave</code></td><td>Ciclo de vida das cenas pinadas: construção, progresso 0–1 e entrada/saída do pin — <a href="#scene">ver Scene</a>.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1963,6 +2025,242 @@ sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<
       </p>
     </section>
 
+    <!-- ───────── PLUGIN: SCENE ───────── -->
+    <section class="section" id="scene">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin · cenas pinadas</p>
+        <h2 class="sec-title">Scene <a class="anchor" href="#scene">#</a></h2>
+        <p class="sec-lead">
+          A seção hero <strong>prende na tela</strong> (pin) e o scroll conduz um painel que
+          desdobra, encolhe, nasce pelo centro, gira ou desfoca até cobrir a cena — em
+          <strong>oito presets</strong> escolhidos num único atributo. O pin usa
+          <code>position: sticky</code> + espaçador e o progresso (0–1, suavizado) vem do
+          plugin <a href="#range">Range</a>, com um único rAF que dorme quando a cena assenta.
+        </p>
+      </div>
+
+      <h3 class="sub">Anatomia da marcação</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-t">&lt;section</span> <span class="tk-a">class</span>=<span class="tk-s">"hero"</span> <span class="tk-a">data-emerge-scene</span>=<span class="tk-s">"unfold"</span> <span class="tk-a">data-emerge-scene-distance</span>=<span class="tk-s">"1000"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-scene-content</span><span class="tk-t">&gt;</span>… conteúdo da hero (opcional) …<span class="tk-t">&lt;/div&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-scene-layer</span>=<span class="tk-s">"a"</span> <span class="tk-a">aria-hidden</span>=<span class="tk-s">"true"</span><span class="tk-t">&gt;&lt;/div&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-scene-layer</span>=<span class="tk-s">"b"</span> <span class="tk-a">aria-hidden</span>=<span class="tk-s">"true"</span><span class="tk-t">&gt;&lt;/div&gt;</span>   <span class="tk-c">&lt;!-- luzes: só o unfold --&gt;</span>
+
+  <span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-scene-panel</span><span class="tk-t">&gt;</span>            <span class="tk-c">&lt;!-- OBRIGATÓRIO · filho direto da cena --&gt;</span>
+    … cor, tipografia e conteúdo ficam no teu CSS …
+    <span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-scene-cover</span><span class="tk-t">&gt;&lt;/div&gt;</span>        <span class="tk-c">&lt;!-- opcional (unfold) --&gt;</span>
+  <span class="tk-t">&lt;/div&gt;</span>
+<span class="tk-t">&lt;/section&gt;</span>
+
+<span class="tk-c">&lt;!-- o preset é o valor do atributo — troque e pronto: --&gt;</span>
+<span class="tk-t">&lt;section</span> <span class="tk-a">data-emerge-scene</span>=<span class="tk-s">"bloom"</span><span class="tk-t">&gt;</span>…<span class="tk-t">&lt;/section&gt;</span></code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Elemento</th><th>Obrigatório</th><th>Papel na cena</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-scene</code></td><td>sim</td><td>Raiz da cena; o valor é o <strong>preset</strong> (default <code>unfold</code>).</td></tr>
+            <tr><td><code>-content</code></td><td>não</td><td>Conteúdo da hero — cede o lugar ao painel no início do scroll.</td></tr>
+            <tr><td><code>-layer="a"</code> / <code>-layer="b"</code></td><td>não</td><td>Camadas de luz do <code>unfold</code> (a <code>b</code> “pisca”: nasce e apaga).</td></tr>
+            <tr><td><code>-panel</code></td><td><strong>sim · filho direto</strong></td><td>O painel animado: opacity, transform, border-radius — e <code>clip-path</code>/<code>filter</code> no curtain/blur.</td></tr>
+            <tr><td><code>-cover</code></td><td>não</td><td>Cobertura do painel que some durante o <code>unfold</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Duas regras do pin</strong>
+          <p>O painel <code>[data-emerge-scene-panel]</code> deve ser <strong>filho direto</strong> da cena (a <code>perspective</code> só afeta filhos diretos) e <strong>nenhum ancestral</strong> da cena pode ter <code>overflow: hidden/auto</code> — use <code>overflow: clip</code> no <code>body</code>, como nesta página.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Demo · os oito presets ao vivo</h3>
+      <div class="demo-shell" id="sc-demo">
+        <div class="demo-head sc-head">
+          <span class="dh-title">Demo · cena pinada</span>
+          <div class="sc-meter"><div id="sc-fill"></div></div>
+          <span class="rd-readout sc-readout"><b id="sc-pct">0%</b></span>
+          <div class="sc-switch">
+            <label for="sc-preset">preset</label>
+            <select id="sc-preset" aria-label="Preset da cena">
+              <option value="unfold">unfold — desdobra em 3D</option>
+              <option value="fold">fold — encolhe até o centro</option>
+              <option value="bloom">bloom — nasce pelo centro</option>
+              <option value="zoom">zoom — entra grande e recua</option>
+              <option value="slide">slide — empurra pela direita</option>
+              <option value="wheel">wheel — gira em rotateY</option>
+              <option value="curtain">curtain — íris em clip-path</option>
+              <option value="blur">blur — desfocado e foca</option>
+            </select>
+          </div>
+        </div>
+        <div class="demo-body">
+          <section class="sc-cena" id="sc-cena" data-emerge-scene="unfold" data-emerge-scene-distance="900" data-emerge-scene-radius="1.5rem">
+            <div class="sc-content" data-emerge-scene-content>
+              <span class="sc-chip" id="sc-chip">data-emerge-scene="unfold"</span>
+              <b>Role — a cena fica pinada</b>
+              <small>O scroll alimenta o progresso de 0 a 100%.</small>
+            </div>
+            <div class="sc-painel" data-emerge-scene-panel>
+              <span class="sc-tag" id="sc-tag">unfold</span>
+              <p id="sc-desc">O painel nasce deitado em 3D e cresce até cobrir a cena.</p>
+            </div>
+          </section>
+          <p class="demo-hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            A barra e o seletor ficam <strong>fixos durante o pin</strong> — troque o preset mesmo no meio da cena: ela é reconstruída na hora (<code>Emerge.Scene.destroy</code> + <code>build</code>).
+          </p>
+        </div>
+      </div>
+
+      <h3 class="sub">Os oito presets</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Preset</th><th>O painel…</th><th>Diferencial</th></tr></thead>
+          <tbody>
+            <tr><td><code>unfold</code></td><td>nasce <strong>deitado em 3D</strong> (<code>rotateX 90°</code>, escala <code>.44</code>, <code>translateY 27.7%</code>) e desdobra até cobrir</td><td>O original: usa content, camadas de luz e cover.</td></tr>
+            <tr><td><code>fold</code></td><td>já cobre a cena e <strong>encolhe até um cartão centrado</strong> — com <code>scale 0</code>, encolhe até <strong>desaparecer por inteiro</strong></td><td>Opaco; <code>-scale-y</code> independente (cartão “retrato”).</td></tr>
+            <tr><td><code>bloom</code></td><td><strong>nasce pelo centro</strong>, pequeno e transparente, e cresce até cobrir</td><td>Sem translate/tilt por default — pura escala.</td></tr>
+            <tr><td><code>zoom</code></td><td>entra <strong>grande demais</strong> (<code>scale 1.6</code>) e recua ao tamanho natural (dolly-out)</td><td>O content ganha <code>scale</code> — sensação de profundidade.</td></tr>
+            <tr><td><code>slide</code></td><td><strong>empurra pela direita</strong> (<code>translateX 100% → 0</code>), opaco e plano</td><td><code>-offset</code> ≠ 0 transforma no empurrão diagonal.</td></tr>
+            <tr><td><code>wheel</code></td><td><strong>gira</strong> em <code>rotateY</code> (<code>spin 90° → 0</code>) e pequeno (<code>scale .7</code>)</td><td>Perspectiva no centro; opção <code>-spin</code>.</td></tr>
+            <tr><td><code>curtain</code></td><td>é revelado por uma <strong>íris</strong>: <code>clip-path circle()</code> abre do centro</td><td>Sem movimento — só o raio cresce; origin = centro do círculo.</td></tr>
+            <tr><td><code>blur</code></td><td>entra <strong>desfocado</strong> (<code>blur 24px</code>) e ligeiramente maior, e “foca” ao rolar</td><td>Opção <code>-blur</code>; o content desfoca ao sair.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Sequência clássica: fold (scale 0) → bloom</strong>
+          <p>Uma cena <code>fold</code> com <code>data-emerge-scene-scale="0"</code> encolhe a página até <strong>desaparecer no centro</strong>; a cena <code>bloom</code> seguinte faz a próxima div renascer de lá — saída e entrada emendadas sem corte.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Opções (atributos <code>data-emerge-scene-*</code>)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atributo</th><th>Default</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-scene</code></td><td><code>unfold</code></td><td>Preset: <code>unfold · fold · bloom · zoom · slide · wheel · curtain · blur</code>.</td></tr>
+            <tr><td><code>-distance</code></td><td><code>1000</code></td><td>Px de scroll durante o pin.</td></tr>
+            <tr><td><code>-perspective</code></td><td><code>3000</code></td><td>Perspectiva 3D (px).</td></tr>
+            <tr><td><code>-origin</code></td><td><code>50% 78%</code></td><td>Ponto de fuga (<code>perspective-origin</code>). Wheel/curtain: próprio <code>50% 50%</code> — no curtain é o centro da íris.</td></tr>
+            <tr><td><code>-tilt</code></td><td><code>90</code> / <code>0</code></td><td><code>rotateX</code> do painel (graus). Unfold: inicial. Fold: final. Restantes: inicial (<code>0</code>).</td></tr>
+            <tr><td><code>-scale</code></td><td><code>.44</code></td><td>Escala do painel. Unfold: <code>scaleX</code> inicial. Fold: final (<code>0</code> = desaparece). Bloom <code>.44</code> · zoom <code>1.6</code> · slide <code>1</code> · wheel <code>0.7</code> · curtain <code>1</code> · blur <code>1.12</code>.</td></tr>
+            <tr><td><code>-scale-y</code></td><td>segue <code>-scale</code></td><td>Escala vertical independente (fold: final; restantes: inicial).</td></tr>
+            <tr><td><code>-offset</code></td><td><code>27.7%</code> / <code>0</code></td><td><code>translateY</code> em % da altura do painel. Unfold: inicial. Fold: final. Restantes: inicial (<code>0</code>).</td></tr>
+            <tr><td><code>-radius</code></td><td><code>5vw</code> / <code>2rem</code></td><td><code>border-radius</code> do painel (unfold: inicial → 0; fold: final; restantes: inicial → 0).</td></tr>
+            <tr><td><code>-spin</code></td><td><code>90</code> no wheel</td><td><strong>Novo</strong> — só no <code>wheel</code>: ângulo <code>rotateY</code> inicial.</td></tr>
+            <tr><td><code>-blur</code></td><td><code>24</code> no blur</td><td><strong>Novo</strong> — só no <code>blur</code>: raio do desfoque em px (<code>0</code> desliga).</td></tr>
+            <tr><td><code>-smooth</code></td><td><code>2</code></td><td>Suavizado do scrub, em segundos (<code>0</code> = ligado direto ao scroll).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Prioridade: <strong>atributo &gt; token CSS &gt; opção de <code>init</code> &gt; default</strong>.
+        Como <code>tilt</code>/<code>scale</code>/<code>offset</code>/<code>radius</code> mudam de papel em cada preset,
+        <strong>só o <code>unfold</code> lê os tokens <code>:root</code></strong> — nos demais a personalização é por
+        atributo. <code>distance</code> e <code>smooth</code> não têm token.
+      </p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">css + js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-k">:root</span> {
+  <span class="tk-a">--emerge-scene-perspective</span>: <span class="tk-n">3000px</span>;
+  <span class="tk-a">--emerge-scene-origin</span>: <span class="tk-n">50% 78%</span>;    <span class="tk-c">/* ponto de fuga baixo (unfold) */</span>
+  <span class="tk-a">--emerge-scene-tilt</span>: <span class="tk-n">90deg</span>;
+  <span class="tk-a">--emerge-scene-scale</span>: <span class="tk-n">.44</span>;         <span class="tk-c">/* só o unfold lê estes tokens */</span>
+  <span class="tk-a">--emerge-scene-offset</span>: <span class="tk-n">27.7%</span>;
+  <span class="tk-a">--emerge-scene-radius</span>: <span class="tk-n">5vw</span>;
+}
+
+<span class="tk-c">/* mobile do original: o painel nasce mais largo */</span>
+<span class="tk-k">@media</span> <span class="tk-t">(max-width: 768px)</span> { <span class="tk-k">:root</span> { <span class="tk-a">--emerge-scene-scale</span>: <span class="tk-n">.7</span>; } }
+
+<span class="tk-c">// opções globais no init (tokens são relidos a cada measure — overrides em @media funcionam)</span>
+<span class="tk-f">Emerge.init</span>({
+  sceneDistance: <span class="tk-n">1000</span>, sceneSmooth: <span class="tk-n">2</span>,
+  scenePerspective: <span class="tk-n">3000</span>, sceneOrigin: <span class="tk-s">"50% 78%"</span>,
+  sceneTilt: <span class="tk-n">90</span>, sceneScale: <span class="tk-n">0.44</span>, sceneOffset: <span class="tk-n">27.7</span>, sceneRadius: <span class="tk-s">"5vw"</span>
+});</code></pre>
+      </div>
+
+      <h3 class="sub">Eventos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Evento (no <code>document</code>)</th><th><code>detail</code></th><th>Quando</th></tr></thead>
+          <tbody>
+            <tr><td><code>emerge:scene:build</code></td><td><code>{ el, panel, spacer, static }</code></td><td>Cena construída (pin ou variante estática).</td></tr>
+            <tr><td><code>emerge:scene:progress</code></td><td><code>{ el, progress }</code></td><td>O progresso pintado mudou (0–1, já suavizado).</td></tr>
+            <tr><td><code>emerge:scene:enter</code> / <code>:leave</code></td><td><code>{ el, direction }</code></td><td>O pin começou / terminou (<code>1</code> descendo, <code>-1</code> subindo).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">js + css</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">// barra de progresso + vídeo liga-desliga com o pin</span>
+document.<span class="tk-f">addEventListener</span>(<span class="tk-s">"emerge:scene:progress"</span>, ({ detail }) <span class="tk-k">=&gt;</span> {
+  barra.style.transform = <span class="tk-s">`scaleX(${detail.progress})`</span>;
+});
+document.<span class="tk-f">addEventListener</span>(<span class="tk-s">"emerge:scene:enter"</span>, ({ detail }) <span class="tk-k">=&gt;</span> {
+  <span class="tk-k">if</span> (detail.direction &gt; <span class="tk-n">0</span>) detail.el.<span class="tk-f">querySelector</span>(<span class="tk-s">"video"</span>)?.<span class="tk-f">play</span>();
+});
+
+<span class="tk-c">/* CSS puro: o progresso também é publicado na raiz da cena */</span>
+<span class="tk-k">.hero</span> <span class="tk-t">.vinheta</span> { <span class="tk-a">opacity</span>: <span class="tk-f">calc</span>(<span class="tk-n">1</span> - <span class="tk-f">var</span>(<span class="tk-a">--emerge-scene-progress</span>, <span class="tk-n">0</span>)); }</code></pre>
+      </div>
+
+      <h3 class="sub">API JavaScript</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-f">Emerge.Scene.build</span>(el);     <span class="tk-c">// constrói a cena (idempotente; elemento ou seletor)</span>
+<span class="tk-f">Emerge.Scene.destroy</span>(el);   <span class="tk-c">// remove pin, classes e estilos inline — tudo volta ao natural</span>
+<span class="tk-f">Emerge.Scene.destroyAll</span>();
+<span class="tk-f">Emerge.Scene.scan</span>();        <span class="tk-c">// apanha cenas inseridas depois do load (ou Emerge.refresh())</span>
+<span class="tk-f">Emerge.Scene.measure</span>();     <span class="tk-c">// relê tokens/atributos, reconstrói steps + espaçador</span>
+<span class="tk-f">Emerge.Scene.of</span>(el);        <span class="tk-c">// instância da cena ou null</span>
+Emerge.Scene.all;            <span class="tk-c">// array de instâncias</span>
+
+<span class="tk-c">// trocar o preset em runtime (igual ao seletor da demo acima):</span>
+el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"</span>, <span class="tk-s">"bloom"</span>);
+<span class="tk-f">Emerge.Scene.destroy</span>(el); <span class="tk-f">Emerge.Scene.build</span>(el);  <span class="tk-c">// ou Emerge.refreshHard()</span></code></pre>
+      </div>
+
+      <h3 class="sub">Desativação &amp; acessibilidade</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Recurso</th><th>Exemplo</th><th>Efeito</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-scene-disable</code></td><td><code>true</code> · <code>mobile</code> · <code>tablet</code> · <code>phone</code> · <code>desktop</code></td><td>Desliga a cena em geral ou por tipo de dispositivo.</td></tr>
+            <tr><td><code>-disable-mobile</code> / <code>-tablet</code> / <code>-phone</code> / <code>-desktop</code></td><td><code>data-emerge-scene-disable-mobile</code></td><td>Interruptores individuais por dispositivo.</td></tr>
+            <tr><td><code>data-emerge-scene-disable-size</code></td><td><code>"max@768,min@1024"</code></td><td>Breakpoints (px) em que a cena fica desligada.</td></tr>
+            <tr><td><code>prefers-reduced-motion</code> · impressão</td><td>—</td><td>Modo estático (<code>.emerge-scene-static</code>): sem pin e sem 3D, painel plano em fluxo normal, <code>border-radius: 0</code>, cobertura invisível — nada fica escondido.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Sem JS, nenhuma classe existe e a cena é conteúdo comum. O <code>resize</code> só re-mede
+        tudo quando a <strong>largura</strong> muda (a altura da barra de endereço mobile é absorvida
+        pelo <code>100svh</code>); <code>data-emerge-debug</code> na cena liga avisos
+        <code>[Emerge Scene]</code> no console e as guias de <code>from/to</code> do Range.
+        No bundle o Scene já vem registrado depois do Range — na instalação individual,
+        registre-o <strong>após o Range</strong>.
+      </p>
+    </section>
+
     <!-- ───────── API COMPLETA ───────── -->
     <section class="section" id="api">
       <div class="sec-head" data-emerge="fade-up">
@@ -1981,10 +2279,10 @@ sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<
             <tr><td><code>Emerge.addPlugin(...p)</code></td><td>Emerge</td><td>Registra plugin(s) — <strong>Range sempre primeiro</strong> (<a href="#instalacao">ver instalação</a>).</td></tr>
             <tr><td><code>Emerge.getPlugin(name)</code></td><td>plugin | undefined</td><td>Recupera um plugin registrado pelo nome.</td></tr>
             <tr><td><code>Emerge.plugins</code></td><td>string[]</td><td>Nomes dos plugins ativos, na ordem de registro.</td></tr>
-            <tr><td><code>Emerge.version</code></td><td>"1.0.0"</td><td>Versão da biblioteca.</td></tr>
+            <tr><td><code>Emerge.version</code></td><td>"1.4.0"</td><td>Versão da biblioteca.</td></tr>
             <tr><td><code>Emerge.options</code> / <code>Emerge.defaults</code></td><td>object</td><td>Opções ativas / padrões (inclui os defaults dos plugins).</td></tr>
             <tr><td><code>Emerge.core</code></td><td>object</td><td>Utilitários internos expostos para autores de plugins.</td></tr>
-            <tr><td><code>Emerge.Range</code> … <code>Emerge.Spotlight</code></td><td>object</td><td>APIs dos plugins — documentadas em cada <a href="#range">seção</a>.</td></tr>
+            <tr><td><code>Emerge.Range</code> … <code>Emerge.Scene</code></td><td>object</td><td>APIs dos plugins — documentadas em cada <a href="#range">seção</a>.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2058,6 +2356,7 @@ sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<
             <tr><td>Dispositivos / larguras</td><td><code>disable: "mobile"</code> global e <code>data-emerge-*-disable-*</code> por elemento (com <code>-size "min@1024px"</code> ou <code>"max@768px"</code>).</td></tr>
             <tr><td>Performance</td><td>Os efeitos animam <code>opacity</code>, <code>translate</code>, <code>scale</code>, <code>rotate</code> e <code>filter</code> — propriedades de composição, sem <em>layout thrashing</em>.</td></tr>
             <tr><td>Texto dividido (Text)</td><td>O original vira <code>aria-label</code>; as partes são <code>aria-hidden</code> — leitores de tela leem a frase inteira.</td></tr>
+            <tr><td>Cenas pinadas (Scene)</td><td>Desligada por atributo/breakpoint ou com <em>reduced motion</em>, a cena entra em modo estático: sem pin, painel plano em fluxo normal, tudo visível — e <code>@media print</code> imprime o conteúdo.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2067,7 +2366,7 @@ sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<
     <footer class="foot">
       <div>
         <b style="color:var(--text-2)">Emerge.js — documentação</b><br>
-        Esta página é animada pela própria biblioteca · <span class="mono">v1.0.0</span>
+        Esta página é animada pela própria biblioteca · <span class="mono">v1.4.0</span>
       </div>
       <div style="text-align:right">
         <a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">emerge.bundle.js</a> ·
@@ -2079,7 +2378,7 @@ sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<
   </main>
 </div>
 
-<!-- ═══════════ Emerge.js — bundle oficial (core + 7 plugins, já registrados) ═══════════ -->
+<!-- ═══════════ Emerge.js — bundle oficial (core + 8 plugins, já registrados) ═══════════ -->
 <script defer src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js"></script>
 
 <script>
@@ -2133,10 +2432,49 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ───────── 3. Inicializa o Emerge ───────── */
+  /* ───────── 3. Demo do Scene: seletor de preset + barra de progresso ───────── */
+  var scCena = document.getElementById("sc-cena");
+  if (window.Emerge && Emerge.Scene && scCena) {
+    var scFill = document.getElementById("sc-fill"),
+        scPct  = document.getElementById("sc-pct"),
+        scTag  = document.getElementById("sc-tag"),
+        scChip = document.getElementById("sc-chip"),
+        scDesc = document.getElementById("sc-desc");
+
+    document.addEventListener("emerge:scene:progress", function (e) {
+      if (e.detail.el !== scCena) return;
+      if (scFill) scFill.style.transform = "scaleX(" + e.detail.progress + ")";
+      if (scPct) scPct.textContent = Math.round(e.detail.progress * 100) + "%";
+    });
+
+    var SC_INFO = {
+      unfold:  "O painel nasce deitado em 3D e cresce até cobrir a cena.",
+      fold:    "O painel começa cobrindo tudo e encolhe até um cartão centrado.",
+      bloom:   "A página seguinte não vem de baixo — nasce pelo centro e cresce.",
+      zoom:    "O painel entra grande demais e recua ao tamanho natural.",
+      slide:   "O painel empurra pela direita até cobrir a cena.",
+      wheel:   "O painel gira em rotateY e cresce até assentar.",
+      curtain: "Uma íris em clip-path abre o painel do centro.",
+      blur:    "O painel entra desfocado e foca conforme você rola."
+    };
+    var scSel = document.getElementById("sc-preset");
+    if (scSel) scSel.addEventListener("change", function () {
+      var p = scSel.value;
+      scCena.setAttribute("data-emerge-scene", p);
+      Emerge.Scene.destroy(scCena);
+      Emerge.Scene.build(scCena);
+      if (scTag) scTag.textContent = p;
+      if (scChip) scChip.textContent = 'data-emerge-scene="' + p + '"';
+      if (scDesc) scDesc.textContent = SC_INFO[p] || "";
+      if (scFill) scFill.style.transform = "scaleX(0)";
+      if (scPct) scPct.textContent = "0%";
+    });
+  }
+
+  /* ───────── 4. Inicializa o Emerge ───────── */
   if (window.Emerge) Emerge.init({});
 
-  /* ───────── 4. Replay das demos ───────── */
+  /* ───────── 5. Replay das demos ───────── */
   function replay(scope) {
     var els = Array.prototype.slice.call(scope.querySelectorAll(".emerge-animate"));
     if (!els.length) return;
@@ -2157,7 +2495,7 @@ window.addEventListener("DOMContentLoaded", function () {
   var heroDemo = document.querySelector(".hero-demo");
   if (heroDemo) setInterval(function () { replay(heroDemo); }, 5000);
 
-  /* ───────── 5. Copiar código ───────── */
+  /* ───────── 6. Copiar código ───────── */
   document.querySelectorAll(".copy-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var code = btn.closest(".code-block").querySelector("pre code");
@@ -2183,7 +2521,7 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  /* ───────── 6. Scroll-spy da sidebar ───────── */
+  /* ───────── 7. Scroll-spy da sidebar ───────── */
   var links = Array.prototype.slice.call(document.querySelectorAll(".sb-link"));
   var byId = {};
   links.forEach(function (l) { byId[l.getAttribute("href").slice(1)] = l; });
@@ -2191,7 +2529,7 @@ window.addEventListener("DOMContentLoaded", function () {
     .map(function (id) { return document.getElementById(id); })
     .filter(Boolean);
   function spy() {
-    var y = window.scrollY + 140, cur = secs.length ? secs[0].id : null;
+    var y = window.scrollY + 176, cur = secs.length ? secs[0].id : null;
     secs.forEach(function (s) { if (s.offsetTop <= y) cur = s.id; });
     links.forEach(function (l) { l.classList.toggle("active", l === byId[cur]); });
   }
