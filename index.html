@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emerge.js — Documentação</title>
-<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + plugins Range, Draw, Horizontal, Media, Stack, Text, Spotlight e Scene.">
+<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 11 plugins: Range, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax e Particles.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -579,6 +579,18 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 .tx-demo { font-size: clamp(24px, 3.4vw, 38px); letter-spacing: -.02em; margin: 0 0 18px; }
 .tx-demo + .tx-demo { color: var(--text-2); }
 
+
+/* Magnetic / Parallax / Particles — demos */
+.mg-demo { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: center; padding: 36px 12px; }
+.mg-card { padding: 22px 26px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border-2); display: flex; flex-direction: column; gap: 6px; }
+.mg-card b { color: var(--text); } .mg-card span { color: var(--text-2); font-size: 13px; }
+.pl-demo { position: relative; height: 260px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-2); background: var(--surface-2); }
+.pl-blob { position: absolute; border-radius: 50%; }
+.pl-a { width: 120px; height: 120px; left: 12%; top: 40%; background: radial-gradient(circle, var(--accent), transparent 70%); }
+.pl-b { width: 80px; height: 80px; left: 48%; top: 25%; background: radial-gradient(circle, var(--accent-2), transparent 70%); }
+.pl-c { width: 60px; height: 60px; left: 78%; top: 50%; border-radius: 12px; background: var(--accent); opacity: .7; }
+.pt-demo { font-size: clamp(56px, 11vw, 120px); font-weight: 800; letter-spacing: -.03em; margin: 0; text-align: center; line-height: 1.1; padding: 10px 0; }
+
 /* Spotlight */
 .sp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
 .sp-card {
@@ -745,7 +757,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <path d="M4 13h12" stroke="url(#lg-brand)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
       <path d="M4 20.5h7" stroke="url(#lg-brand)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
     </svg>
-    Emerge.js <span class="ver">v1.4.0</span>
+    Emerge.js <span class="ver">v1.7.2</span>
   </a>
   <nav class="topnav" aria-label="Atalhos">
     <a href="#efeitos">Efeitos</a>
@@ -802,7 +814,10 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <a class="sb-link" href="#stack"><span class="dot"></span>Stack</a>
         <a class="sb-link" href="#text"><span class="dot"></span>Text</a>
         <a class="sb-link" href="#spotlight"><span class="dot"></span>Spotlight</a>
-        <a class="sb-link" href="#scene"><span class="dot"></span>Scene <span class="tag">novo</span></a>
+        <a class="sb-link" href="#scene"><span class="dot"></span>Scene</a>
+        <a class="sb-link" href="#magnetic"><span class="dot"></span>Magnetic <span class="tag">novo</span></a>
+        <a class="sb-link" href="#parallax"><span class="dot"></span>Parallax <span class="tag">novo</span></a>
+        <a class="sb-link" href="#particles"><span class="dot"></span>Particles <span class="tag">novo</span></a>
       </div>
       <div class="sb-group">
         <p class="sb-label">Referência</p>
@@ -820,17 +835,17 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
     <section class="hero">
       <div class="hero-copy">
         <div class="hero-badges" data-emerge="fade-up" data-emerge-delay="0">
-          <span class="badge">v1.4.0</span>
+          <span class="badge">v1.7.2</span>
           <span class="badge">zero dependências</span>
           <span class="badge">HTML declarativo</span>
-          <span class="badge">8 plugins</span>
+          <span class="badge">11 plugins</span>
         </div>
         <h1 data-emerge="fade-up" data-emerge-delay="80">Animações de scroll que <span class="grad">emergem</span> do HTML.</h1>
         <p class="hero-lead" data-emerge="fade-up" data-emerge-delay="160">
           Emerge.js anima qualquer elemento quando ele entra na viewport — e vai além com
           scroll-linked progress, desenho de SVG, seções horizontais, scrub de vídeo,
-          painéis empilhados, texto dividido, spotlight interativo e cenas de hero pinadas
-          (Scene). Tudo com atributos <code>data-*</code>, sem build e sem dependências.
+          painéis empilhados, texto dividido, spotlight interativo, cenas de hero pinadas
+          (Scene), elementos magnéticos, parallax e texto em partículas. Tudo com atributos <code>data-*</code>, sem build e sem dependências.
         </p>
         <div class="hero-cta" data-emerge="fade-up" data-emerge-delay="240">
           <a class="btn btn-primary" href="#instalacao">Começar agora
@@ -925,6 +940,24 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <b>Cenas pinadas</b>
           <span>A hero prende na tela e o scroll revela um painel em oito presets: unfold, fold, bloom, zoom, slide, wheel, curtain e blur.</span>
         </div>
+        <div class="feature-card" data-emerge="fade-up" data-emerge-delay="540">
+          <div class="fc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+          <span class="fc-tag">Magnetic</span>
+          <b>Elementos magnéticos</b>
+          <span>Botões e cards que são puxados pelo cursor, com tilt 3D opcional.</span>
+        </div>
+        <div class="feature-card" data-emerge="fade-up" data-emerge-delay="600">
+          <div class="fc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+          <span class="fc-tag">Parallax</span>
+          <b>Parallax por scroll</b>
+          <span>Velocidade, eixos, rotate/scale/opacity e camadas internas, sobre o motor do Range.</span>
+        </div>
+        <div class="feature-card" data-emerge="fade-up" data-emerge-delay="660">
+          <div class="fc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+          <span class="fc-tag">Particles</span>
+          <b>Texto em partículas</b>
+          <span>O texto vira nuvem de partículas em canvas: repel, attract ou swirl ao ponteiro.</span>
+        </div>
       </div>
 
       <div class="callout tip">
@@ -956,7 +989,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr>
               <td><code>emerge.bundle.js</code></td>
               <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.bundle.js</a></td>
-              <td>Core + Range, Draw, Horizontal, Media, Stack, Text, Spotlight e Scene <strong>já registrados</strong> + auto-loader de CSS.</td>
+              <td>Core + os 11 plugins (Range, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax e Particles) <strong>já registrados</strong> + auto-loader de CSS.</td>
             </tr>
             <tr>
               <td><code>emerge.css</code></td>
@@ -969,8 +1002,8 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 
       <h3 class="sub">Opção A — Bundle (recomendado)</h3>
       <p>
-        O bundle embute o núcleo e os oito plugins. Eles são <strong>registrados
-        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene])</code>
+        O bundle embute o núcleo e os onze plugins. Eles são <strong>registrados
+        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles])</code>
         — então <strong>você não precisa chamar <code>addPlugin</code> manualmente</strong> ao usar o bundle.
       </p>
 
@@ -1002,7 +1035,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         Distribuído separadamente, cada plugin é apenas uma <em>fábrica</em> exposta como global
         (<code>EmergeRange</code>, <code>EmergeDraw</code>, <code>EmergeHorizontal</code>,
         <code>EmergeMedia</code>, <code>EmergeStack</code>, <code>EmergeText</code>,
-        <code>EmergeSpotlight</code>, <code>EmergeScene</code>). Registrar é responsabilidade sua, com
+        <code>EmergeSpotlight</code>, <code>EmergeScene</code>, <code>EmergeMagnetic</code>, <code>EmergeParallax</code>, <code>EmergeParticles</code>). Registrar é responsabilidade sua, com
         <code>Emerge.addPlugin(...)</code> — e aqui vem a regra de ouro:
       </p>
 
@@ -1013,7 +1046,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         </div>
         <p>
           O <strong>Range</strong> é o motor de scroll (progresso 0&nbsp;→&nbsp;1) que Draw,
-          Horizontal, Media, Text e Scene usam nos modos <em>follow</em> / <em>scrub</em>. Registre-o
+          Horizontal, Media, Text, Scene e Parallax usam nos modos <em>follow</em> / <em>scrub</em>. Registre-o
           <strong class="em">antes de todos os outros</strong>; os demais podem vir em qualquer ordem depois dele.
         </p>
         <div class="code-block">
@@ -1021,14 +1054,14 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
           </div>
 <pre><code><span class="tk-c">// ✅ CORRETO — Range primeiro, sempre</span>
-<span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene);
+<span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax, Particles);
 
 <span class="tk-c">// ✅ também vale — em chamadas separadas, mantendo a ordem</span>
 <span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>);
-<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene);
+<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax, Particles);
 
 <span class="tk-c">// ❌ ERRADO — Range por último quebra os modos follow/scrub</span>
-<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Range);</code></pre>
+<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Range);</code></pre>
         </div>
         <p style="margin-top:12px">💡 No <strong>bundle</strong> nada disso é necessário: a ordem correta já vem embutida.</p>
       </div>
@@ -1045,13 +1078,16 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>EmergeText</code></td><td>Text</td><td>Divisão de texto (chars / words / lines).</td></tr>
             <tr><td><code>EmergeSpotlight</code></td><td>Spotlight</td><td>Spotlight que segue o ponteiro.</td></tr>
             <tr><td><code>EmergeScene</code></td><td>Scene</td><td>Cenas de hero pinadas — 8 presets (unfold, fold, bloom, zoom, slide, wheel, curtain, blur).</td></tr>
+            <tr><td><code>EmergeMagnetic</code></td><td>Magnetic</td><td>Elementos atraídos pelo ponteiro, com tilt 3D opcional.</td></tr>
+            <tr><td><code>EmergeParallax</code></td><td>Parallax</td><td>Deslocamento por scroll, com camadas e rotate/scale/opacity (usa o Range).</td></tr>
+            <tr><td><code>EmergeParticles</code></td><td>Particles</td><td>Texto reconstruído em canvas como partículas que reagem ao ponteiro.</td></tr>
           </tbody>
         </table>
       </div>
 
       <h3 class="sub">Requisitos</h3>
       <ul>
-        <li>Navegadores modernos com <code>IntersectionObserver</code>, <code>CSS custom properties</code> e <code>Pointer Events</code> (Spotlight).</li>
+        <li>Navegadores modernos com <code>IntersectionObserver</code>, <code>CSS custom properties</code> e <code>Pointer Events</code> (Spotlight, Magnetic, Particles). Magnetic exige suporte às propriedades individuais <code>translate</code>/<code>rotate</code>/<code>scale</code>; Particles usa <code>&lt;canvas&gt;</code>.</li>
         <li>O plugin <strong>Scene</strong> usa <code>position: sticky</code> e unidades <code>svh</code> — e <strong>nenhum ancestral da cena</strong> pode ter <code>overflow: hidden/auto</code> enquanto o pin estiver ativo (use <code>overflow: clip</code>).</li>
         <li>A folha <code>emerge.css</code> é <strong>obrigatória</strong> — sem ela os efeitos não têm estado inicial nem keyframes.</li>
         <li>Chame <code>Emerge.init()</code> <strong>depois</strong> do DOM existir (fim do <code>&lt;body&gt;</code> ou <code>DOMContentLoaded</code>).</li>
@@ -1339,7 +1375,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <h3 class="sub">Desabilitando por dispositivo ou largura</h3>
       <p>
         Cada "feature" (core, <code>range</code>, <code>draw</code>, <code>horizontal</code>,
-        <code>media</code>, <code>stack</code>, <code>split</code>, <code>spotlight</code>) aceita
+        <code>media</code>, <code>stack</code>, <code>split</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>particles</code>) aceita
         desativadores individuais — úteis para poupar bateria em telas pequenas:
       </p>
       <div class="code-block">
@@ -1441,6 +1477,9 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>emerge:stack:build</code> / <code>emerge:stack:change</code></td><td>Painéis do Stack montados / painel ativo trocado — <a href="#stack">ver Stack</a>.</td></tr>
             <tr><td><code>emerge:horizontal:build</code></td><td>Faixa horizontal montada — <a href="#horizontal">ver Horizontal</a>.</td></tr>
             <tr><td><code>emerge-media-ready</code> / <code>emerge-media-progress</code></td><td>Canvas de frames pronto / progresso de pré-load — <a href="#media">ver Media</a>.</td></tr>
+            <tr><td><code>emerge:magnetic:build</code> / <code>:engage</code> / <code>:release</code> / <code>:destroy</code></td><td>Ciclo de vida do Magnetic — <a href="#magnetic">ver Magnetic</a>.</td></tr>
+            <tr><td><code>emerge:parallax:build</code> / <code>:destroy</code></td><td>Parallax ligado / desmontado — <a href="#parallax">ver Parallax</a>.</td></tr>
+            <tr><td><code>emerge:particles:build</code> / <code>:destroy</code> / <code>:settle</code></td><td>Partículas montadas, removidas ou estabilizadas — <a href="#particles">ver Particles</a>.</td></tr>
             <tr><td><code>emerge:scene:build</code> / <code>:progress</code> / <code>:enter</code> / <code>:leave</code></td><td>Ciclo de vida das cenas pinadas: construção, progresso 0–1 e entrada/saída do pin — <a href="#scene">ver Scene</a>.</td></tr>
           </tbody>
         </table>
@@ -1852,7 +1891,7 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
             <tr><td><code>data-emerge-stack</code></td><td>—</td><td>Ativa no contêiner (mínimo 2 filhos; exclua com <code>data-emerge-stack-exclude</code>).</td></tr>
             <tr><td><code>data-emerge-stack-step</code></td><td><code>100</code></td><td>vh de scroll por troca de painel.</td></tr>
             <tr><td><code>data-emerge-stack-transition</code></td><td><code>fade</code></td><td><code>fade · slide-up · slide-down · slide-left · slide-right · zoom · zoom-in · zoom-out · blur · flip</code></td></tr>
-            <tr><td><code>data-emerge-stack-scrub</code></td><td>—</td><td>Cancela as transições e faz crossfade contínuo ligado ao scroll (opacity inline).</td></tr>
+            <tr><td><code>data-emerge-stack-scrub</code></td><td>—</td><td>Liga a transição escolhida ao scroll (scrub): o progresso fica em <code>--emerge-stack-p</code> e a direção em <code>--emerge-stack-dir</code>.</td></tr>
             <tr><td><code>data-emerge-stack-sticky</code></td><td><code>true</code></td><td><code>"false"</code> desativa o pin.</td></tr>
             <tr><td><code>data-emerge-stack-top</code></td><td><code>"0px"</code></td><td>Offset do sticky (ex.: altura da topbar).</td></tr>
           </tbody>
@@ -1947,7 +1986,7 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
         <p class="sec-kicker">Plugin</p>
         <h2 class="sec-title">Spotlight <a class="anchor" href="#spotlight">#</a></h2>
         <p class="sec-lead">
-          Um foco de luz elíptico ou circular que segue o ponteiro. Três modos:
+          Um foco de luz que segue o ponteiro, com 11 formas (círculo, elipse, estrela, coração, fluido…). Três modos:
           <strong>reveal</strong> mostra a camada superior apenas dentro do foco,
           <strong>flashlight</strong> escurece o que está fora e <strong>focus</strong> desfoca e
           escurece o entorno. Visual 100% em CSS (máscaras radiais); o JS só escreve as
@@ -1983,10 +2022,12 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
             <tr><td><code>-radius</code></td><td><code>100</code></td><td>Raio do foco (px).</td></tr>
             <tr><td><code>-softness</code></td><td><code>30</code></td><td>Tamanho da borda suave (0–raio).</td></tr>
             <tr><td><code>-easing</code></td><td><code>0.2</code></td><td>Inércia do seguimento (0–1).</td></tr>
-            <tr><td><code>-shape</code></td><td><code>circle</code></td><td><code>circle</code> ou <code>ellipse</code> (use <code>-ratio</code> para achatamento).</td></tr>
+            <tr><td><code>-shape</code></td><td><code>circle</code></td><td><code>circle · ellipse · square · rect · rounded · diamond · hexagon · triangle · star · heart · fluid</code> (<code>-ratio</code> achata elipse/rect/rounded).</td></tr>
             <tr><td><code>-ratio</code></td><td><code>0.6</code></td><td>Proporção altura/largura da elipse.</td></tr>
             <tr><td><code>-trigger</code></td><td><code>pointer</code></td><td><code>pointer · hover · manual</code> (manual = controle só via API).</td></tr>
             <tr><td><code>-touch</code></td><td><code>track</code></td><td><code>track · pan-y · pan-x · scroll · off</code> — como o gesto divide o controle com a rolagem.</td></tr>
+            <tr><td><code>-move</code> · <code>-move-x</code> · <code>-move-y</code></td><td>—</td><td>Faz o conteúdo se deslocar com o ponteiro (parallax interno); <code>-move-intensity</code> controla a força.</td></tr>
+            <tr><td><code>-trail</code> · <code>-swirl</code> · <code>-wobble</code></td><td><code>1.2 · 1 · 1</code></td><td>Só na forma <code>fluid</code>: rastro, giro e ondulação da mancha.</td></tr>
             <tr><td><code>-reverse</code></td><td><code>false</code></td><td>Inverte: o efeito fica <em>fora</em> do foco.</td></tr>
             <tr><td><code>-persist</code></td><td><code>false</code></td><td>Mantém o efeito ativo mesmo sem o ponteiro.</td></tr>
             <tr><td><code>-fit</code></td><td><code>cover</code></td><td>No reveal, ajuste da mídia e camadas no quadro: <code>cover · contain</code>.</td></tr>
@@ -2011,6 +2052,7 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
 <span class="tk-k">const</span> sp = <span class="tk-f">Emerge.Spotlight.create</span>(<span class="tk-s">"#hero"</span>, {
   mode: <span class="tk-s">"flashlight"</span>, radius: <span class="tk-n">160</span>, trigger: <span class="tk-s">"manual"</span>
 });
+<span class="tk-c">// também: Emerge.Spotlight.get / refresh / destroyAll / all</span>
 sp.<span class="tk-f">update</span>(<span class="tk-s">"50%"</span>, <span class="tk-s">"40%"</span>); <span class="tk-c">// posição central (px ou %)</span>
 sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<span class="tk-f">setOptions</span>({ radius: <span class="tk-n">220</span> });
 <span class="tk-f">Emerge.Spotlight.destroy</span>(<span class="tk-s">"#hero"</span>);</code></pre>
@@ -2018,7 +2060,7 @@ sp.<span class="tk-f">show</span>();  sp.<span class="tk-f">hide</span>();  sp.<
       <p>
         <strong>Opções globais</strong> no <code>Emerge.init()</code>: <code>spotlightRadius</code>,
         <code>spotlightSoftness</code>, <code>spotlightEasing</code>, <code>spotlightShape</code>,
-        <code>spotlightRatio</code>, <code>spotlightTrigger</code>, <code>spotlightTouch</code>,
+        <code>spotlightRatio</code>, <code>spotlightMove</code>, <code>spotlightMoveIntensity</code>, <code>spotlightTrail</code>, <code>spotlightSwirl</code>, <code>spotlightWobble</code>, <code>spotlightTrigger</code>, <code>spotlightTouch</code>,
         <code>spotlightReverse</code>, <code>spotlightPersist</code>, <code>spotlightFit</code>,
         <code>spotlightOpacity</code>, <code>spotlightBlur</code>, <code>spotlightColor</code>.
         Sem CSS masks o efeito degrada graciosamente; sem JS, nada é escondido.
@@ -2261,6 +2303,180 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       </p>
     </section>
 
+    <!-- ───────── PLUGIN: MAGNETIC ───────── -->
+    <section class="section" id="magnetic">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin</p>
+        <h2 class="sec-title">Magnetic <a class="anchor" href="#magnetic">#</a></h2>
+        <p class="sec-lead">Elementos que são puxados em direção ao ponteiro quando ele chega perto, com inclinação 3D opcional. Escreve apenas <code>translate</code> (e <code>transform</code> com tilt) em um único <em>rAF</em> compartilhado. Toque é ignorado por padrão.</p>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · magnético</span></div>
+        <div class="demo-body">
+          <div class="mg-demo">
+            <button class="btn btn-primary" type="button" data-emerge-magnetic>Botão magnético</button>
+            <div class="mg-card" data-emerge-magnetic="card" data-emerge-magnetic-tilt="true"><b>card + tilt</b><span data-emerge-magnetic-child="0.5">filho com profundidade</span></div>
+          </div>
+          <p class="demo-hint">Aproxime o cursor — em telas de toque o efeito fica desligado.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Opções (atributos <code>data-emerge-magnetic-*</code>)</h3>
+<div class="table-wrap">
+        <table>
+          <thead><tr><th>Opção</th><th>Padrão</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-magnetic</code></td><td><code>""</code></td><td>Ativa. Valor <code>"card"</code> usa defaults de card (strength .2, radius 40).</td></tr>
+            <tr><td><code>-strength</code></td><td><code>.3</code></td><td>Fração da distância ao ponteiro que o elemento percorre.</td></tr>
+            <tr><td><code>-radius</code></td><td><code>60</code></td><td>Distância (px) além da borda em que a atração começa.</td></tr>
+            <tr><td><code>-speed</code></td><td><code>6</code></td><td>Velocidade do seguimento.</td></tr>
+            <tr><td><code>-ease</code></td><td><code>linear</code></td><td><code>linear · quad · cubic · sine · out-quad · out-cubic</code>.</td></tr>
+            <tr><td><code>-tilt</code></td><td><code>false</code></td><td>Inclinação 3D acompanhando o ponteiro.</td></tr>
+            <tr><td><code>-tilt-strength</code></td><td><code>10deg</code></td><td>Ângulo máximo (limitado a ±89).</td></tr>
+            <tr><td><code>-perspective</code></td><td><code>800</code></td><td>Perspectiva do tilt (px).</td></tr>
+            <tr><td><code>-touch</code></td><td><code>false</code></td><td>Permite efeito por toque.</td></tr>
+            <tr><td><code>data-emerge-magnetic-child</code></td><td>—</td><td>Em filhos: fator de deslocamento extra (ex.: <code>0.5</code>) para profundidade.</td></tr>
+            </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>Tokens CSS:</strong> <code>--emerge-magnetic-speed</code>, <code>-ease</code>, <code>-tilt</code>, <code>-tilt-strength</code>, <code>-perspective</code>.
+        <strong>Globais:</strong> <code>magneticStrength · Radius · Speed · Ease · Tilt · TiltStrength · Perspective · Touch</code>.
+        <strong>Classes:</strong> <code>emerge-magnetic</code>, <code>emerge-magnetic-active</code>, <code>emerge-magnetic-child</code>.
+        Desative por dispositivo com <code>data-emerge-magnetic-disable[-mobile|-desktop|-tablet|-phone|-size]</code>.
+      </p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html + js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-t">&lt;a</span> <span class="tk-a">class</span>=<span class="tk-s">"cta"</span> <span class="tk-a">data-emerge-magnetic</span> <span class="tk-a">data-emerge-magnetic-strength</span>=<span class="tk-s">"0.4"</span><span class="tk-t">&gt;</span>Falar comigo<span class="tk-t">&lt;/a&gt;</span>
+
+<span class="tk-c">// API</span>
+<span class="tk-f">Emerge.Magnetic.build</span>(el);  <span class="tk-f">Emerge.Magnetic.destroy</span>(el);
+<span class="tk-f">Emerge.Magnetic.scan</span>();      <span class="tk-f">Emerge.Magnetic.destroyAll</span>();
+<span class="tk-f">Emerge.Magnetic.of</span>(el);     <span class="tk-f">Emerge.Magnetic.release</span>(el);
+<span class="tk-f">Emerge.Magnetic.measure</span>();   <span class="tk-f">Emerge.Magnetic.all</span>();</code></pre>
+      </div>
+    </section>
+
+    <!-- ───────── PLUGIN: PARALLAX ───────── -->
+    <section class="section" id="parallax">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin</p>
+        <h2 class="sec-title">Parallax <a class="anchor" href="#parallax">#</a></h2>
+        <p class="sec-lead">Desloca elementos conforme a rolagem, a velocidades diferentes. O valor do atributo é a velocidade; positivo anda à frente do scroll, negativo fica para trás e <code>-1</code> congela. Usa o motor do <a href="#range">Range</a> e convive com <code>data-emerge</code>.</p>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · parallax</span></div>
+        <div class="demo-body">
+          <div class="pl-demo" data-emerge-parallax-scope>
+            <div class="pl-blob pl-a" data-emerge-parallax="-0.3"></div>
+            <div class="pl-blob pl-b" data-emerge-parallax="0.4"></div>
+            <div class="pl-blob pl-c" data-emerge-parallax="0.8" data-emerge-parallax-rotate="90"></div>
+          </div>
+          <p class="demo-hint">Role a página: cada forma se move numa velocidade própria.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Opções (atributos <code>data-emerge-parallax-*</code>)</h3>
+<div class="table-wrap">
+        <table>
+          <thead><tr><th>Opção</th><th>Padrão</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-parallax</code></td><td><code>0.3</code></td><td>Ativa; o valor é a <strong>velocidade</strong>.</td></tr>
+            <tr><td><code>-axis</code></td><td><code>y</code></td><td><code>y · x · both</code>.</td></tr>
+            <tr><td><code>-rotate</code> · <code>-scale</code> · <code>-opacity</code></td><td>—</td><td>Valores <em>finais</em> ao longo do percurso.</td></tr>
+            <tr><td><code>-from</code> · <code>-to</code></td><td><code>enter → exit</code></td><td>Janela de scroll, na sintaxe do Range.</td></tr>
+            <tr><td><code>-smooth</code></td><td>—</td><td>Suavização em segundos (vira <em>follow</em> do Range).</td></tr>
+            <tr><td><code>-target</code></td><td>—</td><td>Seletor de um filho que recebe o movimento.</td></tr>
+            <tr><td><code>data-emerge-parallax-layer</code></td><td>—</td><td>Em filhos: camada com velocidade própria (ex.: <code>0.5</code>).</td></tr>
+            <tr><td><code>-debug</code></td><td>—</td><td>Mostra guias de from/to.</td></tr>
+            </tbody>
+        </table>
+      </div>
+      <p>
+        Mapeamento centrado: <code>t = −speed · (p − .5) · span</code>. Publica <code>--emerge-progress</code> no elemento.
+        <strong>Globais:</strong> <code>parallaxSpeed · Axis · Rotate · Scale · Opacity · From · To · Smooth · Target</code>.
+        <strong>Classes:</strong> <code>emerge-parallax</code>, <code>-live</code>, <code>-target</code>, <code>-layer</code>.
+        Desative com <code>data-emerge-parallax-disable[-mobile|-desktop|-tablet|-phone|-size]</code>.
+      </p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html + js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-t">&lt;img</span> <span class="tk-a">data-emerge-parallax</span>=<span class="tk-s">"0.4"</span> <span class="tk-a">data-emerge-parallax-smooth</span>=<span class="tk-s">"0.6"</span> <span class="tk-a">src</span>=<span class="tk-s">"fundo.jpg"</span> <span class="tk-a">alt</span>=<span class="tk-s">""</span><span class="tk-t">&gt;</span>
+
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-parallax</span>=<span class="tk-s">"0.2"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;span</span> <span class="tk-a">data-emerge-parallax-layer</span>=<span class="tk-s">"0.5"</span><span class="tk-t">&gt;</span>camada rápida<span class="tk-t">&lt;/span&gt;</span>
+<span class="tk-t">&lt;/div&gt;</span>
+
+<span class="tk-c">// API</span>
+<span class="tk-f">Emerge.Parallax.build</span>(el);  <span class="tk-f">Emerge.Parallax.destroy</span>(el);
+<span class="tk-f">Emerge.Parallax.scan</span>();      <span class="tk-f">Emerge.Parallax.measure</span>();
+<span class="tk-f">Emerge.Parallax.of</span>(el);     <span class="tk-f">Emerge.Parallax.all</span>();  <span class="tk-f">Emerge.Parallax.destroyAll</span>();</code></pre>
+      </div>
+    </section>
+
+    <!-- ───────── PLUGIN: PARTICLES ───────── -->
+    <section class="section" id="particles">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin</p>
+        <h2 class="sec-title">Particles <a class="anchor" href="#particles">#</a></h2>
+        <p class="sec-lead">O texto é amostrado em um canvas e vira partículas em três camadas (corpo ≥80%, acentos 6–12%, halo ≤10%) que reagem ao ponteiro: <code>repel</code>, <code>attract</code> ou <code>swirl</code>. O texto real permanece no DOM com <code>color: transparent</code>.</p>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · partículas</span></div>
+        <div class="demo-body">
+          <h3 class="pt-demo" data-emerge-particles="repel" data-emerge-particles-color="gradient(#4da3ff,#5fd4f5)" data-emerge-particles-intro="assemble">Emerge</h3>
+          <p class="demo-hint">Passe o cursor sobre o texto. Em toque, o gesto vertical continua rolando a página.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Opções (atributos <code>data-emerge-particles-*</code>)</h3>
+<div class="table-wrap">
+        <table>
+          <thead><tr><th>Opção</th><th>Padrão</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-particles</code></td><td><code>repel</code></td><td>Interação: <code>repel · attract · swirl</code>.</td></tr>
+            <tr><td><code>-look</code></td><td>legível</td><td><code>legível (padrão) · cloud · grid</code>; <code>-contrast</code> (.8) e <code>-sampling</code> (<code>organic · grid</code>).</td></tr>
+            <tr><td><code>-gap</code> · <code>-size</code> · <code>-shape</code></td><td>—</td><td>Espaçamento e tamanho; forma <code>soft · circle · square</code>.</td></tr>
+            <tr><td><code>-color</code></td><td><code>text</code></td><td><code>text</code>, cor CSS, paleta <code>"a,b,c"</code>, <code>random</code> ou <code>gradient(#a,#b)</code>.</td></tr>
+            <tr><td><code>-color-jitter</code> · <code>-color-angle</code> · <code>-color-weights</code></td><td><code>.3</code></td><td>Variação, ângulo do gradiente e pesos da paleta.</td></tr>
+            <tr><td><code>-random</code></td><td>—</td><td><code>build · resample · interval:N</code>; <code>-random-hue/-sat/-light</code> (0–360, 65–95, 55–80).</td></tr>
+            <tr><td><code>-seed</code> · <code>-density</code> · <code>-depth</code> · <code>-halo</code></td><td>—</td><td>Reprodutibilidade, densidade, profundidade e halo.</td></tr>
+            <tr><td><code>-glow</code></td><td><code>auto</code></td><td><code>auto · on · off</code>.</td></tr>
+            <tr><td><code>-jitter</code> · <code>-drift</code></td><td>—</td><td>Tremor e deriva ambiente.</td></tr>
+            <tr><td><code>-radius</code> · <code>-strength</code> · <code>-return</code> · <code>-friction</code></td><td><code>100 · 1 · 1 · .92</code></td><td>Física da interação com o ponteiro.</td></tr>
+            <tr><td><code>-intro</code></td><td><code>none</code></td><td><code>none · assemble</code>.</td></tr>
+            <tr><td><code>-max</code></td><td>~4000 / 2500</td><td>Limite de partículas (desktop / mobile).</td></tr>
+            <tr><td><code>-touch</code></td><td><code>pan-y</code></td><td><code>pan-y · track · scroll · off</code>.</td></tr>
+            </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>Globais:</strong> opções <code>particles*</code> no <code>Emerge.init()</code>; <strong>tokens:</strong> <code>--emerge-particles-*</code>.
+        <strong>Classes:</strong> <code>emerge-particles</code>, <code>-canvas</code>, <code>-text</code>, <code>-touch-pan-y|track</code>.
+        <strong>Não combine</strong> com <code>data-emerge-split</code> no mesmo elemento. Desative com <code>data-emerge-particles-disable[-mobile|-desktop|-tablet|-phone|-size]</code>.
+      </p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html + js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-t">&lt;h1</span> <span class="tk-a">data-emerge-particles</span>=<span class="tk-s">"swirl"</span> <span class="tk-a">data-emerge-particles-color</span>=<span class="tk-s">"#4da3ff,#5fd4f5,#d7e5ff"</span><span class="tk-t">&gt;</span>Olá<span class="tk-t">&lt;/h1&gt;</span>
+
+<span class="tk-c">// API</span>
+<span class="tk-f">Emerge.Particles.build</span>(el);          <span class="tk-f">Emerge.Particles.destroy</span>(el);
+<span class="tk-f">Emerge.Particles.resample</span>(el);        <span class="tk-f">Emerge.Particles.disperse</span>(el, x, y);
+<span class="tk-f">Emerge.Particles.setColor</span>(el, <span class="tk-s">"gradient(#f00,#00f)"</span>);
+<span class="tk-f">Emerge.Particles.legibility</span>(el, { dpr: <span class="tk-n">2</span> });
+<span class="tk-f">Emerge.Particles.scan</span>();  <span class="tk-f">Emerge.Particles.measure</span>();  <span class="tk-f">Emerge.Particles.of</span>(el);
+<span class="tk-f">Emerge.Particles.all</span>();   <span class="tk-f">Emerge.Particles.destroyAll</span>();</code></pre>
+      </div>
+    </section>
+
     <!-- ───────── API COMPLETA ───────── -->
     <section class="section" id="api">
       <div class="sec-head" data-emerge="fade-up">
@@ -2279,10 +2495,10 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
             <tr><td><code>Emerge.addPlugin(...p)</code></td><td>Emerge</td><td>Registra plugin(s) — <strong>Range sempre primeiro</strong> (<a href="#instalacao">ver instalação</a>).</td></tr>
             <tr><td><code>Emerge.getPlugin(name)</code></td><td>plugin | undefined</td><td>Recupera um plugin registrado pelo nome.</td></tr>
             <tr><td><code>Emerge.plugins</code></td><td>string[]</td><td>Nomes dos plugins ativos, na ordem de registro.</td></tr>
-            <tr><td><code>Emerge.version</code></td><td>"1.4.0"</td><td>Versão da biblioteca.</td></tr>
+            <tr><td><code>Emerge.version</code></td><td>"1.7.2"</td><td>Versão da biblioteca.</td></tr>
             <tr><td><code>Emerge.options</code> / <code>Emerge.defaults</code></td><td>object</td><td>Opções ativas / padrões (inclui os defaults dos plugins).</td></tr>
             <tr><td><code>Emerge.core</code></td><td>object</td><td>Utilitários internos expostos para autores de plugins.</td></tr>
-            <tr><td><code>Emerge.Range</code> … <code>Emerge.Scene</code></td><td>object</td><td>APIs dos plugins — documentadas em cada <a href="#range">seção</a>.</td></tr>
+            <tr><td><code>Emerge.Range</code> … <code>Emerge.Particles</code></td><td>object</td><td>APIs dos plugins — documentadas em cada <a href="#range">seção</a>.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2357,6 +2573,9 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
             <tr><td>Performance</td><td>Os efeitos animam <code>opacity</code>, <code>translate</code>, <code>scale</code>, <code>rotate</code> e <code>filter</code> — propriedades de composição, sem <em>layout thrashing</em>.</td></tr>
             <tr><td>Texto dividido (Text)</td><td>O original vira <code>aria-label</code>; as partes são <code>aria-hidden</code> — leitores de tela leem a frase inteira.</td></tr>
             <tr><td>Cenas pinadas (Scene)</td><td>Desligada por atributo/breakpoint ou com <em>reduced motion</em>, a cena entra em modo estático: sem pin, painel plano em fluxo normal, tudo visível — e <code>@media print</code> imprime o conteúdo.</td></tr>
+            <tr><td>Magnetic</td><td>Toque é ignorado por padrão (<code>touch: false</code>); com <em>reduced motion</em> e na impressão nada se move.</td></tr>
+            <tr><td>Parallax</td><td>Sem JS ou com <em>reduced motion</em> o elemento fica na posição natural; o Parallax se apoia no Range.</td></tr>
+            <tr><td>Particles</td><td>O texto real continua no DOM (com <code>color: transparent</code>), então leitores de tela e seleção funcionam; o canvas é removido em <em>reduced motion</em> e na impressão.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2366,7 +2585,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
     <footer class="foot">
       <div>
         <b style="color:var(--text-2)">Emerge.js — documentação</b><br>
-        Esta página é animada pela própria biblioteca · <span class="mono">v1.4.0</span>
+        Esta página é animada pela própria biblioteca · <span class="mono">v1.7.2</span>
       </div>
       <div style="text-align:right">
         <a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">emerge.bundle.js</a> ·
@@ -2378,8 +2597,8 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
   </main>
 </div>
 
-<!-- ═══════════ Emerge.js — bundle oficial (core + 8 plugins, já registrados) ═══════════ -->
-<script defer src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js"></script>
+<!-- ═══════════ Emerge.js — bundle oficial (core + 11 plugins, já registrados) ═══════════ -->
+<script defer src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js@1.7.2"></script>
 
 <script>
 window.addEventListener("DOMContentLoaded", function () {
