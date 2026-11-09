@@ -1,0 +1,1477 @@
+/* Emerge.js v1.7.2 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles) */
+
+
+/* ==========================================================================
+   1. Tokens (override on :root, or inline on any element)
+   ========================================================================== */
+:root {
+  --emerge-distance: 40px;      /* fade-* / zoom-*-direction travel     */
+  --emerge-slide-distance: 100%;/* slide-* travel (relative to own size) */
+  --emerge-zoom-in: .6;         /* start scale of zoom-in-*             */
+  --emerge-zoom-out: 1.2;       /* start scale of zoom-out-*            */
+  --emerge-blur: 12px;          /* start blur of blur-*                 */
+  --emerge-perspective: 2500px; /* flip-*                               */
+  --emerge-rotate: 12deg;       /* rotate-left / rotate-right           */
+
+  /* ---- Extras tokens ---- */
+  --emerge-pop-overshoot: 1.15; /* peak scale of pop effect             */
+  --emerge-bounce-height: 30px; /* bounce drop height                   */
+  --emerge-swing-angle: 15deg;  /* swing pendulum amplitude             */
+  --emerge-rubber-x: 1.25;      /* rubber horizontal stretch            */
+  --emerge-rubber-y: .75;       /* rubber vertical squash               */
+  --emerge-jello-skew: 9deg;    /* jello skew amplitude                 */
+  --emerge-skew: 18deg;         /* skew-left / skew-right entry angle   */
+  --emerge-squeeze-x: .4;       /* squeeze horizontal compression      */
+  --emerge-stretch-y: 1.6;      /* stretch vertical elongation          */
+}
+
+
+/* ==========================================================================
+   2. Core — per-element effect variables
+   Distance can be set in HTML with data-emerge-distance="10%" (JS writes
+   --emerge-distance and --emerge-slide-distance inline). Plain numbers = px.
+   Custom properties inherit, so every [data-emerge] resets them first.
+   Effect rules below come later at the same specificity and win.
+   An empty / unknown data-emerge value behaves like "fade".
+   ========================================================================== */
+[data-emerge] {
+  --emerge-from-opacity: 0;
+  --emerge-from-translate: none;
+  --emerge-from-rotate: none;
+  --emerge-from-scale: none;
+  --emerge-from-transform: none;
+  --emerge-to-transform: none;
+  --emerge-from-filter: none;
+  --emerge-from-clip: inset(0);
+  --emerge-a-transform: emerge-none;
+  --emerge-a-filter: emerge-none;
+  --emerge-a-clip: emerge-none;
+}
+
+
+/* ---- Fade (direction = direction of movement) ---- */
+[data-emerge~="fade-up"]         { --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="fade-down"]       { --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="fade-left"]       { --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="fade-right"]      { --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+[data-emerge~="fade-up-left"]    { --emerge-from-translate: var(--emerge-distance) var(--emerge-distance); }
+[data-emerge~="fade-up-right"]   { --emerge-from-translate: calc(var(--emerge-distance) * -1) var(--emerge-distance); }
+[data-emerge~="fade-down-left"]  { --emerge-from-translate: var(--emerge-distance) calc(var(--emerge-distance) * -1); }
+[data-emerge~="fade-down-right"] { --emerge-from-translate: calc(var(--emerge-distance) * -1) calc(var(--emerge-distance) * -1); }
+
+
+/* ---- Slide (no fade, travels --emerge-slide-distance of its own size) ---- */
+[data-emerge~="slide-up"]    { --emerge-from-opacity: 1; --emerge-from-translate: 0 var(--emerge-slide-distance); }
+[data-emerge~="slide-down"]  { --emerge-from-opacity: 1; --emerge-from-translate: 0 calc(var(--emerge-slide-distance) * -1); }
+[data-emerge~="slide-left"]  { --emerge-from-opacity: 1; --emerge-from-translate: var(--emerge-slide-distance) 0; }
+[data-emerge~="slide-right"] { --emerge-from-opacity: 1; --emerge-from-translate: calc(var(--emerge-slide-distance) * -1) 0; }
+
+
+/* ---- Zoom ---- */
+[data-emerge~="zoom-in"]         { --emerge-from-scale: var(--emerge-zoom-in); }
+[data-emerge~="zoom-in-up"]      { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="zoom-in-down"]    { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="zoom-in-left"]    { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="zoom-in-right"]   { --emerge-from-scale: var(--emerge-zoom-in); --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+[data-emerge~="zoom-out"]        { --emerge-from-scale: var(--emerge-zoom-out); }
+[data-emerge~="zoom-out-up"]     { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="zoom-out-down"]   { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="zoom-out-left"]   { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="zoom-out-right"]  { --emerge-from-scale: var(--emerge-zoom-out); --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+
+
+/* ---- Rotate ---- */
+[data-emerge~="rotate-left"]  { --emerge-from-rotate: calc(var(--emerge-rotate) * -1); }
+[data-emerge~="rotate-right"] { --emerge-from-rotate: var(--emerge-rotate); }
+[data-emerge~="spin"]         { --emerge-from-rotate: -180deg; --emerge-from-scale: .4; }
+
+
+/* ---- Flip (uses `transform` so perspective can be applied) ---- */
+[data-emerge*="flip-"] {
+  --emerge-a-transform: emerge-flip;
+  --emerge-to-transform: perspective(var(--emerge-perspective)) rotateX(0deg) rotateY(0deg);
+  backface-visibility: hidden;
+}
+[data-emerge~="flip-up"]    { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateX(-90deg); }
+[data-emerge~="flip-down"]  { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateX(90deg); }
+[data-emerge~="flip-left"]  { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateY(-90deg); }
+[data-emerge~="flip-right"] { --emerge-from-transform: perspective(var(--emerge-perspective)) rotateY(90deg); }
+
+
+/* ---- Blur (combine freely: data-emerge="fade-up blur") ---- */
+[data-emerge*="blur"] {
+  --emerge-a-filter: emerge-blur;
+  --emerge-from-filter: blur(var(--emerge-blur));
+}
+[data-emerge~="blur-up"]    { --emerge-from-translate: 0 var(--emerge-distance); }
+[data-emerge~="blur-down"]  { --emerge-from-translate: 0 calc(var(--emerge-distance) * -1); }
+[data-emerge~="blur-left"]  { --emerge-from-translate: var(--emerge-distance) 0; }
+[data-emerge~="blur-right"] { --emerge-from-translate: calc(var(--emerge-distance) * -1) 0; }
+
+
+/* ---- Reveal (clip-path wipe, no fade) ---- */
+[data-emerge*="reveal-"] {
+  --emerge-a-clip: emerge-clip;
+  --emerge-from-opacity: 1;
+}
+[data-emerge~="reveal-up"]    { --emerge-from-clip: inset(100% 0 0 0); }
+[data-emerge~="reveal-down"]  { --emerge-from-clip: inset(0 0 100% 0); }
+[data-emerge~="reveal-left"]  { --emerge-from-clip: inset(0 0 0 100%); }
+[data-emerge~="reveal-right"] { --emerge-from-clip: inset(0 100% 0 0); }
+
+
+/* ==========================================================================
+   3. Core — hidden (pre-animation) state
+   Only applies once JS has initialised the element (.emerge-init), or to
+   Text parts, so content stays visible without JS / with reduced motion.
+   ========================================================================== */
+[data-emerge]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  opacity: var(--emerge-from-opacity);
+  translate: var(--emerge-from-translate);
+  rotate: var(--emerge-from-rotate);
+  scale: var(--emerge-from-scale);
+}
+[data-emerge*="flip-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  transform: var(--emerge-from-transform);
+}
+[data-emerge*="blur"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  filter: var(--emerge-from-filter);
+}
+[data-emerge*="reveal-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  clip-path: var(--emerge-from-clip);
+}
+
+
+/* ==========================================================================
+   4. Core — animated state (class toggled by IntersectionObserver)
+   Timing comes from the inline vars JS sets on each element.
+   The end state is the element's own natural style (keyframes only define `from`).
+   ========================================================================== */
+[data-emerge].emerge-animate:not(.emerge-follow, .emerge-draw-path) {
+  animation-name: emerge-in;
+  animation-duration: var(--emerge-duration, 400ms);
+  animation-timing-function: var(--emerge-easing, ease);
+  animation-delay: var(--emerge-delay, 0ms);
+  animation-fill-mode: backwards;
+}
+
+
+/* Only effects that chain extra keyframes (flip, blur, reveal, pop, bounce, ...)
+   pay for the 3 additional animations. All others (fade, slide, zoom, rotate)
+   run just emerge-in: 1 animation per element instead of 4. */
+[data-emerge]:is(
+  [data-emerge*="flip-"], [data-emerge*="blur"], [data-emerge*="reveal-"],
+  [data-emerge~="pop"], [data-emerge~="pop-in"], [data-emerge~="pop-out"],
+  [data-emerge~="bounce"], [data-emerge~="swing"], [data-emerge~="rubber"], [data-emerge~="jello"],
+  [data-emerge~="tada"], [data-emerge~="pulse"], [data-emerge~="heartbeat"],
+  [data-emerge~="skew-left"], [data-emerge~="skew-right"]
+).emerge-animate:not(.emerge-follow, .emerge-draw-path) {
+  animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip);
+}
+
+
+@keyframes emerge-in {
+  from {
+    opacity: var(--emerge-from-opacity);
+    translate: var(--emerge-from-translate);
+    rotate: var(--emerge-from-rotate);
+    scale: var(--emerge-from-scale);
+  }
+}
+@keyframes emerge-flip  { from { transform: var(--emerge-from-transform); } to { transform: var(--emerge-to-transform); } }
+@keyframes emerge-blur  { from { filter: var(--emerge-from-filter); } }
+@keyframes emerge-clip  { from { clip-path: var(--emerge-from-clip); } to { clip-path: inset(0); } }
+@keyframes emerge-none  { }
+
+
+/* ==========================================================================
+   5. Range — scroll-linked ("follow") mode
+   JS pauses the animation and scrubs it with a negative animation-delay
+   across --emerge-clock (default 1000ms).
+   ========================================================================== */
+.emerge-follow {
+  animation-duration: var(--emerge-clock, 1000ms);
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+  transition: none;
+}
+[data-emerge].emerge-follow {
+  animation-name: emerge-in;
+}
+[data-emerge]:is(
+  [data-emerge*="flip-"], [data-emerge*="blur"], [data-emerge*="reveal-"],
+  [data-emerge~="pop"], [data-emerge~="pop-in"], [data-emerge~="pop-out"],
+  [data-emerge~="bounce"], [data-emerge~="swing"], [data-emerge~="rubber"], [data-emerge~="jello"],
+  [data-emerge~="tada"], [data-emerge~="pulse"], [data-emerge~="heartbeat"],
+  [data-emerge~="skew-left"], [data-emerge~="skew-right"]
+).emerge-follow {
+  animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip);
+}
+
+
+/* ==========================================================================
+   6. Text — split chars / words / lines
+   ========================================================================== */
+.emerge-split { font-kerning: normal; }
+.emerge-word  { display: inline-block; white-space: nowrap; }
+.emerge-part  { display: inline-block; }
+.emerge-char  { display: inline-block; white-space: pre; }
+.emerge-line  { display: block; }
+
+
+/* ==========================================================================
+   7. Draw — SVG stroke drawing
+   JS sets --emerge-draw-length / --emerge-draw-offset / --emerge-delay.
+   Inside <defs> masks the vars may not inherit, so fallbacks are provided.
+   ========================================================================== */
+svg.emerge-draw { overflow: visible; }
+
+
+.emerge-draw-path {
+  stroke-dasharray: var(--emerge-draw-length);
+  stroke-dashoffset: var(--emerge-draw-offset, var(--emerge-draw-length));
+  transition: stroke-dashoffset var(--emerge-duration, 1200ms) var(--emerge-easing, ease) var(--emerge-delay, 0ms);
+}
+.emerge-draw-path.emerge-animate { stroke-dashoffset: 0; }
+
+
+/* Scroll-linked: JS writes stroke-dashoffset inline each frame */
+.emerge-draw-follow { transition: none; }
+
+
+/* ==========================================================================
+   8. Horizontal — pinned vertical-scroll → horizontal-track
+   JS sets the spacer height, sticky position and track transform.
+   Note: no ancestor of the pinned element may use overflow: hidden/auto
+   (use overflow: clip instead) or sticky will not work.
+   ========================================================================== */
+.emerge-horizontal-space { position: relative; }
+
+
+.emerge-horizontal {
+  position: relative; /* JS overrides with sticky when pinned */
+  height: var(--emerge-horizontal-height, 100vh);
+  height: var(--emerge-horizontal-height, 100dvh);
+  overflow: hidden;
+}
+.emerge-horizontal-track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--emerge-horizontal-gap, 0);
+  width: max-content;
+  height: 100%;
+  padding-inline: var(--emerge-horizontal-padding, 0);
+  will-change: transform;
+}
+.emerge-horizontal-item {
+  flex: 0 0 auto;
+  width: var(--emerge-horizontal-item-width, auto);
+  max-width: none;
+}
+
+
+/* ==========================================================================
+   9. Media — scroll-scrubbed <video> / <canvas> frame sequences
+   ========================================================================== */
+.emerge-media { display: block; }
+canvas.emerge-media { width: 100%; height: 100%; }
+video.emerge-media { max-width: 100%; }
+video.emerge-media:not([controls]) { pointer-events: none; }
+
+
+/* ==========================================================================
+   10. Stack — pinned panels that swap while scrolling
+   Panel transition = data-emerge-stack-transition:
+   fade (default) | slide-up | slide-down | slide-left | slide-right |
+   zoom / zoom-in | zoom-out | blur | flip
+   Tokens: --emerge-stack-duration, --emerge-stack-easing, --emerge-stack-shift
+   Works in BOTH modes: without scrub the swap runs on CSS transitions;
+   with data-emerge-stack-scrub the chosen transition is scrubbed by the
+   scroll itself (JS writes --emerge-stack-p = entry progress 0..1 and
+   --emerge-stack-dir = -1 before / +1 after the active panel on each item,
+   every frame). fade keeps the old opacity-only behaviour.
+   ========================================================================== */
+.emerge-stack-space { position: relative; }
+
+
+.emerge-stack {
+  position: relative; /* JS overrides with sticky */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+
+.emerge-stack-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity    var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    translate  var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    scale      var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    rotate     var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    filter     var(--emerge-stack-duration, .6s) var(--emerge-stack-easing, ease),
+    visibility var(--emerge-stack-duration, .6s) linear;
+}
+.emerge-stack-item.emerge-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+
+/* Off-screen panels sit before/after the active one (--emerge-stack-i vs --emerge-stack-index) */
+.emerge-stack-item.slide-up:not(.emerge-active)    { translate: 0 calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%)); }
+.emerge-stack-item.slide-down:not(.emerge-active)  { translate: 0 calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%) * -1); }
+.emerge-stack-item.slide-left:not(.emerge-active)  { translate: calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%)) 0; }
+.emerge-stack-item.slide-right:not(.emerge-active) { translate: calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * var(--emerge-stack-shift, 12%) * -1) 0; }
+.emerge-stack-item.zoom:not(.emerge-active),
+.emerge-stack-item.zoom-in:not(.emerge-active)     { scale: .92; }
+.emerge-stack-item.zoom-out:not(.emerge-active)    { scale: 1.08; }
+.emerge-stack-item.blur:not(.emerge-active)        { filter: blur(var(--emerge-stack-blur, 12px)); }
+.emerge-stack-item.flip:not(.emerge-active)        { rotate: x calc((var(--emerge-stack-i) - var(--emerge-stack-index, 0)) * -25deg); }
+
+
+/* Scrub mode: JS drives the swap per frame (opacity + --emerge-stack-p /
+   --emerge-stack-dir), so no time-based transitions — but the panel's entry
+   effect still happens, interpolated by the scroll progress. The rules below
+   mirror the non-scrub off-states above with (1 - p) as the travel factor and
+   dir as the side of the active panel, so e.g. slide-up starts 12% below and
+   slides up into place while you scroll. The fade preset needs no transform. */
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item {
+  transition: none;
+}
+
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.slide-up {
+  translate: 0 calc(var(--emerge-stack-dir, 1) * (1 - var(--emerge-stack-p, 0)) * var(--emerge-stack-shift, 12%));
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.slide-down {
+  translate: 0 calc(var(--emerge-stack-dir, 1) * (1 - var(--emerge-stack-p, 0)) * var(--emerge-stack-shift, 12%) * -1);
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.slide-left {
+  translate: calc(var(--emerge-stack-dir, 1) * (1 - var(--emerge-stack-p, 0)) * var(--emerge-stack-shift, 12%)) 0;
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.slide-right {
+  translate: calc(var(--emerge-stack-dir, 1) * (1 - var(--emerge-stack-p, 0)) * var(--emerge-stack-shift, 12%) * -1) 0;
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.zoom,
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.zoom-in {
+  scale: calc(1 - (1 - var(--emerge-stack-p, 0)) * .08);
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.zoom-out {
+  scale: calc(1 + (1 - var(--emerge-stack-p, 0)) * .08);
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.blur {
+  filter: blur(calc((1 - var(--emerge-stack-p, 0)) * var(--emerge-stack-blur, 12px)));
+}
+.emerge-stack[data-emerge-stack-scrub]:not([data-emerge-stack-scrub="false"]) .emerge-stack-item.flip {
+  rotate: x calc(var(--emerge-stack-dir, 1) * (1 - var(--emerge-stack-p, 0)) * -25deg);
+}
+
+
+/* ==========================================================================
+   11. Print — always show everything
+   ========================================================================== */
+@media print {
+  [data-emerge]:is(.emerge-init, .emerge-part) {
+    opacity: 1 !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* ==========================================================================
+   12. Counter - stable digit width while counting
+   ========================================================================== */
+[data-emerge-counter] { font-variant-numeric: tabular-nums; }
+
+
+/* ==========================================================================
+   13. Reduced motion - JS adds .emerge-reduced to <html> when it skips
+   animation (respectReducedMotion), so everything stays visible.
+   ========================================================================== */
+:root.emerge-reduced [data-emerge],
+:root.emerge-reduced .emerge-part {
+  opacity: 1 !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  transform: none !important;
+  filter: none !important;
+  clip-path: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+
+/* ==========================================================================
+   14. EXTRAS — Pop (scale with overshoot)
+   ========================================================================== */
+[data-emerge~="pop"] {
+  --emerge-a-transform: emerge-pop;
+  backface-visibility: hidden;
+}
+[data-emerge~="pop-in"] {
+  --emerge-a-transform: emerge-pop;
+  --emerge-from-scale: var(--emerge-zoom-in);
+  backface-visibility: hidden;
+}
+[data-emerge~="pop-out"] {
+  --emerge-a-transform: emerge-pop-out;
+  --emerge-from-scale: var(--emerge-zoom-out);
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   15. EXTRAS — Bounce / Swing / Rubber / Jello
+   ========================================================================== */
+[data-emerge~="bounce"] {
+  --emerge-a-transform: emerge-bounce;
+  --emerge-from-translate: 0 calc(var(--emerge-bounce-height) * -3);
+  --emerge-from-opacity: 0;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="swing"] {
+  --emerge-a-transform: emerge-swing;
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="rubber"] {
+  --emerge-a-transform: emerge-rubber;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="jello"] {
+  --emerge-a-transform: emerge-jello;
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   16. EXTRAS — Attention effects (tada, pulse, heartbeat)
+   ========================================================================== */
+[data-emerge~="tada"] {
+  --emerge-a-transform: emerge-tada;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="pulse"] {
+  --emerge-a-transform: emerge-pulse;
+  backface-visibility: hidden;
+}
+
+[data-emerge~="heartbeat"] {
+  --emerge-a-transform: emerge-heartbeat;
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   17. EXTRAS — Geometric reveal (circle, diamond)
+   ========================================================================== */
+[data-emerge*="reveal-circle"] {
+  --emerge-a-clip: emerge-clip-circle;
+  --emerge-from-opacity: 1;
+  --emerge-from-clip: circle(0% at 50% 50%);
+}
+
+[data-emerge*="reveal-diamond"] {
+  --emerge-a-clip: emerge-clip-diamond;
+  --emerge-from-opacity: 1;
+  --emerge-from-clip: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+}
+
+
+/* ==========================================================================
+   18. EXTRAS — Skew (diagonal entry)
+   ========================================================================== */
+[data-emerge~="skew-left"] {
+  --emerge-from-transform: skewX(calc(var(--emerge-skew) * -1));
+  --emerge-a-transform: emerge-skew;
+  backface-visibility: hidden;
+}
+[data-emerge~="skew-right"] {
+  --emerge-from-transform: skewX(var(--emerge-skew));
+  --emerge-a-transform: emerge-skew;
+  backface-visibility: hidden;
+}
+
+
+/* ==========================================================================
+   19. EXTRAS — Squeeze & Stretch (scale distortion)
+   ========================================================================== */
+[data-emerge~="squeeze"] {
+  --emerge-from-scale: var(--emerge-squeeze-x) 1;
+}
+
+[data-emerge~="stretch"] {
+  --emerge-from-scale: 1 var(--emerge-stretch-y);
+}
+
+
+/* ==========================================================================
+   20. EXTRAS — Hidden (pre-animation) state for new effects
+   Applies only once JS has initialised the element (.emerge-init) so
+   content stays visible without JS / with reduced motion.
+   ========================================================================== */
+[data-emerge~="bounce"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  translate: var(--emerge-from-translate);
+  opacity: var(--emerge-from-opacity);
+}
+
+[data-emerge~="skew-left"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]),
+[data-emerge~="skew-right"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  transform: var(--emerge-from-transform);
+}
+
+[data-emerge*="reveal-circle"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]),
+[data-emerge*="reveal-diamond"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+  clip-path: var(--emerge-from-clip);
+  opacity: var(--emerge-from-opacity);
+}
+
+
+/* ==========================================================================
+   21. EXTRAS — Keyframes for new effects
+   These are referenced via --emerge-a-transform / --emerge-a-clip variables,
+   so they are automatically chained with the core `emerge-in` keyframe.
+   ========================================================================== */
+
+/* ---- Pop — grows with overshoot and settles ---- */
+@keyframes emerge-pop {
+  0%   { scale: 0; opacity: 0; }
+  50%  { scale: var(--emerge-pop-overshoot); opacity: 1; }
+  70%  { scale: .92; }
+  100% { scale: 1;   opacity: 1; }
+}
+@keyframes emerge-pop-out {
+  0%   { scale: var(--emerge-zoom-out); opacity: 1; }
+  100% { scale: 1;                      opacity: 1; }
+}
+
+
+/* ---- Bounce — drop with gravity and rebound ---- */
+@keyframes emerge-bounce {
+  0%   { translate: 0 calc(var(--emerge-bounce-height) * -3); opacity: 0; }
+  40%  { translate: 0 0;                                       opacity: 1; }
+  60%  { translate: 0 calc(var(--emerge-bounce-height) * -1); }
+  75%  { translate: 0 0; }
+  87%  { translate: 0 calc(var(--emerge-bounce-height) * -.4); }
+  100% { translate: 0 0; }
+}
+
+
+/* ---- Swing — pendulum oscillation ---- */
+@keyframes emerge-swing {
+  0%   { rotate: 0deg;                            opacity: 0; }
+  20%  { rotate: var(--emerge-swing-angle);       opacity: 1; }
+  40%  { rotate: calc(var(--emerge-swing-angle) * -0.5); }
+  60%  { rotate: calc(var(--emerge-swing-angle) * 0.3); }
+  80%  { rotate: calc(var(--emerge-swing-angle) * -0.15); }
+  100% { rotate: 0deg; }
+}
+
+
+/* ---- Rubber — stretch & squash cycle ---- */
+@keyframes emerge-rubber {
+  0%   { scale: 1 1;                                                              opacity: 0; }
+  30%  { scale: var(--emerge-rubber-x) var(--emerge-rubber-y);                    opacity: 1; }
+  40%  { scale: calc(2 - var(--emerge-rubber-x)) calc(2 - var(--emerge-rubber-y)); }
+  50%  { scale: var(--emerge-rubber-x) var(--emerge-rubber-y); }
+  65%  { scale: .96 1.04; }
+  75%  { scale: 1.03 .97; }
+  100% { scale: 1 1; }
+}
+
+
+/* ---- Jello — skew oscillation ---- */
+@keyframes emerge-jello {
+  0%, 100% { transform: skewX(0deg) skewY(0deg); }
+  11.1%    { transform: skewX(calc(var(--emerge-jello-skew) * -1)) skewY(calc(var(--emerge-jello-skew) * -1)); }
+  22.2%    { transform: skewX(var(--emerge-jello-skew))             skewY(var(--emerge-jello-skew)); }
+  33.3%    { transform: skewX(calc(var(--emerge-jello-skew) * -0.66)) skewY(calc(var(--emerge-jello-skew) * -0.66)); }
+  44.4%    { transform: skewX(calc(var(--emerge-jello-skew) * 0.44))  skewY(calc(var(--emerge-jello-skew) * 0.44)); }
+  55.5%    { transform: skewX(calc(var(--emerge-jello-skew) * -0.3))  skewY(calc(var(--emerge-jello-skew) * -0.3)); }
+  66.6%    { transform: skewX(calc(var(--emerge-jello-skew) * 0.2))   skewY(calc(var(--emerge-jello-skew) * 0.2)); }
+  77.7%    { transform: skewX(calc(var(--emerge-jello-skew) * -0.13)) skewY(calc(var(--emerge-jello-skew) * -0.13)); }
+  88.8%    { transform: skewX(calc(var(--emerge-jello-skew) * 0.08))  skewY(calc(var(--emerge-jello-skew) * 0.08)); }
+}
+
+
+/* ---- Tada — scale + rotation attention grabber ---- */
+@keyframes emerge-tada {
+  0%   { scale: 1;   rotate: 0deg;  opacity: 0; }
+  10%  { scale: .9;  rotate: -3deg; opacity: 1; }
+  20%  { scale: .9;  rotate: -3deg; }
+  30%  { scale: 1.1; rotate: 3deg; }
+  40%  { scale: 1.1; rotate: -3deg; }
+  50%  { scale: 1.1; rotate: 3deg; }
+  60%  { scale: 1.1; rotate: -3deg; }
+  70%  { scale: 1.1; rotate: 3deg; }
+  80%  { scale: 1.1; rotate: -3deg; }
+  90%  { scale: 1.1; rotate: 3deg; }
+  100% { scale: 1;   rotate: 0deg; }
+}
+
+
+/* ---- Pulse — smooth scale pulse ---- */
+@keyframes emerge-pulse {
+  0%   { scale: 1;    opacity: 0; }
+  50%  { scale: 1.08; opacity: 1; }
+  100% { scale: 1;    opacity: 1; }
+}
+
+
+/* ---- Heartbeat — double-beat rhythm ---- */
+@keyframes emerge-heartbeat {
+  0%   { scale: 1;   opacity: 0; }
+  14%  { scale: 1.2; opacity: 1; }
+  28%  { scale: 1; }
+  42%  { scale: 1.2; }
+  70%  { scale: 1; }
+  100% { scale: 1; }
+}
+
+
+/* ---- Skew — skew entry resolves to identity ---- */
+@keyframes emerge-skew {
+  from { transform: var(--emerge-from-transform); }
+  to   { transform: skewX(0deg); }
+}
+
+
+/* ---- Geometric reveals ---- */
+@keyframes emerge-clip-circle {
+  from { clip-path: circle(0% at 50% 50%); }
+  to   { clip-path: circle(150% at 50% 50%); }
+}
+@keyframes emerge-clip-diamond {
+  from { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); }
+  to   { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+}
+
+
+/* ==========================================================================
+   22. EXTRAS — Reduced motion overrides for new effects
+   JS adds .emerge-reduced to <html>, so new animations also stay visible
+   and skip motion for accessibility.
+   ========================================================================== */
+:root.emerge-reduced [data-emerge~="pop"],
+:root.emerge-reduced [data-emerge~="pop-in"],
+:root.emerge-reduced [data-emerge~="pop-out"],
+:root.emerge-reduced [data-emerge~="bounce"],
+:root.emerge-reduced [data-emerge~="swing"],
+:root.emerge-reduced [data-emerge~="rubber"],
+:root.emerge-reduced [data-emerge~="jello"],
+:root.emerge-reduced [data-emerge~="tada"],
+:root.emerge-reduced [data-emerge~="pulse"],
+:root.emerge-reduced [data-emerge~="heartbeat"],
+:root.emerge-reduced [data-emerge~="skew-left"],
+:root.emerge-reduced [data-emerge~="skew-right"],
+:root.emerge-reduced [data-emerge~="squeeze"],
+:root.emerge-reduced [data-emerge~="stretch"],
+:root.emerge-reduced [data-emerge*="reveal-circle"],
+:root.emerge-reduced [data-emerge*="reveal-diamond"] {
+  opacity: 1 !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  transform: none !important;
+  clip-path: none !important;
+  animation: none !important;
+}
+
+
+/* ==========================================================================
+   Emerge Spotlight
+   ========================================================================== */
+/* A circular / elliptical spot that follows the pointer. Choose the mode with
+   data-emerge-spotlight="reveal | flashlight | focus" (see the plugin docs
+   for every data-emerge-spotlight-* option).
+
+     reveal      [data-emerge-spotlight-layer] elements are visible only inside
+                 the spot (CSS mask). Content underneath shows everywhere else.
+     flashlight  A dark ::after overlay covers the host; the spot cuts it out.
+     focus       Same overlay, plus a backdrop blur: the content outside the
+                 spot is blurred and dimmed, the spot stays sharp.
+
+   JS only writes the custom properties below on the host; every visual is CSS.
+   Without JS (or when the Core skips initialisation, e.g. reduced motion) none
+   of the classes exist, so nothing is hidden: layers simply stay in the flow.
+
+   Custom properties written by JS on the host element (per instance):
+     --emerge-spotlight-x / -y     spot centre, px from the host's top-left
+     --emerge-spotlight-size       spot radius: "100px" (circle) or
+                                   "100px 60px" (ellipse); animates 0 -> radius
+     --emerge-spotlight-shape      circle | ellipse
+     --emerge-spotlight-inner      where the soft edge starts, % of the radius
+     --emerge-spotlight-c0 / -c1   mask colours at the centre / outside
+                                   (swapped by data-emerge-spotlight-reverse)
+     --emerge-spotlight-strength   0..1 overlay opacity (flashlight / focus)
+     --emerge-spotlight-dim        overlay darkness, % of --emerge-spotlight-color
+     --emerge-spotlight-color      overlay colour (data-emerge-spotlight-color)
+     --emerge-spotlight-blur       backdrop blur radius (focus)
+     --emerge-spotlight-shape-img  SVG mask image of the shape (every shape but
+                                   circle / ellipse, data-emerge-spotlight-shape)
+     --emerge-spotlight-tw / -th   width / height of that mask tile, px
+                                   (shape="fluid": the shape-img is redrawn
+                                   every frame and covers the whole host)
+
+   Reveal framing — data-emerge-spotlight-fit="cover | contain" (default cover):
+   the base media and every layer share ONE frame (the host box) and ONE
+   object-fit / object-position, so they always line up, whatever their natural
+   size or aspect ratio. Proportions are never distorted. Written by JS on the
+   host as --emerge-spotlight-fit only when the option is set.
+
+   Custom properties you may override in your own CSS:
+     --emerge-spotlight-z              z-index of the overlay        (default 1)
+     --emerge-spotlight-layer-fit      object-fit of the reveal media (default cover)
+     --emerge-spotlight-layer-position object-position of the reveal media (default 50% 50%)
+
+   Classes: .emerge-spotlight (host), .emerge-spotlight-reveal | -flashlight |
+   -focus (mode), .emerge-spotlight-ellipse, .emerge-spotlight-reverse,
+   .emerge-spotlight-blurred, .emerge-spotlight-active (spot currently shown),
+   .emerge-spotlight-layer (reveal layer), .emerge-spotlight-shaped (shape other
+   than circle / ellipse), .emerge-spotlight-fluid (shape="fluid"),
+   .emerge-spotlight-outside (shaped, effect outside the
+   spot), .emerge-spotlight-touch-track |
+   -pan-y | -pan-x | -scroll (touch mode, see data-emerge-spotlight-touch and
+   data-emerge-spotlight-move / -move-x / -move-y, which pick the same classes),
+   .emerge-spotlight-touching (a finger / pen is down on the host). */
+
+/* Host: positioning context for the layer / overlay. :where() keeps the
+   specificity at zero so your own position / isolation rules always win. */
+:where(.emerge-spotlight) {
+  position: relative;
+  isolation: isolate;
+}
+
+:where(.emerge-spotlight-reveal) {
+  padding: 0;
+}
+
+.emerge-spotlight {
+  --emerge-spotlight-mask: radial-gradient(
+    var(--emerge-spotlight-shape, circle) var(--emerge-spotlight-size, .01px)
+      at var(--emerge-spotlight-x, 50%) var(--emerge-spotlight-y, 50%),
+    var(--emerge-spotlight-c0, #000) 0%,
+    var(--emerge-spotlight-c0, #000) var(--emerge-spotlight-inner, 70%),
+    var(--emerge-spotlight-c1, transparent) 100%
+  );
+}
+
+.emerge-spotlight-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: var(--emerge-spotlight-fit, var(--emerge-spotlight-layer-fit, cover));
+  object-position: var(--emerge-spotlight-layer-position, 50% 50%);
+  pointer-events: none;
+  -webkit-mask-image: var(--emerge-spotlight-mask);
+          mask-image: var(--emerge-spotlight-mask);
+}
+
+.emerge-spotlight-reveal > :where(img, video, canvas, picture):not(.emerge-spotlight-layer) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: var(--emerge-spotlight-fit, var(--emerge-spotlight-layer-fit, cover));
+  object-position: var(--emerge-spotlight-layer-position, 50% 50%);
+}
+
+.emerge-spotlight-layer > img,
+.emerge-spotlight-reveal > picture:not(.emerge-spotlight-layer) > img {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
+  object-fit: var(--emerge-spotlight-fit, var(--emerge-spotlight-layer-fit, cover));
+  object-position: var(--emerge-spotlight-layer-position, 50% 50%);
+}
+
+.emerge-spotlight-flashlight::after,
+.emerge-spotlight-focus::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: var(--emerge-spotlight-z, 1);
+  pointer-events: none;
+  background: color-mix(in srgb, var(--emerge-spotlight-color, #000) var(--emerge-spotlight-dim, 85%), transparent);
+  opacity: var(--emerge-spotlight-strength, 0);
+  -webkit-mask-image: var(--emerge-spotlight-mask);
+          mask-image: var(--emerge-spotlight-mask);
+}
+
+.emerge-spotlight-blurred::after {
+  -webkit-backdrop-filter: blur(var(--emerge-spotlight-blur, 0px));
+          backdrop-filter: blur(var(--emerge-spotlight-blur, 0px));
+}
+
+.emerge-spotlight-shaped .emerge-spotlight-layer,
+.emerge-spotlight-shaped.emerge-spotlight-flashlight::after,
+.emerge-spotlight-shaped.emerge-spotlight-focus::after {
+  -webkit-mask-image: var(--emerge-spotlight-shape-img);
+          mask-image: var(--emerge-spotlight-shape-img);
+  -webkit-mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px);
+          mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px);
+  -webkit-mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2);
+          mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+}
+
+.emerge-spotlight-shaped.emerge-spotlight-outside .emerge-spotlight-layer,
+.emerge-spotlight-shaped.emerge-spotlight-outside.emerge-spotlight-flashlight::after,
+.emerge-spotlight-shaped.emerge-spotlight-outside.emerge-spotlight-focus::after {
+  -webkit-mask-image: var(--emerge-spotlight-shape-img), linear-gradient(#000, #000);
+          mask-image: var(--emerge-spotlight-shape-img), linear-gradient(#000, #000);
+  -webkit-mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px), 100% 100%;
+          mask-size: var(--emerge-spotlight-tw, 0px) var(--emerge-spotlight-th, 0px), 100% 100%;
+  -webkit-mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2),
+    0 0;
+          mask-position:
+    calc(var(--emerge-spotlight-x, 50%) - var(--emerge-spotlight-tw, 0px) / 2)
+    calc(var(--emerge-spotlight-y, 50%) - var(--emerge-spotlight-th, 0px) / 2),
+    0 0;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+          mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+
+/* Safari / WebKit: backdrop-filter + mask-image on one element is unsupported,
+   so focus degrades to dimming only. */
+.emerge-spotlight-webkit.emerge-spotlight-blurred::after {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+
+/* Safari / WebKit: a mask-image that reads a custom property is not repainted
+   when only that property changes, so the pointer spot never moved. The JS
+   therefore writes the mask inline on the masked elements. A pseudo-element
+   cannot take inline style, so flashlight / focus use a real overlay element
+   (.emerge-spotlight-overlay, created by the JS only on WebKit) and the
+   ::after is hidden. Reveal layers already are real elements. */
+.emerge-spotlight-webkit.emerge-spotlight-flashlight::after,
+.emerge-spotlight-webkit.emerge-spotlight-focus::after {
+  display: none;
+}
+.emerge-spotlight-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--emerge-spotlight-z, 1);
+  pointer-events: none;
+  opacity: 0;
+  background: color-mix(in srgb, var(--emerge-spotlight-color, #000) var(--emerge-spotlight-dim, 85%), transparent);
+}
+
+.emerge-spotlight-fluid .emerge-spotlight-layer,
+.emerge-spotlight-fluid.emerge-spotlight-flashlight::after,
+.emerge-spotlight-fluid.emerge-spotlight-focus::after {
+  -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
+  -webkit-mask-position: 0 0;
+          mask-position: 0 0;
+}
+.emerge-spotlight-fluid.emerge-spotlight-outside .emerge-spotlight-layer,
+.emerge-spotlight-fluid.emerge-spotlight-outside.emerge-spotlight-flashlight::after,
+.emerge-spotlight-fluid.emerge-spotlight-outside.emerge-spotlight-focus::after {
+  -webkit-mask-size: 100% 100%, 100% 100%;
+          mask-size: 100% 100%, 100% 100%;
+  -webkit-mask-position: 0 0, 0 0;
+          mask-position: 0 0, 0 0;
+}
+
+:where(.emerge-spotlight-touch-track) {
+  touch-action: none;
+  touch-action: pinch-zoom;
+}
+:where(.emerge-spotlight-touch-pan-y) {
+  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
+}
+:where(.emerge-spotlight-touch-pan-x) {
+  touch-action: pan-x;
+  touch-action: pan-x pinch-zoom;
+}
+
+.emerge-spotlight-touching {
+  -webkit-user-select: none;
+          user-select: none;
+  -webkit-touch-callout: none;
+}
+.emerge-spotlight-touching :is(input, textarea, select, [contenteditable]) {
+  -webkit-user-select: text;
+          user-select: text;
+}
+
+.emerge-spotlight-reveal :where(img, picture, video, canvas, svg),
+.emerge-spotlight-touching :where(img, picture, video, canvas, svg) {
+  -webkit-user-drag: none;
+}
+
+@supports not ((-webkit-mask-image: none) or (mask-image: none)) {
+  .emerge-spotlight-layer {
+    clip-path: circle(var(--emerge-spotlight-size, .01px) at var(--emerge-spotlight-x, 50%) var(--emerge-spotlight-y, 50%));
+  }
+  .emerge-spotlight-ellipse .emerge-spotlight-layer {
+    clip-path: ellipse(var(--emerge-spotlight-size, .01px) at var(--emerge-spotlight-x, 50%) var(--emerge-spotlight-y, 50%));
+  }
+  .emerge-spotlight-reverse .emerge-spotlight-layer {
+    display: none;
+  }
+  .emerge-spotlight-flashlight::after,
+  .emerge-spotlight-focus::after {
+    display: none;
+  }
+}
+
+
+/* ---- Print — show the base content only ---- */
+@media print {
+  .emerge-spotlight-layer,
+  .emerge-spotlight-overlay,
+  .emerge-spotlight-flashlight::after,
+  .emerge-spotlight-focus::after {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   23. Scene — hero fixa que se abre num painel 3D com o scroll (preset "unfold")
+   Marcação: <section data-emerge-scene="unfold"> com os filhos
+   [data-emerge-scene-content], [data-emerge-scene-layer="a"|"b"],
+   [data-emerge-scene-panel] (filho DIRETO da cena: a perspective só afeta
+   filhos diretos) e, dentro do painel, [data-emerge-scene-cover].
+   O JS (via plugin Range) escreve opacity/transform/border-radius/clip-path/
+   filter por frame e publica --emerge-scene-progress (0..1) na cena. Aqui
+   vivem só os tokens, o estado inicial (para não haver flash antes do JS) e
+   o fallback estático (reduced motion / disable): cor do painel, tipografia
+   e vídeo ficam no CSS do autor — sem JS ou com o efeito off, o painel segue
+   em fluxo normal.
+   Restrição (como no Horizontal/Stack): nenhum ancestral da cena pode ter
+   overflow: hidden/auto enquanto o pin estiver ativo — usar overflow: clip.
+   Prioridade das opções: atributo no elemento > token CSS > default do plugin.
+   Presets: "unfold" (o painel nasce deitado e cresce até cobrir o ecrã),
+   "fold" (v1.2.0 — o inverso: o painel começa a cobrir o ecrã, plano e sem
+   raio, e encolhe até um cartão centrado; com scale 0 (v1.3.0) encolhe até
+   desaparecer por inteiro), "bloom" (v1.3.0 — a div seguinte nasce PELO
+   CENTRO: começa pequena, transparente e com raio, e cresce até cobrir) e,
+   v1.4.0, "zoom" (entra GRANDE e recua — dolly-out), "slide" (empurra pela
+   DIREITA), "wheel" (gira em rotateY), "curtain" (íris clip-path circle) e
+   "blur" (entra desfocado e foca). As classes .emerge-scene-<preset>
+   sobrepõem o estado inicial abaixo.
+   ========================================================================== */
+:root {
+  --emerge-scene-perspective: 3000px; /* perspectiva do pin 3D (px)          */
+  --emerge-scene-origin: 50% 78%;     /* perspective-origin (ponto de fuga)  */
+  --emerge-scene-tilt: 90deg;         /* rotateX inicial do painel           */
+  --emerge-scene-scale: .44;          /* scaleX inicial (.7 no mobile, p.ex.)*/
+  --emerge-scene-offset: 27.7%;       /* translateY inicial do painel        */
+  --emerge-scene-radius: 5vw;         /* border-radius inicial do painel     */
+}
+
+.emerge-scene-space { position: relative; }
+
+/* Altura da cena em pin; :where() mantém a especificidade a zero, portanto a
+   altura do autor (se existir) ganha sempre. */
+:where(.emerge-scene) {
+  height: 100vh;
+  height: 100svh;
+}
+
+/* Estado inicial (só existe com JS): painel deitado, estreito e invisível.
+   O JS reescreve estes valores inline por frame — ficam aqui para não haver
+   flash entre o carregamento e o primeiro frame de pintura. */
+.emerge-scene .emerge-scene-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  opacity: 0;
+  border-radius: var(--emerge-scene-radius);
+  transform: translateY(var(--emerge-scene-offset)) rotateX(var(--emerge-scene-tilt)) scaleX(var(--emerge-scene-scale));
+  transform-origin: center center;
+}
+.emerge-scene .emerge-scene-layer-b { opacity: 0; }
+.emerge-scene .emerge-scene-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+}
+
+/* Preset "fold" — estado inicial do painel: opaco, plano e sem raio, a
+   cobrir a cena (sobrepõe o estado inicial do unfold; mesmo peso, mas vem
+   depois). As luzes mantêm a opacidade do autor (só o unfold as anima). */
+.emerge-scene-fold .emerge-scene-panel {
+  opacity: 1;
+  transform: none;
+  border-radius: 0;
+}
+
+/* Preset "bloom" (v1.3.0) — estado inicial do painel: pequeno, transparente
+   e com raio, no centro (o JS anima scale/opacity/radius até cobrir a cena;
+   sem tilt nem translateY por omissão: nasce pelo centro, não de baixo). */
+.emerge-scene-bloom .emerge-scene-panel {
+  opacity: 0;
+  transform: scale(var(--emerge-scene-scale));
+  border-radius: var(--emerge-scene-radius);
+}
+
+/* Presets v1.4.0 — estados iniciais (mesma função: evitar flash até ao
+   primeiro paint; os valores têm de coincidir com os defaults do JS).
+   zoom: entra grande e transparente; slide: entra pela direita, opaco;
+   wheel: entra girado (rotateY) e pequeno; curtain: tapado pela íris
+   (círculo de raio 0 no centro); blur: entra desfocado e maior. */
+.emerge-scene-zoom .emerge-scene-panel {
+  opacity: 0;
+  transform: scale(1.6);
+  border-radius: var(--emerge-scene-radius);
+}
+.emerge-scene-slide .emerge-scene-panel {
+  opacity: 1;
+  transform: translateX(100%);
+  border-radius: var(--emerge-scene-radius);
+}
+.emerge-scene-wheel .emerge-scene-panel {
+  opacity: 0;
+  transform: rotateY(90deg) scale(.7);
+  border-radius: var(--emerge-scene-radius);
+}
+.emerge-scene-curtain .emerge-scene-panel {
+  opacity: 1;
+  transform: none;
+  border-radius: var(--emerge-scene-radius);
+  clip-path: circle(0px at 50% 50%);
+}
+.emerge-scene-blur .emerge-scene-panel {
+  opacity: 0;
+  transform: scale(1.12);
+  border-radius: var(--emerge-scene-radius);
+  filter: blur(24px);
+}
+
+/* Em todos os presets menos o unfold as luzes não são animadas: mantêm a
+   opacidade do autor (o layer-b do unfold é que começa apagado). */
+.emerge-scene:not(.emerge-scene-unfold) .emerge-scene-layer-b { opacity: 1; }
+
+/* Presets v1.4.0 que transbordam a cena (zoom scale > 1, slide translateX
+   100%, wheel projetado para fora pela perspective, blur scale 1.12):
+   overflow: clip na CENA (não no ancestral!) corta o excesso sem criar
+   contexto de scroll nem afetar o pin — transforms não geram scrollbars. */
+.emerge-scene-zoom,
+.emerge-scene-slide,
+.emerge-scene-wheel,
+.emerge-scene-blur {
+  overflow: clip;
+}
+
+/* will-change só enquanto a cena está a ser animada (classe .emerge-scene-live,
+   gerida pelo JS: entra quando 0 < progresso < 1 e sai quando assenta). */
+.emerge-scene-live .emerge-scene-panel {
+  will-change: transform, opacity, border-radius, clip-path, filter;
+}
+.emerge-scene-live :is(.emerge-scene-content, .emerge-scene-layer, .emerge-scene-cover) {
+  will-change: opacity;
+}
+
+/* Fallback estático (reduced motion, data-emerge-scene-disable-size ou
+   data-emerge-scene-disable): conteúdo visível e painel plano, em fluxo
+   normal, logo abaixo, com border-radius 0, cobertura invisível e — novo nos
+   presets v1.4.0 — sem íris nem desfoque (clip-path/filter fora). */
+.emerge-scene-static { height: auto; }
+.emerge-scene-static .emerge-scene-panel {
+  position: relative;
+  inset: auto;
+  opacity: 1;
+  transform: none;
+  border-radius: 0;
+  clip-path: none;
+  filter: none;
+}
+.emerge-scene-static .emerge-scene-cover { display: none; }
+
+/* ---- Print — painel plano e cobertura fora ---- */
+@media print {
+  .emerge-scene .emerge-scene-panel {
+    position: relative;
+    inset: auto;
+    opacity: 1 !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    clip-path: none !important;
+    filter: none !important;
+  }
+  .emerge-scene .emerge-scene-cover { display: none !important; }
+}
+
+
+/* ==========================================================================
+   24. Magnetic — atracção magnética ao cursor (v1.5.0)
+   Marcação: data-emerge-magnetic ("" = padrão | "card" = superfícies grandes)
+   e data-emerge-magnetic-child="0.5" nos filhos que acompanham o movimento.
+   O JS escreve `translate` inline por frame — e, com o tilt 3D activo,
+   `transform` (perspective + rotateX/rotateY) — num único rAF partilhado,
+   e remove tudo quando o elemento regressa ao repouso. Aqui vivem só os
+   tokens (prioridade: atributo no elemento > token CSS > opção global do
+   Emerge.init > preset do modo) e as classes de estado. Sem JS, com o
+   plugin desactivado, com prefers-reduced-motion ou em browsers sem
+   transformações individuais, NADA é escrito: os elementos ficam na
+   posição natural, sem qualquer alteração de layout.
+   Tokens: --emerge-magnetic-strength, --emerge-magnetic-radius,
+   --emerge-magnetic-speed, --emerge-magnetic-ease, --emerge-magnetic-tilt,
+   --emerge-magnetic-tilt-strength, --emerge-magnetic-perspective
+   ========================================================================== */
+:root {
+  /* strength e radius NÃO têm token por omissão: o default vem do preset do
+     modo (padrão .3/60px, card .2/40px). Defina os tokens abaixo para um
+     valor global próprio — o atributo no elemento ganha sempre. */
+  /* --emerge-magnetic-strength: .3; */
+  /* --emerge-magnetic-radius: 60px; */
+  --emerge-magnetic-speed: 6;           /* resposta do follow (≈1..20)        */
+  --emerge-magnetic-ease: linear;       /* linear|quad|cubic|sine|out-quad|out-cubic */
+  --emerge-magnetic-tilt: false;        /* inclinação 3D (independente)       */
+  --emerge-magnetic-tilt-strength: 10deg;
+  --emerge-magnetic-perspective: 800px;
+}
+
+/* Classes de marcação/estado, sem estilos visuais próprios: o visual (cor,
+   sombra, hover, transições…) fica sempre sob controlo do autor. O
+   will-change existe apenas enquanto há atracção (classe gerida pelo JS,
+   como .emerge-scene-live). Sem transições no translate: o movimento é
+   desenhado pelo motor — transições do autor atrasam o follow. */
+.emerge-magnetic-active {
+  will-change: translate, transform;
+}
+
+/* ---- Print — sempre em repouso ---- */
+@media print {
+  .emerge-magnetic {
+    translate: none !important;
+    transform: none !important;
+  }
+}
+
+
+/* ==========================================================================
+   25. Parallax — deslocamento ligado ao scroll (v1.6.0)
+   Marcação: data-emerge-parallax="0.3" no elemento (o valor é a velocidade;
+   vazio = padrão). O elemento desloca-se com o scroll, ligado ao progresso do
+   plugin Range enquanto atravessa o viewport (janela
+   data-emerge-parallax-from/to, por omissão "enter" → "exit").
+   Camadas: data-emerge-parallax-layer="0.5" nos filhos de um contentor
+   data-emerge-parallax — parallax em profundidade, cada camada com o seu
+   factor (o mesmo progresso, deslocamento próprio).
+   Opções por atributo data-emerge-parallax-*, com token CSS homónimo
+   (--emerge-parallax-*) e opção global no Emerge.init — prioridade: atributo
+   no elemento > token CSS > opção global > default do plugin:
+     speed    fator de deslocamento; positivo anda à frente do scroll
+              (percurso > 100%), negativo fica atrás (fundo clássico, percurso
+              < 100%); −1 congela o elemento no ecrã durante o percurso
+     axis     y (padrão) | x | both
+     rotate   ângulo final (deg) — vai de 0 ao valor ao longo do percurso
+     scale    escala final — vai de 1 ao valor ao longo do percurso
+     opacity  opacidade final — desce de 1 para o valor ao longo do percurso
+     from/to  janela do Range (sintaxe existente: "enter", "top@50%", "+300"…)
+     smooth   suavização em segundos (mapeada para o "follow" do Range)
+     target   seletor de um filho a animar em vez do próprio elemento
+              (ex.: imagem dentro de um contentor com overflow: hidden)
+   Desativação: data-emerge-parallax-disable-mobile|tablet|phone|desktop|size
+   (padrão core isDisabledFor) e prefers-reduced-motion — nada é escrito: o
+   elemento fica na posição natural, sem alterações de layout.
+   O JS escreve as propriedades individuais translate/rotate/scale (e opacity)
+   — compõem com o transform do autor e com os efeitos dos outros plugins — e
+   publica --emerge-progress (0..1) no elemento (via Range). Em browsers sem
+   transformações individuais, ou sem JS, NADA é escrito. Coexiste com
+   data-emerge no mesmo elemento (fade-in do Emerge + parallax).
+   ========================================================================== */
+:root {
+  /* Tokens todos OPCIONAIS e comentados por omissão: enquanto estiverem
+     comentados, a opção global do Emerge.init (parallaxSpeed, parallaxAxis…)
+     é que actua — o atributo no elemento ganha sempre a ambos. Descomente
+     (e ajuste) para fixar um valor global próprio pela folha de estilos. */
+  /* --emerge-parallax-speed: .3; */      /* fator de deslocamento (±)         */
+  /* --emerge-parallax-axis: y; */        /* y | x | both                      */
+  /* --emerge-parallax-rotate: 0deg; */   /* ângulo final (deg)                */
+  /* --emerge-parallax-scale: 1; */       /* escala final                      */
+  /* --emerge-parallax-opacity: 1; */     /* opacidade final                   */
+  /* --emerge-parallax-from: enter; */    /* janela do Range (início)          */
+  /* --emerge-parallax-to: exit; */       /* janela do Range (fim)             */
+  /* --emerge-parallax-smooth: 0; */      /* suavização (segundos)             */
+  /* --emerge-parallax-target: ; */       /* seletor do filho a animar         */
+}
+
+/* Classes de marcação/estado, sem estilos visuais próprios: o visual (cor,
+   sombra, tamanhos, overflow…) fica sempre sob controlo do autor. O
+   will-change existe apenas enquanto o elemento atravessa o viewport (classe
+   .emerge-parallax-live gerida pelo JS, como .emerge-scene-live) — cobre o
+   elemento (ou o alvo) e as camadas. Sem transições no translate: o
+   movimento é desenhado pelo Range — transições do autor atrasam o efeito. */
+.emerge-parallax-live,
+.emerge-parallax-live .emerge-parallax-target,
+.emerge-parallax-live .emerge-parallax-layer {
+  will-change: translate, rotate, scale, opacity;
+}
+
+/* ---- Print — tudo na posição natural ---- */
+@media print {
+  .emerge-parallax,
+  .emerge-parallax .emerge-parallax-target,
+  .emerge-parallax .emerge-parallax-layer {
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+  }
+}
+
+
+/* ==========================================================================
+   26. Particles — letras nítidas feitas de partículas macias (v1.7.2)
+   Marcação: data-emerge-particles no elemento (o valor é o modo: "repel" |
+   "attract" | "swirl"; vazio = repel). O texto do elemento é amostrado para
+   um canvas colocado por cima (o canvas é um filho acrescentado pelo JS:
+   não altera o layout e não captura eventos); quando o rato ou o dedo passa
+   por cima, as partículas dispersam-se e a mola devolve-as ao lugar em
+   ondas. A legibilidade em repouso é prioritária: três CAMADAS com
+   orçamentos fixos — CORPO (≥ ~80%: denso, pequeno e quase uniforme,
+   tamanho 0,8×..1,3× o base, alpha 0,6..1, nunca abaixo de 0,45; desenhado
+   sempre em source-over), ACENTOS (~6%..12%: maiores, até ~2× o base, mais
+   brilhantes, com glow aditivo) e HALO (~4%..10%: poeira pequena e pouco
+   opaca, desvio máximo ~0,28× a altura da fonte, que só nasce JUNTO aos
+   contornos — nunca dentro dos contadores nem no espaço entre palavras).
+   Amostragem consciente da forma: a espessura de traço é estimada pela
+   razão área/perímetro da máscara; o gap automático procura ≥ ~5 partículas
+   a atravessar o traço, o tamanho é limitado pela espessura (corpo ≤ ~0,4×,
+   acentos ≤ ~0,9×) e a density só rarefaz o interior — as bordas mantêm
+   densidade total, por isso os contornos ficam contínuos. Jitter limitado
+   a ½ célula: quebra a grelha sem criar buracos. As intensidades escalam
+   com o tamanho da fonte (k = clamp((fs−24)/72, 0, 1): abaixo de ~32 px
+   quase só corpo nítido; a partir de ~96 px o efeito completo).
+   data-emerge-particles-look: "legible" (novo padrão) | "cloud" (o aspeto
+   esparso da nuvem — só legível em fontes grandes e a negrito) | "grid"
+   (grelha original). A opção contrast (0..1, padrão 0.8) empurra o
+   equilíbrio: 1 = mais corpo e menos efeitos; 0 = mais nuvem. As opções
+   individuais definidas ganham ao preset.
+   Opções por atributo data-emerge-particles-*, com token CSS homónimo
+   (--emerge-particles-*) e opção global no Emerge.init — prioridade:
+   atributo no elemento > token CSS > opção global > preset > default:
+     mode      repel (padrão) | attract | swirl — o valor do atributo
+               principal; --emerge-particles-mode serve de fallback
+     look      legible (padrão: letras nítidas + acentos + halo discreto) |
+               cloud (nuvem esparso da v1.7.1, para títulos muito grandes e
+               a negrito) | grid (grelha original, sem camadas nem luz)
+     contrast  0..1 (padrão .8) — 1 = mais corpo e menos efeitos, 0 = mais
+               nuvem; só se aplica às opções NÃO definidas explicitamente
+     sampling  organic (padrão) | grid (grelha antiga; força look=grid)
+     gap       espaçamento da amostragem em px (menor = mais partículas);
+               por omissão automático — no look legible é escolhido pela
+               espessura de traço (≥ ~5 partículas a atravessá-lo)
+     size      tamanho base da partícula em px (por omissão automático,
+               limitado pela espessura do traço: corpo ≤ ~0,4× o traço)
+     shape     soft (padrão: círculo com gradiente radial — núcleo sólido,
+               borda curta) | circle (círculo duro) | square
+     color     "text" (padrão: cor calculada do texto, incluindo spans com
+               cores diferentes) | uma cor CSS | paleta separada por
+               vírgulas ("#7CFFB2,#3DDC84,#B8FFD9") | random (HSL aleatório
+               por partícula) | gradient(#a,#b,… ao longo do texto)
+     color-jitter   0..1 — variação de matiz/saturação/luminosidade à volta
+               da cor base (a referência usa 1 matiz com luminosidade a variar)
+     color-angle    ângulo do gradient(), em graus (0 = horizontal)
+     color-weights  pesos da paleta, na mesma ordem ("1,2,1")
+     random    build (padrão: nasce com a instância, com semente) |
+               resample (nova a cada amostragem) | interval:N (nova a cada N
+               segundos, com transição suave de ~0,9 s)
+     random-hue / random-sat / random-light   intervalos "min-max" do modo
+               random (padrão 0-360, 65-95, 55-80); quantizado em ≤24 cores
+     seed      semente do aleatório — sem ela, nasce com a instância e não
+               muda: voltar a amostrar no resize não "treme"
+     density   0.1..1 (blend do look; ~.87 no legible) — só rarefaz o
+               INTERIOR dos traços grossos; as bordas ficam sempre com
+               densidade total (contornos contínuos)
+     depth     0..1 (blend do look; ~.39 no legible) — modula sobretudo os
+               ACENTOS e só ligeiramente o corpo (0 = todas iguais)
+     halo      0..1 (blend do look; ~.14 no legible) — fração de partículas
+               extra junto aos contornos (teto: 10% do total), alpha baixo,
+               desvio máximo ~0,28× a altura da fonte; conta para o teto
+     glow      auto (padrão: mistura aditiva "lighter" SÓ nos acentos, em
+               fundo escuro; em fundo claro cai para source-over com sombra
+               suave nos sprites) | on | off — o corpo nunca é desenhado em
+               aditivo, para a forma nunca saturar para branco
+     jitter    0..1 (blend do look; ~.53 no legible) — desalinhamento da
+               grelha de amostragem, efetivo ≤ 0,5 (½ célula)
+     drift     px de flutuação permanente (blend do look; ~.56 no legible).
+               A amplitude do corpo é limitada a ~0,25× o espaçamento
+               (máx. ~0,6 px); acentos e halo podem flutuar mais. Com
+               drift > 0 o motor não adormece enquanto o elemento está
+               visível, mas desacelera para ~30 fps; pára fora do viewport,
+               com o separador escondido e com prefers-reduced-motion.
+               drift="0" repõe o adormecer atual
+     radius    raio de influência do ponteiro em px (padrão 100)
+     strength  intensidade da repulsão/atração (padrão 1)
+     return    tempo aproximado de regresso ao lugar, em segundos (padrão 1)
+               — a rigidez, o atrito e o atraso variam ligeiramente por
+               partícula: o regresso entra em ondas
+     friction  atrito (0..1, padrão .92 — menos atrito = regresso mais vivo)
+     intro     none (padrão) | assemble — as partículas nascem espalhadas e
+               juntam-se no texto quando o elemento entra no viewport
+               (emerge:in do core, ou o observer próprio do plugin)
+     max       teto de partículas, halo incluído (por omissão ~4000 no
+               desktop, ~2500 em mobile; ao atingir o teto a redução segue a
+               ordem: halo → acentos → interior — as bordas nunca)
+     touch     como o toque se partilha com o scroll da página: pan-y
+               (padrão) | track | scroll | off — ver as classes abaixo
+   API: Emerge.Particles.{build, destroy, scan, resample, measure, of, all,
+   disperse(el,x,y), setColor(el, valor), legibility(el, {dpr})} — setColor
+   muda a cor em runtime sem voltar a amostrar; legibility mede a
+   legibilidade do estado assente (0..1; o look "legible" com defaults deve
+   pontuar ≥ 0,75) e aceita {dpr} para medir com outro DPR (offscreen).
+   Dinâmica: em repouso acentos e halo ficam discretos; ao interagir ganham
+   energia e brilho, e voltam ao normal quando as partículas assentam
+   (emerge:particles:settle).
+   Desativação: data-emerge-particles-disable-mobile|tablet|phone|desktop|size
+   (padrão core isDisabledFor) e prefers-reduced-motion — nada é construído:
+   o texto fica normal, sem canvas e sem alterações de layout.
+   Acessibilidade: o texto real fica no DOM com color: transparent (escrito
+   inline pelo JS nos elementos que contêm o texto, nunca display: none) —
+   continua selecionável, pesquisável e lido por leitores de ecrã; a cor
+   original é reposta no destroy e antes da impressão. Coexiste com
+   data-emerge no mesmo elemento (o canvas é filho e acompanha o fade-in).
+   Não combinar com data-emerge-split (plugin Text) no mesmo elemento.
+   ========================================================================== */
+:root {
+  /* Tokens todos OPCIONAIS e comentados por omissão: enquanto estiverem
+     comentados, o preset do look (e a opção global do Emerge.init, se
+     existir) é que actua — o atributo no elemento ganha sempre a ambos.
+     Descomente (e ajuste) para fixar um valor global próprio pela folha
+     de estilos. */
+  /* --emerge-particles-mode: repel; */          /* repel | attract | swirl        */
+  /* --emerge-particles-look: legible; */        /* legible | cloud | grid         */
+  /* --emerge-particles-contrast: .8; */         /* 0..1 — corpo ↔ nuvem           */
+  /* --emerge-particles-sampling: organic; */    /* organic | grid (legado)        */
+  /* --emerge-particles-gap: 4; */               /* amostragem em px (menor = mais)*/
+  /* --emerge-particles-size: 2; */              /* tamanho base da partícula (px) */
+  /* --emerge-particles-shape: soft; */          /* soft | circle | square         */
+  /* --emerge-particles-color: #7CFFB2; */       /* text | cor | a,b,c | random | gradient(#a,#b) */
+  /* --emerge-particles-color-jitter: .3; */     /* 0..1 — variação HSL da cor     */
+  /* --emerge-particles-color-angle: 0; */       /* ângulo do gradient (graus)     */
+  /* --emerge-particles-color-weights: 1,2,1; */ /* pesos da paleta                */
+  /* --emerge-particles-random: build; */        /* build | resample | interval:N  */
+  /* --emerge-particles-random-hue: 0-360; */    /* matiz do random (min-max)      */
+  /* --emerge-particles-random-sat: 65-95; */    /* saturação do random (min-max)  */
+  /* --emerge-particles-random-light: 55-80; */  /* luminosidade do random         */
+  /* --emerge-particles-seed: 7; */              /* semente do aleatório           */
+  /* --emerge-particles-density: .87; */         /* 0.1..1 — só rarefaz o interior */
+  /* --emerge-particles-depth: .39; */           /* 0..1 — modula os acentos       */
+  /* --emerge-particles-halo: .14; */            /* 0..1 — poeira junto aos contornos */
+  /* --emerge-particles-glow: auto; */           /* auto | on | off — glow dos acentos */
+  /* --emerge-particles-jitter: .53; */          /* 0..1 — efetivo ≤ 0,5           */
+  /* --emerge-particles-drift: .56px; */         /* flutuação (corpo ≤ ~0,6 px)    */
+  /* --emerge-particles-radius: 100px; */        /* raio do ponteiro em px         */
+  /* --emerge-particles-strength: 1; */          /* intensidade do ponteiro        */
+  /* --emerge-particles-return: 1; */            /* regresso, em segundos          */
+  /* --emerge-particles-friction: .92; */        /* atrito (0..1)                  */
+  /* --emerge-particles-intro: none; */          /* none | assemble                */
+  /* --emerge-particles-max: 4000; */            /* teto de partículas (com halo)  */
+  /* --emerge-particles-touch: pan-y; */         /* pan-y | track | scroll | off   */
+}
+
+/* Host: contexto de posição do canvas. :where() mantém a especificidade a
+   zero, portanto o position do autor ganha sempre (o canvas segue-o na
+   mesma). Sem margens, sem overflow, sem layout: só o posicionamento. */
+:where(.emerge-particles) {
+  position: relative;
+}
+
+/* O canvas é um filho acrescentado por cima do texto (posicionado pelo JS
+   com uma folga em torno do elemento para as partículas poderem sair um
+   pouco). Não altera o layout e não captura eventos: o ponteiro chega ao
+   texto, aos links e aos botões. Sem will-change: o canvas redesenha-se por
+   si e nada é transformado por CSS. */
+.emerge-particles-canvas {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+/* Classe de estado nos elementos que contêm o texto amostrado. A tinta
+   original esconde-se com color: transparent inline (escrito pelo JS e
+   reposto no destroy/impressão) — esta classe não aplica estilos, serve
+   apenas de gancho para o autor reforçar ou personalizar o comportamento
+   (p. ex. tornar a tinta quase invisível em vez de transparente). */
+.emerge-particles-text {
+}
+
+/* touch-action por modo (aplicado só ao host, como no Spotlight): pan-y
+   (padrão) mantém o scroll vertical da página e deixa o toque dispersar as
+   partículas; track entrega o gesto às partículas (pinch-zoom continua a
+   funcionar); scroll e off não têm classe — comportamento nativo. */
+:where(.emerge-particles-touch-pan-y) {
+  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
+}
+:where(.emerge-particles-touch-track) {
+  touch-action: none;
+  touch-action: pinch-zoom;
+}
+
+/* ---- Print — o texto real volta, o canvas sai (o JS também repõe a cor
+   nos eventos beforeprint/afterprint; o !important cobre o intervalo) ---- */
+@media print {
+  .emerge-particles .emerge-particles-canvas {
+    display: none !important;
+  }
+  .emerge-particles-text {
+    color: inherit !important;
+    -webkit-text-fill-color: currentcolor !important;
+  }
+}
+
+/* ---- prefers-reduced-motion — rede de segurança: mesmo que a instância
+   ainda exista (o destroy, que repõe a cor, corre no hooks.refresh do
+   core), o texto nunca fica invisível ---- */
+@media (prefers-reduced-motion: reduce) {
+  .emerge-particles .emerge-particles-canvas {
+    display: none !important;
+  }
+  .emerge-particles-text {
+    color: inherit !important;
+    -webkit-text-fill-color: currentcolor !important;
+  }
+}
