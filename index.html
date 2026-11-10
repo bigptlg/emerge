@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emerge.js — Documentação</title>
-<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 11 plugins: Range, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax e Particles.">
+<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 12 plugins: Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax e Particles.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -568,6 +568,133 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 .stk-2 { background: linear-gradient(150deg, #0aa2c0, #0e7490); }
 .stk-3 { background: linear-gradient(150deg, #274b8f, #4d7fc4); }
 
+/* Reel — regras do plugin embutidas (fallback: o CSS do CDN pode ainda não
+   trazer a seção 10.5; quando trouxer, as regras são idênticas e inofensivas) */
+/* ==========================================================================
+   10.5 Reel — o sucessor unificado do Horizontal + Stack
+   Uma faixa presa ao ecrã com N painéis avançados pelo scroll, num espaçador.
+   O eixo define o movimento (data-emerge-reel-motion):
+     x (default) → o trilho translada na horizontal   (herda do Horizontal)
+     y           → o trilho translada na vertical
+     none        → painéis empilhados que trocam      (herda do Stack)
+   Por cima do movimento, cada painel leva um efeito de entrada
+   (data-emerge-reel-transition): none (default nos eixos x/y) |
+   fade (default no eixo none) | slide-up | slide-down | slide-left |
+   slide-right | zoom / zoom-in | zoom-out | blur | flip.
+   O modo é escrito pelo JS em data-emerge-reel-mode e lido pelo CSS:
+     scrub → contínuo: por frame, o JS escreve o transform do trilho e, em
+             cada painel, --emerge-reel-p (entrada 0..1) e --emerge-reel-dir
+             (-1 antes / +1 depois do painel ativo);
+     step  → discreto: o JS troca .emerge-active e escreve as variáveis uma
+             vez por troca; as transições CSS fazem a animação.
+   Tokens: --emerge-reel-duration, --emerge-reel-easing, --emerge-reel-shift,
+   --emerge-reel-blur, --emerge-reel-gap, --emerge-reel-padding,
+   --emerge-reel-item-width, --emerge-reel-height.
+   Nota: nenhum antecessor do elemento preso pode usar overflow: hidden/auto
+   (use overflow: clip) ou o sticky não funciona.
+   ========================================================================== */
+.emerge-reel-space { position: relative; }
+
+
+.emerge-reel {
+  position: relative; /* JS muda para sticky quando pin + sticky */
+  height: var(--emerge-reel-height, 100vh);
+  height: var(--emerge-reel-height, 100dvh);
+  overflow: hidden;
+}
+
+
+/* Trilho — só existe nos eixos x / y */
+.emerge-reel-track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--emerge-reel-gap, 0);
+  width: max-content;
+  height: 100%;
+  padding-inline: var(--emerge-reel-padding, 0);
+  will-change: transform;
+}
+.emerge-reel-axis-y .emerge-reel-track {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: max-content;
+  padding-inline: 0;
+  padding-block: var(--emerge-reel-padding, 0);
+}
+.emerge-reel-item {
+  flex: 0 0 auto;
+  width: var(--emerge-reel-item-width, auto);
+  max-width: none;
+  transition:
+    opacity    var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    translate  var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    scale      var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    rotate     var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    filter     var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    visibility var(--emerge-reel-duration, .6s) linear;
+}
+
+
+/* Eixo none: painéis empilhados (comportamento Stack) */
+.emerge-reel-axis-none .emerge-reel-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.emerge-reel-axis-none .emerge-reel-item.emerge-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+
+/* Step: o trilho desliza com transição até ao painel ativo */
+.emerge-reel[data-emerge-reel-mode="step"] .emerge-reel-track {
+  transition: transform var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease);
+}
+/* Scrub: nada de transições — é o scroll que interpola */
+.emerge-reel[data-emerge-reel-mode="scrub"] .emerge-reel-item,
+.emerge-reel[data-emerge-reel-mode="scrub"] .emerge-reel-track {
+  transition: none;
+}
+
+
+/* Efeito de entrada por painel — nos três eixos e nos dois modos.
+   p = proximidade do painel ativo (0..1); dir = lado relativo (-1/0/+1).
+   No scrub o JS atualiza as variáveis por frame; no step escreve-as uma vez
+   por troca e a transição do .emerge-reel-item anima o resto. */
+.emerge-reel-item.fade { opacity: var(--emerge-reel-p, 1); }
+.emerge-reel-item.slide-up    { translate: 0 calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%)); }
+.emerge-reel-item.slide-down  { translate: 0 calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%) * -1); }
+.emerge-reel-item.slide-left  { translate: calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%)) 0; }
+.emerge-reel-item.slide-right { translate: calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%) * -1) 0; }
+.emerge-reel-item.zoom,
+.emerge-reel-item.zoom-in     { scale: calc(1 - (1 - var(--emerge-reel-p, 0)) * .08); }
+.emerge-reel-item.zoom-out    { scale: calc(1 + (1 - var(--emerge-reel-p, 0)) * .08); }
+.emerge-reel-item.blur        { filter: blur(calc((1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-blur, 12px))); }
+.emerge-reel-item.flip        { rotate: x calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * -25deg); }
+
+/* Reel */
+.rdl { --emerge-reel-height: min(62vh, 480px); --emerge-reel-item-width: min(64vw, 460px); --emerge-reel-gap: 22px; --emerge-reel-padding: 6vw; }
+.rdl-item {
+  height: min(52vh, 380px); border-radius: 18px; padding: 30px;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+  border: 1px solid var(--border-2); color: #fff;
+}
+.rdl-item:nth-child(4n+1) { background: linear-gradient(150deg, #1256b8, #0aa2c0); }
+.rdl-item:nth-child(4n+2) { background: linear-gradient(150deg, #0e3f8f, #1256b8); }
+.rdl-item:nth-child(4n+3) { background: linear-gradient(150deg, #0aa2c0, #0e7490); }
+.rdl-item:nth-child(4n+4) { background: linear-gradient(150deg, #274b8f, #3b82c4); }
+.rdl-item .n { font-family: var(--mono); font-size: 13px; opacity: .75; }
+.rdl-item code { white-space: normal; word-break: break-word; background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .38); color: #fff; }
+.rdl-item h4 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+.rdl-item p { font-size: 13.5px; opacity: .85; margin: 0; max-width: 40ch; }
+.reel-readout { margin: 10px 0 0; min-height: 1.2em; font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+
 /* Media */
 .md-host {
   border-radius: 16px; overflow: hidden; border: 1px solid var(--border-2);
@@ -735,25 +862,6 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
-
-/* ───────── Gerador de instalação ───────── */
-.picker { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 18px; margin: 18px 0; box-shadow: var(--shadow); }
-.picker-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.picker-seg, .picker-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.picker-seg label { font-size: 13px; color: var(--text-2); cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-2); border-radius: 999px; }
-.picker-seg input { position: absolute; opacity: 0; pointer-events: none; }
-.picker-seg input:checked + span { color: var(--accent); font-weight: 600; }
-.picker-seg label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
-.picker-btn { font: inherit; font-size: 13px; color: var(--text-2); background: none; border: 1px solid var(--border-2); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-.picker-btn:hover { color: var(--accent); border-color: var(--accent); }
-.picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
-.pk-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); cursor: pointer; }
-.pk-item:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
-.pk-item input { margin-top: 3px; accent-color: var(--accent); }
-.pk-item b { display: block; font-size: 14px; color: var(--text); }
-.pk-item small { display: block; font-size: 12px; color: var(--text-3); line-height: 1.4; }
-.pk-item .pk-auto { color: var(--accent-2); font-weight: 600; }
-.picker-hint { font-size: 13px; color: var(--text-2); margin: 12px 0 0; min-height: 1.3em; }
 </style>
 </head>
 <body id="topo">
@@ -784,7 +892,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
     <a href="#api">API</a>
   </nav>
   <div class="top-actions">
-    <a class="top-cdn" href="https://cdn.pedrodeoliveira.me/js/emerge.js" target="_blank" rel="noopener">CDN</a>
+    <a class="top-cdn" href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">CDN</a>
     <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
       <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
@@ -831,6 +939,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <a class="sb-link" href="#horizontal"><span class="dot"></span>Horizontal</a>
         <a class="sb-link" href="#media"><span class="dot"></span>Media</a>
         <a class="sb-link" href="#stack"><span class="dot"></span>Stack</a>
+        <a class="sb-link" href="#reel"><span class="dot"></span>Reel <span class="tag">novo</span></a>
         <a class="sb-link" href="#text"><span class="dot"></span>Text</a>
         <a class="sb-link" href="#spotlight"><span class="dot"></span>Spotlight</a>
         <a class="sb-link" href="#scene"><span class="dot"></span>Scene</a>
@@ -857,7 +966,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <span class="badge">v1.7.2</span>
           <span class="badge">zero dependências</span>
           <span class="badge">HTML declarativo</span>
-          <span class="badge">11 plugins</span>
+          <span class="badge">12 plugins</span>
         </div>
         <h1 data-emerge="fade-up" data-emerge-delay="80">Animações de scroll que <span class="grad">emergem</span> do HTML.</h1>
         <p class="hero-lead" data-emerge="fade-up" data-emerge-delay="160">
@@ -872,7 +981,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           </a>
           <a class="btn btn-ghost" href="#efeitos">Ver os efeitos</a>
         </div>
-        <div class="hero-install" data-emerge="fade-up" data-emerge-delay="320"><span class="hl">&lt;script</span> src="https://cdn.pedrodeoliveira.me/js/emerge.js"<span class="hl">&gt;&lt;/script&gt;</span></div>
+        <div class="hero-install" data-emerge="fade-up" data-emerge-delay="320"><span class="hl">&lt;script</span> src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js"<span class="hl">&gt;&lt;/script&gt;</span></div>
       </div>
 
       <div class="hero-demo" data-emerge="zoom-in" data-emerge-delay="200" data-replay-scope>
@@ -941,6 +1050,12 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <b>Painéis empilhados</b>
           <span>Seções pinadas que se substituem com fade, slide, zoom, blur ou flip conforme você rola.</span>
         </div>
+        <div class="feature-card" data-emerge="fade-up" data-emerge-delay="330">
+          <div class="fc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg></div>
+          <span class="fc-tag">Reel</span>
+          <b>Bobina unificada</b>
+          <span>Reimplementação do Horizontal + Stack num plugin só: faixa que translada em x/y ou painéis empilhados, com efeito de entrada por painel.</span>
+        </div>
         <div class="feature-card" data-emerge="fade-up" data-emerge-delay="360">
           <div class="fc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7V5h16v2M9 20h6M12 5v15"/></svg></div>
           <span class="fc-tag">Text</span>
@@ -994,12 +1109,10 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <p class="sec-kicker">Setup</p>
         <h2 class="sec-title">Instalação <a class="anchor" href="#instalacao">#</a></h2>
         <p class="sec-lead">
-          O Emerge está dividido em <strong>core</strong> (<code>emerge.js</code>: efeitos de entrada,
-          eventos e sistema de plugins) e <strong>11 plugins</strong> independentes.
-          <strong>Recomendamos carregar o core e só os plugins que o projeto usa</strong> (Opção A) —
-          você registra cada um com <code>Emerge.addPlugin()</code>, e a ordem importa. O
-          <strong>bundle</strong> (Opção B) existe como atalho para prototipar. O código-fonte está no
-          <a href="https://github.com/bigptlg/emerge" target="_blank" rel="noopener">GitHub</a>.</p>
+          Duas URLs oficiais, dois modos de uso: o <strong>bundle</strong> (tudo incluso, já
+          registrado) ou os <strong>arquivos individuais</strong> (você registra cada plugin —
+          e aí a ordem importa, como veremos abaixo).
+        </p>
       </div>
 
       <h3 class="sub">Links oficiais (CDN)</h3>
@@ -1007,165 +1120,24 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <table>
           <thead><tr><th>Arquivo</th><th>URL</th><th>Conteúdo</th></tr></thead>
           <tbody>
-            
+            <tr>
+              <td><code>emerge.bundle.js</code></td>
+              <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.bundle.js</a></td>
+              <td>Core + os 12 plugins (Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax e Particles) <strong>já registrados</strong> + auto-loader de CSS.</td>
+            </tr>
             <tr>
               <td><code>emerge.css</code></td>
               <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/css/emerge.css" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/css/emerge.css</a></td>
               <td>Folha de estilo obrigatória: estado oculto, keyframes de todos os efeitos e estilos dos plugins.</td>
             </tr>
-                      <tr>
-              <td><code>emerge.js</code></td>
-              <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.js</a></td>
-              <td><strong>Core</strong> isolado (sem plugins): efeitos de entrada, eventos, API e <code>Emerge.addPlugin()</code>.</td>
-            </tr>
-            <tr>
-              <td><code>emerge/&lt;plugin&gt;.js</code></td>
-              <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge/range.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge/range.js</a></td>
-              <td>Um arquivo por plugin (<code>range</code>, <code>draw</code>, <code>horizontal</code>, <code>media</code>, <code>stack</code>, <code>text</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>particles</code>). Exemplo: <code>range.js</code>. Precisam de <code>Emerge.addPlugin()</code>.</td>
-            </tr>
-            <tr>
-              <td><code>emerge.bundle.js</code></td>
-              <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.bundle.js</a></td>
-              <td><strong>Atalho:</strong> core + os 11 plugins (Range, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax e Particles) <strong>já registrados</strong> + auto-loader de CSS.</td>
-            </tr>
           </tbody>
         </table>
       </div>
 
+      <h3 class="sub">Opção A — Bundle (recomendado)</h3>
       <p>
-        Também está no jsDelivr, direto do GitHub:
-        <code>https://cdn.jsdelivr.net/gh/bigptlg/emerge/js/emerge.js</code> (e
-        <code>…/css/emerge.css</code>, <code>…/js/emerge/&lt;plugin&gt;.js</code>, <code>…/js/emerge.bundle.js</code>).
-        Para fixar a versão, ela vai <em>depois do repositório</em>:
-        <code>gh/bigptlg/emerge@1.7.2/js/emerge.js</code> (exige a tag <code>1.7.2</code> no GitHub) —
-        nunca no fim do nome do arquivo.
-      </p>
-
-            <div class="callout tip">
-        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></svg></span>
-        <div class="co-body">
-          <strong class="co-title">Por que core + plugins é a recomendação</strong>
-          <p>Um projeto que usa só <strong>Range, Scene e Parallax</strong> carrega cerca de <strong>78&nbsp;KB</strong> (core + 3 plugins) em vez de <strong>347&nbsp;KB</strong> do bundle (tamanhos do repositório, sem compressão). O bundle leva também Spotlight, Particles, Magnetic, Draw e os demais, o que significa:</p>
-          <ul>
-            <li>JavaScript desnecessário na transferência;</li>
-            <li>mais código para o navegador interpretar e executar;</li>
-            <li>maior consumo potencial de memória;</li>
-            <li>menos controle sobre as funcionalidades incluídas.</li>
-          </ul>
-          <p>Gzip/Brotli reduzem o que é transferido, mas <strong>não eliminam o custo de parse e execução</strong> do código. A contrapartida é registrar os plugins manualmente — o gerador abaixo faz isso por você.</p>
-        </div>
-      </div>
-
-<h3 class="sub">Opção A — Core + plugins individuais (recomendado)</h3>
-      <p>
-        O core (<code>emerge.js</code>) não traz nenhum plugin. Cada plugin é um arquivo separado em
-        <code>js/emerge/</code> e é apenas uma <em>fábrica</em> exposta como global
-        (<code>EmergeRange</code>, <code>EmergeDraw</code>, <code>EmergeHorizontal</code>,
-        <code>EmergeMedia</code>, <code>EmergeStack</code>, <code>EmergeText</code>,
-        <code>EmergeSpotlight</code>, <code>EmergeScene</code>, <code>EmergeMagnetic</code>, <code>EmergeParallax</code>, <code>EmergeParticles</code>). Registrar é responsabilidade sua, com
-        <code>Emerge.addPlugin(...)</code> — e aqui vem a regra de ouro:
-      </p>
-
-            <div class="code-block">
-        <div class="code-head"><span class="code-lang">html</span>
-          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
-        </div>
-<pre><code><span class="tk-c">&lt;!-- 1. CSS (obrigatório; o auto-loader só existe no bundle) --&gt;</span>
-<span class="tk-t">&lt;link</span> <span class="tk-a">rel</span>=<span class="tk-s">"stylesheet"</span> <span class="tk-a">href</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/css/emerge.css"</span><span class="tk-t">&gt;</span>
-
-<span class="tk-c">&lt;!-- 2. Core + só os plugins que você usa --&gt;</span>
-<span class="tk-t">&lt;script</span> <span class="tk-a">src</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/js/emerge.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
-<span class="tk-t">&lt;script</span> <span class="tk-a">src</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/js/emerge/range.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
-<span class="tk-t">&lt;script</span> <span class="tk-a">src</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/js/emerge/text.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
-<span class="tk-t">&lt;script</span> <span class="tk-a">src</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/js/emerge/parallax.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
-
-<span class="tk-t">&lt;script&gt;</span>
-  <span class="tk-c">// 3. Registre (Range primeiro!) e inicie</span>
-  <span class="tk-f">Emerge.addPlugin</span>(EmergeRange, EmergeText, EmergeParallax);
-  <span class="tk-f">Emerge.init</span>();
-<span class="tk-t">&lt;/script&gt;</span></code></pre>
-      </div>
-
-      <p>
-        Chame <code>addPlugin</code> <strong>antes</strong> de <code>Emerge.init()</code>. Aceita plugins
-        soltos ou arrays. Como CommonJS/AMD (UMD): <code>Emerge.addPlugin(require('./emerge/range.js'))</code>.
-      </p>
-
-      <div class="order-alert" data-emerge="fade-up">
-        <div class="oa-head">
-          <span class="oa-badge">Atenção · ordem obrigatória</span>
-          <strong>Range deve ser SEMPRE o primeiro plugin registrado</strong>
-        </div>
-        <p>
-          O <strong>Range</strong> é o motor de scroll (progresso 0&nbsp;→&nbsp;1) que Draw,
-          Horizontal, Media, Stack, Text, Scene e Parallax usam nos modos <em>follow</em> / <em>scrub</em>. Registre-o
-          <strong class="em">antes de todos os outros</strong>; os demais podem vir em qualquer ordem depois dele.
-        </p>
-        <div class="code-block">
-          <div class="code-head"><span class="code-lang">js</span>
-            <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
-          </div>
-<pre><code><span class="tk-c">// ✅ CORRETO — Range primeiro, sempre</span>
-<span class="tk-f">Emerge.addPlugin</span>(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles);
-
-<span class="tk-c">// ✅ também vale — em chamadas separadas, mantendo a ordem</span>
-<span class="tk-f">Emerge.addPlugin</span>(EmergeRange);
-<span class="tk-f">Emerge.addPlugin</span>(EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles);
-
-<span class="tk-c">// ❌ ERRADO — Range por último quebra os modos follow/scrub</span>
-<span class="tk-f">Emerge.addPlugin</span>(EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeRange);</code></pre>
-        </div>
-        <p style="margin-top:12px">💡 No <strong>bundle</strong> nada disso é necessário: a ordem correta já vem embutida.</p>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Global</th><th>Plugin</th><th>O que adiciona</th></tr></thead>
-          <tbody>
-            <tr><td><code>EmergeRange</code></td><td><strong>Range</strong> <span class="req">· 1º sempre</span></td><td>Motor de progresso ligado ao scroll (motor usado pelos demais).</td></tr>
-            <tr><td><code>EmergeDraw</code></td><td>Draw</td><td>Desenho de traços SVG.</td></tr>
-            <tr><td><code>EmergeHorizontal</code></td><td>Horizontal</td><td>Faixa horizontal pinada.</td></tr>
-            <tr><td><code>EmergeMedia</code></td><td>Media</td><td>Scrub de vídeo / sequência de frames.</td></tr>
-            <tr><td><code>EmergeStack</code></td><td>Stack</td><td>Painéis empilhados.</td></tr>
-            <tr><td><code>EmergeText</code></td><td>Text</td><td>Divisão de texto (chars / words / lines).</td></tr>
-            <tr><td><code>EmergeSpotlight</code></td><td>Spotlight</td><td>Spotlight que segue o ponteiro.</td></tr>
-            <tr><td><code>EmergeScene</code></td><td>Scene</td><td>Cenas de hero pinadas — 8 presets (unfold, fold, bloom, zoom, slide, wheel, curtain, blur).</td></tr>
-            <tr><td><code>EmergeMagnetic</code></td><td>Magnetic</td><td>Elementos atraídos pelo ponteiro, com tilt 3D opcional.</td></tr>
-            <tr><td><code>EmergeParallax</code></td><td>Parallax</td><td>Deslocamento por scroll, com camadas e rotate/scale/opacity (usa o Range).</td></tr>
-            <tr><td><code>EmergeParticles</code></td><td>Particles</td><td>Texto reconstruído em canvas como partículas que reagem ao ponteiro.</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-                  <h3 class="sub" id="gerador">Monte a sua instalação</h3>
-      <p>Marque os plugins que quer usar e copie o código pronto: CSS, core, o <strong>link de cada plugin</strong> e o <strong>registro</strong> (<code>Emerge.addPlugin</code>) já na ordem certa.</p>
-
-      <div class="picker" id="picker">
-        <div class="picker-bar">
-          <div class="picker-seg" role="radiogroup" aria-label="Origem dos arquivos">
-            <label><input type="radio" name="pk-src" value="official" checked><span>CDN oficial</span></label>
-            <label><input type="radio" name="pk-src" value="jsdelivr"><span>jsDelivr (GitHub)</span></label>
-          </div>
-          <div class="picker-actions">
-            <button type="button" class="picker-btn" id="pk-all">Selecionar todos</button>
-            <button type="button" class="picker-btn" id="pk-none">Limpar</button>
-          </div>
-        </div>
-        <div class="picker-grid" id="pk-grid"></div>
-        <p class="picker-hint" id="pk-hint"></p>
-      </div>
-
-      <div class="code-block">
-        <div class="code-head"><span class="code-lang">html — a sua instalação</span>
-          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
-        </div>
-<pre><code id="pk-out"></code></pre>
-      </div>
-
-      <h3 class="sub">Opção B — Bundle (atalho: tudo num arquivo)</h3>
-      <p>
-        O bundle embute o núcleo e os onze plugins — <strong>mesmo os que o projeto não usa</strong>. Eles são <strong>registrados
-        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles])</code>
+        O bundle embute o núcleo e os doze plugins. Eles são <strong>registrados
+        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles])</code>
         — então <strong>você não precisa chamar <code>addPlugin</code> manualmente</strong> ao usar o bundle.
       </p>
 
@@ -1192,20 +1164,60 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         </div>
       </div>
 
-      <h3 class="sub">Só o core</h3>
+      <h3 class="sub">Opção B — Arquivos individuais (plugin por plugin)</h3>
       <p>
-        <code>emerge.css</code> + <code>emerge.js</code> já dão todos os efeitos de entrada (fade, zoom, slide,
-        flip, blur, reveal, extras), eventos, easings, <code>once</code>/<code>mirror</code> e
-        <code>anchorPlacement</code>. Atributos de plugins (<code>data-emerge-draw</code>,
-        <code>data-emerge-split</code>…) são ignorados enquanto o plugin não estiver registrado.
+        Distribuído separadamente, cada plugin é apenas uma <em>fábrica</em> exposta como global
+        (<code>EmergeRange</code>, <code>EmergeDraw</code>, <code>EmergeHorizontal</code>,
+        <code>EmergeMedia</code>, <code>EmergeStack</code>, <code>EmergeText</code>,
+        <code>EmergeSpotlight</code>, <code>EmergeScene</code>, <code>EmergeMagnetic</code>, <code>EmergeParallax</code>, <code>EmergeParticles</code>). Registrar é responsabilidade sua, com
+        <code>Emerge.addPlugin(...)</code> — e aqui vem a regra de ouro:
       </p>
 
-      <div class="callout tip">
-        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></svg></span>
-        <div class="co-body">
-          <strong class="co-title">Vindo da versão em arquivo único?</strong>
-          <p>O antigo <code>emerge.js</code> com tudo dentro agora é o <code>emerge.bundle.js</code>. O <code>emerge.js</code> atual é só o core. Recomendamos migrar para core + plugins (registre só os que usa com <code>Emerge.addPlugin()</code>); se quiser o comportamento antigo sem mexer em mais nada, troque a URL pelo bundle.</p>
+      <div class="order-alert" data-emerge="fade-up">
+        <div class="oa-head">
+          <span class="oa-badge">Atenção · ordem obrigatória</span>
+          <strong>Range deve ser SEMPRE o primeiro plugin registrado</strong>
         </div>
+        <p>
+          O <strong>Range</strong> é o motor de scroll (progresso 0&nbsp;→&nbsp;1) que Draw,
+          Horizontal, Media, Text, Scene e Parallax usam nos modos <em>follow</em> / <em>scrub</em>. Registre-o
+          <strong class="em">antes de todos os outros</strong>; os demais podem vir em qualquer ordem depois dele.
+        </p>
+        <div class="code-block">
+          <div class="code-head"><span class="code-lang">js</span>
+            <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+          </div>
+<pre><code><span class="tk-c">// ✅ CORRETO — Range primeiro, sempre</span>
+<span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>, Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax, Particles);
+
+<span class="tk-c">// ✅ também vale — em chamadas separadas, mantendo a ordem</span>
+<span class="tk-f">Emerge.addPlugin</span>(<span class="tk-f">Range</span>);
+<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax, Particles);
+
+<span class="tk-c">// ❌ ERRADO — Range por último quebra os modos follow/scrub</span>
+<span class="tk-f">Emerge.addPlugin</span>(Draw, Horizontal, Media, Stack, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Range);</code></pre>
+        </div>
+        <p style="margin-top:12px">💡 No <strong>bundle</strong> nada disso é necessário: a ordem correta já vem embutida.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Global</th><th>Plugin</th><th>O que adiciona</th></tr></thead>
+          <tbody>
+            <tr><td><code>EmergeRange</code></td><td><strong>Range</strong> <span class="req">· 1º sempre</span></td><td>Motor de progresso ligado ao scroll (motor usado pelos demais).</td></tr>
+            <tr><td><code>EmergeDraw</code></td><td>Draw</td><td>Desenho de traços SVG.</td></tr>
+            <tr><td><code>EmergeHorizontal</code></td><td>Horizontal</td><td>Faixa horizontal pinada.</td></tr>
+            <tr><td><code>EmergeMedia</code></td><td>Media</td><td>Scrub de vídeo / sequência de frames.</td></tr>
+            <tr><td><code>EmergeStack</code></td><td>Stack</td><td>Painéis empilhados.</td></tr>
+            <tr><td><code>EmergeReel</code></td><td>Reel</td><td>Bobina unificada — reimplementação do Horizontal + Stack.</td></tr>
+            <tr><td><code>EmergeText</code></td><td>Text</td><td>Divisão de texto (chars / words / lines).</td></tr>
+            <tr><td><code>EmergeSpotlight</code></td><td>Spotlight</td><td>Spotlight que segue o ponteiro.</td></tr>
+            <tr><td><code>EmergeScene</code></td><td>Scene</td><td>Cenas de hero pinadas — 8 presets (unfold, fold, bloom, zoom, slide, wheel, curtain, blur).</td></tr>
+            <tr><td><code>EmergeMagnetic</code></td><td>Magnetic</td><td>Elementos atraídos pelo ponteiro, com tilt 3D opcional.</td></tr>
+            <tr><td><code>EmergeParallax</code></td><td>Parallax</td><td>Deslocamento por scroll, com camadas e rotate/scale/opacity (usa o Range).</td></tr>
+            <tr><td><code>EmergeParticles</code></td><td>Particles</td><td>Texto reconstruído em canvas como partículas que reagem ao ponteiro.</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <h3 class="sub">Requisitos</h3>
@@ -1227,8 +1239,8 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 
       <ol class="steps">
         <li data-emerge="fade-up">
-          <b>Inclua o CSS e o core</b>
-          <p>O CSS e o <code>emerge.js</code> (core), dentro do <code>&lt;head&gt;</code> (ou o CSS antes do fechamento do <code>&lt;body&gt;</code> — só mantenha a ordem CSS → JS).</p>
+          <b>Inclua o CSS e o bundle</b>
+          <p>As duas URLs oficiais, dentro do <code>&lt;head&gt;</code> (ou o CSS antes do fechamento do <code>&lt;body&gt;</code> — só mantenha a ordem CSS → JS).</p>
         </li>
         <li data-emerge="fade-up" data-emerge-delay="80">
           <b>Marque os elementos</b>
@@ -1252,7 +1264,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 <span class="tk-t">&lt;html</span> <span class="tk-a">lang</span>=<span class="tk-s">"pt-BR"</span><span class="tk-t">&gt;</span>
 <span class="tk-t">&lt;head&gt;</span>
   <span class="tk-t">&lt;link</span> <span class="tk-a">rel</span>=<span class="tk-s">"stylesheet"</span> <span class="tk-a">href</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/css/emerge.css"</span><span class="tk-t">&gt;</span>
-  <span class="tk-t">&lt;script</span> <span class="tk-a">defer</span> <span class="tk-a">src</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/js/emerge.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
+  <span class="tk-t">&lt;script</span> <span class="tk-a">defer</span> <span class="tk-a">src</span>=<span class="tk-s">"https://cdn.pedrodeoliveira.me/js/emerge.bundle.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
 <span class="tk-t">&lt;/head&gt;</span>
 <span class="tk-t">&lt;body&gt;</span>
   <span class="tk-t">&lt;h1</span> <span class="tk-a">data-emerge</span>=<span class="tk-s">"fade-up"</span><span class="tk-t">&gt;</span>Olá, Emerge!<span class="tk-t">&lt;/h1&gt;</span>
@@ -1277,7 +1289,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
         <div class="co-body">
           <strong class="co-title">Dica: use <code>defer</code></strong>
-          <p>Com <code>&lt;script defer&gt;</code> o script executa antes do <code>DOMContentLoaded</code> — inicializar dentro desse evento garante que o DOM já está pronto e que a primeira "dobra" anima na carga.</p>
+          <p>Com <code>&lt;script defer&gt;</code> o bundle executa antes do <code>DOMContentLoaded</code> — inicializar dentro desse evento garante que o DOM já está pronto e que a primeira "dobra" anima na carga.</p>
         </div>
       </div>
     </section>
@@ -1498,7 +1510,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <h3 class="sub">Desabilitando por dispositivo ou largura</h3>
       <p>
         Cada "feature" (core, <code>range</code>, <code>draw</code>, <code>horizontal</code>,
-        <code>media</code>, <code>stack</code>, <code>split</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>particles</code>) aceita
+        <code>media</code>, <code>stack</code>, <code>reel</code>, <code>split</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>particles</code>) aceita
         desativadores individuais — úteis para poupar bateria em telas pequenas:
       </p>
       <div class="code-block">
@@ -1599,6 +1611,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>emerge:in:{id}</code></td><td>Variante com o <code>data-emerge-id</code> do elemento, ex.: <code>emerge:in:hero</code>.</td></tr>
             <tr><td><code>emerge:stack:build</code> / <code>emerge:stack:change</code></td><td>Painéis do Stack montados / painel ativo trocado — <a href="#stack">ver Stack</a>.</td></tr>
             <tr><td><code>emerge:horizontal:build</code></td><td>Faixa horizontal montada — <a href="#horizontal">ver Horizontal</a>.</td></tr>
+            <tr><td><code>emerge:reel:build</code> / <code>emerge:reel:change</code></td><td>Bobina montada / painel ativo trocado — <a href="#reel">ver Reel</a>.</td></tr>
             <tr><td><code>emerge-media-ready</code> / <code>emerge-media-progress</code></td><td>Canvas de frames pronto / progresso de pré-load — <a href="#media">ver Media</a>.</td></tr>
             <tr><td><code>emerge:magnetic:build</code> / <code>:engage</code> / <code>:release</code> / <code>:destroy</code></td><td>Ciclo de vida do Magnetic — <a href="#magnetic">ver Magnetic</a>.</td></tr>
             <tr><td><code>emerge:parallax:build</code> / <code>:destroy</code></td><td>Parallax ligado / desmontado — <a href="#parallax">ver Parallax</a>.</td></tr>
@@ -1839,6 +1852,14 @@ Emerge.Range.CLOCK;        <span class="tk-c">// 1000 ms — duração do scrub 
         </p>
       </div>
 
+      <div class="callout tip">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Mantido por compatibilidade — prefira o Reel</strong>
+          <p>O Horizontal foi reimplementado (junto com o Stack) no plugin <a href="#reel">Reel</a>, que une os dois num só. Este plugin continua incluído e mantido para os projetos que já o utilizam — mesmos atributos, mesmas APIs — mas não recebe novas funcionalidades: para projetos novos, o mais recomendado é o Reel.</p>
+        </div>
+      </div>
+
       <div class="code-block">
         <div class="code-head"><span class="code-lang">html</span>
           <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
@@ -1993,6 +2014,14 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
         </p>
       </div>
 
+      <div class="callout tip">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Mantido por compatibilidade — prefira o Reel</strong>
+          <p>O Stack foi reimplementado (junto com o Horizontal) no plugin <a href="#reel">Reel</a>, que une os dois num só. Este plugin continua incluído e mantido para os projetos que já o utilizam — mesmos atributos, mesmas APIs — mas não recebe novas funcionalidades: para projetos novos, o mais recomendado é o Reel.</p>
+        </div>
+      </div>
+
       <div class="code-block">
         <div class="code-head"><span class="code-lang">html</span>
           <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
@@ -2051,6 +2080,159 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
 <pre><code><span class="tk-f">Emerge.Stack.goTo</span>(<span class="tk-s">"#pilha"</span>, <span class="tk-n">2</span>); <span class="tk-c">// rola até o painel 2</span>
 <span class="tk-f">Emerge.Stack.of</span>(<span class="tk-s">"#pilha"</span>);      <span class="tk-c">// {el, panels, step, active…}</span>
 <span class="tk-f">Emerge.Stack.build</span>(el);          <span class="tk-f">Emerge.Stack.destroy</span>(el);</code></pre>
+      </div>
+    </section>
+
+    <!-- ───────── PLUGIN: REEL ───────── -->
+    <section class="section" id="reel">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin · recomendado para novos projetos</p>
+        <h2 class="sec-title">Reel <a class="anchor" href="#reel">#</a></h2>
+        <p class="sec-lead">
+          A <strong>reimplementação unificada do Horizontal e do Stack</strong>: uma "bobina" de
+          painéis presa ao ecrã e avançada pelo scroll. O eixo escolhe o movimento — o trilho
+          translada em <code>x</code>/<code>y</code> (herança do Horizontal) ou os painéis ficam
+          empilhados a trocar em <code>none</code> (herança do Stack) — e, por cima do movimento,
+          cada painel pode levar o seu próprio efeito de entrada.
+        </p>
+      </div>
+
+      <div class="callout tip">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Um plugin no lugar de dois</strong>
+          <p>O Horizontal e o Stack são dois plugins que fazem mais sentido serem um: um move uma faixa, o outro troca painéis. O Reel reimplementa os dois num plugin único — e ainda acrescenta o que nenhum deles tinha sozinho, o efeito de entrada por painel aplicado por cima do movimento. <strong>O Horizontal e o Stack continuam incluídos e mantidos</strong> por causa dos projetos que já os utilizam (mesmos atributos, mesmas APIs), mas não recebem novas funcionalidades — para projetos novos e para migrações, o mais recomendado é utilizar o Reel.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- como o Horizontal: faixa que desliza --&gt;</span>
+<span class="tk-t">&lt;section</span> <span class="tk-a">data-emerge-reel</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;div&gt;</span>painel 1<span class="tk-t">&lt;/div&gt;</span>
+  <span class="tk-t">&lt;div&gt;</span>painel 2<span class="tk-t">&lt;/div&gt;</span>
+<span class="tk-t">&lt;/section&gt;</span>
+
+<span class="tk-c">&lt;!-- como o Stack: painéis empilhados que trocam --&gt;</span>
+<span class="tk-t">&lt;section</span> <span class="tk-a">data-emerge-reel</span> <span class="tk-a">data-emerge-reel-motion</span>=<span class="tk-s">"none"</span> <span class="tk-a">data-emerge-reel-transition</span>=<span class="tk-s">"slide-up"</span><span class="tk-t">&gt;</span>
+  …
+<span class="tk-t">&lt;/section&gt;</span>
+
+<span class="tk-c">&lt;!-- a união: faixa que desliza COM zoom por painel --&gt;</span>
+<span class="tk-t">&lt;section</span> <span class="tk-a">data-emerge-reel</span> <span class="tk-a">data-emerge-reel-transition</span>=<span class="tk-s">"zoom"</span><span class="tk-t">&gt;</span>…<span class="tk-t">&lt;/section&gt;</span></code></pre>
+      </div>
+
+      <h3 class="sub">Atributos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atributo</th><th>Padrão</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-reel</code></td><td>—</td><td>Ativa a bobina no contêiner (mínimo 2 filhos; exclua com <code>data-emerge-reel-exclude</code>).</td></tr>
+            <tr><td><code>data-emerge-reel-motion</code></td><td><code>x</code></td><td>Eixo do movimento: <code>x</code> (trilho horizontal), <code>y</code> (vertical) ou <code>none</code> (painéis empilhados).</td></tr>
+            <tr><td><code>data-emerge-reel-transition</code></td><td>auto¹</td><td>Efeito de entrada por painel: <code>none · fade · slide-up · slide-down · slide-left · slide-right · zoom/zoom-in · zoom-out · blur · flip</code>.</td></tr>
+            <tr><td><code>data-emerge-reel-scrub</code></td><td>auto²</td><td>Força o modo de condução: presente = <code>scrub</code> (contínuo), <code>="false"</code> = <code>step</code> (discreto).</td></tr>
+            <tr><td><code>data-emerge-reel-speed</code></td><td><code>1</code></td><td>Multiplicador da altura do espaçador nos eixos <code>x</code>/<code>y</code> (viagem mais longa = mais lenta).</td></tr>
+            <tr><td><code>data-emerge-reel-step</code></td><td><code>100</code></td><td>vh de scroll por troca de painel (espaçador do eixo <code>none</code>, como o <code>stack-step</code>).</td></tr>
+            <tr><td><code>data-emerge-reel-top</code></td><td><code>"0px"</code></td><td>Offset do <em>sticky</em> (ex.: <code>"60px"</code> para ficar abaixo de um header fixo).</td></tr>
+            <tr><td><code>data-emerge-reel-pin</code></td><td><code>true</code></td><td><code>"false"</code> desliga o pin e o espaçador — a bobina anima ao atravessar o ecrã (como o <code>horizontal-pin</code>).</td></tr>
+            <tr><td><code>data-emerge-reel-sticky</code></td><td><code>true</code></td><td><code>"false"</code> mantém o espaçador mas deixa de prender o contêiner (como o <code>stack-sticky</code>) — o CSS da página é quem fixa.</td></tr>
+            <tr><td><code>data-emerge-reel-reverse</code></td><td>—</td><td>Inverte a viagem: o trilho começa no fim e volta ao início; painel ativo, <code>index</code> e eventos seguem o que é exibido (scrub e step).</td></tr>
+            <tr><td><code>data-emerge-reel-ease</code></td><td><code>0</code></td><td>Suavização 0–1 do movimento (inércia, via Range).</td></tr>
+            <tr><td><code>data-emerge-reel-exclude</code></td><td>—</td><td>No filho: não entra na bobina.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        ¹ Auto: <code>none</code> nos eixos <code>x</code>/<code>y</code> (comportamento do Horizontal) e
+        <code>fade</code> no eixo <code>none</code> (comportamento do Stack).
+        ² Auto: <code>scrub</code> nos eixos <code>x</code>/<code>y</code> (o Horizontal era contínuo) e
+        <code>step</code> no eixo <code>none</code> (o Stack era discreto). O modo resolvido é escrito pelo JS
+        em <code>data-emerge-reel-mode="scrub|step"</code> — é esse atributo que o CSS lê.
+      </p>
+      <p>
+        <strong>Eventos:</strong> <code>emerge:reel:build</code> (<code>{el, panels, track, axis, mode}</code>) e
+        <code>emerge:reel:change</code> (<code>{el, panel, index, mode}</code>). <strong>Variáveis expostas:</strong>
+        <code>--emerge-reel-progress</code>, <code>--emerge-reel-index</code>, <code>--emerge-reel-local</code>,
+        <code>--emerge-reel-count</code>, <code>--emerge-reel-distance</code> no contêiner e
+        <code>--emerge-reel-i</code>, <code>--emerge-reel-p</code>, <code>--emerge-reel-dir</code> em cada painel —
+        os mesmos contratos do Horizontal e do Stack. <strong>Tokens de transição:</strong>
+        <code>--emerge-reel-duration</code>, <code>--emerge-reel-easing</code>, <code>--emerge-reel-shift</code>,
+        <code>--emerge-reel-blur</code> e de layout <code>--emerge-reel-gap</code>, <code>--emerge-reel-padding</code>,
+        <code>--emerge-reel-item-width</code>, <code>--emerge-reel-height</code>.
+      </p>
+
+      <div class="callout warn">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Sticky exige ancestrais sem overflow</strong>
+          <p>Tal como no Horizontal e no Stack: nenhum ancestral da bobina pode ter <code>overflow: hidden</code> ou <code>auto</code> — use <code>overflow: clip</code>, que recorta sem criar contexto de rolagem.</p>
+        </div>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · bobina unificada (faixa + zoom por painel)</span></div>
+        <div class="demo-body">
+          <div class="rdl" id="reel-demo" data-emerge-reel data-emerge-reel-transition="zoom" data-emerge-reel-speed="0.85">
+            <section class="rdl-item"><span class="n">painel 01</span><h4>Um plugin, dois mundos</h4><p>A faixa desliza como no Horizontal e os painéis trocam como no Stack — atributos equivalentes, um só plugin.</p></section>
+            <section class="rdl-item"><span class="n">painel 02</span><h4>Efeito por painel</h4><p>Com <code>data-emerge-reel-transition="zoom"</code>, cada painel entra em zoom por cima do movimento — a combinação que nenhum dos dois antigos fazia sozinho.</p></section>
+            <section class="rdl-item"><span class="n">painel 03</span><h4>API completa</h4><p><code>Emerge.Reel.goTo(el, 2)</code>, <code>build</code>, <code>destroy</code>, <code>scan</code> e <code>measure</code> — o mesmo contrato do Horizontal e do Stack.</p></section>
+            <section class="rdl-item"><span class="n">painel 04</span><h4>Eventos ao vivo</h4><p>A linha abaixo reage a <code>emerge:reel:build</code> e <code>emerge:reel:change</code> desta bobina.</p></section>
+          </div>
+          <p class="reel-readout" id="reel-out">aguardando o Reel…</p>
+          <p class="demo-hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            Continue rolando para atravessar a bobina — o progresso fica em <code>--emerge-reel-progress</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-f">Emerge.Reel.goTo</span>(<span class="tk-s">"#bobina"</span>, <span class="tk-n">2</span>);       <span class="tk-c">// rola até ao painel 2 (suave)</span>
+<span class="tk-f">Emerge.Reel.goTo</span>(<span class="tk-s">"#bobina"</span>, <span class="tk-s">".destaque"</span>);  <span class="tk-c">// …ou até à posição de um painel</span>
+<span class="tk-f">Emerge.Reel.build</span>(el);  <span class="tk-f">Emerge.Reel.destroy</span>(el);
+<span class="tk-f">Emerge.Reel.scan</span>();                        <span class="tk-c">// monta novos [data-emerge-reel]</span>
+<span class="tk-f">Emerge.Reel.measure</span>();                     <span class="tk-c">// recalcula distâncias/espaçadores</span>
+<span class="tk-f">Emerge.Reel.of</span>(<span class="tk-s">"#bobina"</span>);                 <span class="tk-c">// estado interno da bobina</span>
+Emerge.Reel.all;                           <span class="tk-c">// todas as bobinas</span></code></pre>
+      </div>
+
+      <h3 class="sub">Migração a partir do Horizontal / Stack</h3>
+      <p>
+        A migração é um mapeamento direto de atributos — e pode ser feita aos poucos: enquanto o
+        Horizontal e o Stack continuarem incluídos, os dois estilos convivem na mesma página sem conflito.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Horizontal</th><th>Reel</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-horizontal</code></td><td><code>data-emerge-reel</code></td></tr>
+            <tr><td><code>data-emerge-horizontal-speed="0.85"</code></td><td><code>data-emerge-reel-speed="0.85"</code></td></tr>
+            <tr><td><code>data-emerge-horizontal-top="60px"</code></td><td><code>data-emerge-reel-top="60px"</code></td></tr>
+            <tr><td><code>data-emerge-horizontal-pin="false"</code></td><td><code>data-emerge-reel-pin="false"</code></td></tr>
+            <tr><td><code>data-emerge-horizontal-reverse</code></td><td><code>data-emerge-reel-reverse</code></td></tr>
+            <tr><td><code>data-emerge-horizontal-ease="0.3"</code></td><td><code>data-emerge-reel-ease="0.3"</code></td></tr>
+            <tr><td><code>data-emerge-horizontal-exclude</code></td><td><code>data-emerge-reel-exclude</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stack</th><th>Reel</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-stack</code></td><td><code>data-emerge-reel data-emerge-reel-motion="none"</code></td></tr>
+            <tr><td><code>data-emerge-stack-step="110"</code></td><td><code>data-emerge-reel-step="110"</code></td></tr>
+            <tr><td><code>data-emerge-stack-transition="slide-up"</code></td><td><code>data-emerge-reel-transition="slide-up"</code></td></tr>
+            <tr><td><code>data-emerge-stack-scrub</code></td><td><code>data-emerge-reel-scrub</code></td></tr>
+            <tr><td><code>data-emerge-stack-sticky="false"</code></td><td><code>data-emerge-reel-sticky="false"</code></td></tr>
+            <tr><td><code>data-emerge-stack-top="60px"</code></td><td><code>data-emerge-reel-top="60px"</code></td></tr>
+            <tr><td><code>data-emerge-stack-exclude</code></td><td><code>data-emerge-reel-exclude</code></td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -2421,7 +2603,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
         tudo quando a <strong>largura</strong> muda (a altura da barra de endereço mobile é absorvida
         pelo <code>100svh</code>); <code>data-emerge-debug</code> na cena liga avisos
         <code>[Emerge Scene]</code> no console e as guias de <code>from/to</code> do Range.
-        Registre o Scene <strong>depois</strong> do Range (no bundle isso já vem feito) —
+        No bundle o Scene já vem registrado depois do Range — na instalação individual,
         registre-o <strong>após o Range</strong>.
       </p>
     </section>
@@ -2712,8 +2894,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       </div>
       <div style="text-align:right">
         <a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">emerge.bundle.js</a> ·
-        <a href="https://cdn.pedrodeoliveira.me/css/emerge.css" target="_blank" rel="noopener">emerge.css</a> ·
-        <a href="https://github.com/bigptlg/emerge" target="_blank" rel="noopener">GitHub</a><br>
+        <a href="https://cdn.pedrodeoliveira.me/css/emerge.css" target="_blank" rel="noopener">emerge.css</a><br>
         <span class="mono">cdn.pedrodeoliveira.me</span>
       </div>
     </footer>
@@ -2721,8 +2902,8 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
   </main>
 </div>
 
-<!-- ═══════════ Emerge.js — bundle oficial (core + 11 plugins, já registrados) ═══════════ -->
-<script defer src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js"></script>
+<!-- ═══════════ Emerge.js — bundle oficial (core + 12 plugins, já registrados) ═══════════ -->
+<script defer src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js@1.7.2"></script>
 
 <script>
 window.addEventListener("DOMContentLoaded", function () {
@@ -2814,6 +2995,31 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  /* ───────── 3.5 Demo do Reel: garante o plugin (bundles antigos do CDN não o trazem) ───────── */
+  var rdlEl = document.getElementById("reel-demo");
+  function reelDemoSetup() {
+    if (!window.Emerge || !rdlEl || rdlEl.dataset.reelReady) return;
+    rdlEl.dataset.reelReady = "1";
+    var out = document.getElementById("reel-out");
+    document.addEventListener("emerge:reel:build", function (e) {
+      if (e.detail.el !== rdlEl || !out) return;
+      out.textContent = "build · eixo " + e.detail.axis + " · modo " + e.detail.mode + " · " + e.detail.panels.length + " painéis";
+    });
+    document.addEventListener("emerge:reel:change", function (e) {
+      if (e.detail.el !== rdlEl || !out) return;
+      var rst = Emerge.Reel.of(e.detail.el);
+      out.textContent = "painel " + (e.detail.index + 1) + "/" + (rst ? rst.panels.length : "?") + " (" + e.detail.mode + ")";
+    });
+  }
+  if (window.Emerge && !Emerge.Reel) {
+    var rs = document.createElement("script");   /* vem no pacote, ao lado do index.html */
+    rs.src = "js/emerge/reel.js";
+    rs.onload = function () { if (window.EmergeReel) { reelDemoSetup(); Emerge.addPlugin(EmergeReel); } };
+    document.head.appendChild(rs);
+  } else {
+    reelDemoSetup();
+  }
+
   /* ───────── 4. Inicializa o Emerge ───────── */
   if (window.Emerge) Emerge.init({});
 
@@ -2888,102 +3094,6 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
-</script>
-
-<script>
-/* ───────── Gerador de instalação (core + plugins) ───────── */
-(function () {
-  "use strict";
-  var PLUGINS = [
-    ["Range", "range", "Motor de progresso ligado ao scroll"],
-    ["Draw", "draw", "Desenho de traços SVG"],
-    ["Horizontal", "horizontal", "Faixa horizontal pinada"],
-    ["Media", "media", "Scrub de vídeo / frames"],
-    ["Stack", "stack", "Painéis empilhados"],
-    ["Text", "text", "Divisão de texto com stagger"],
-    ["Spotlight", "spotlight", "Foco de luz que segue o ponteiro"],
-    ["Scene", "scene", "Cenas de hero pinadas"],
-    ["Magnetic", "magnetic", "Atração magnética ao ponteiro"],
-    ["Parallax", "parallax", "Deslocamento por scroll"],
-    ["Particles", "particles", "Texto em partículas"]
-  ];
-  var NEEDS_RANGE = { draw: 1, horizontal: 1, media: 1, stack: 1, text: 1, scene: 1, parallax: 1 };
-  var BASES = {
-    official: "https://cdn.pedrodeoliveira.me",
-    jsdelivr: "https://cdn.jsdelivr.net/gh/bigptlg/emerge"
-  };
-  var grid = document.getElementById("pk-grid");
-  if (!grid) return;
-  var out = document.getElementById("pk-out"), hint = document.getElementById("pk-hint");
-  var boxes = {};
-
-  PLUGINS.forEach(function (p) {
-    var label = document.createElement("label");
-    label.className = "pk-item";
-    var cb = document.createElement("input");
-    cb.type = "checkbox"; cb.value = p[1];
-    var box = document.createElement("span");
-    box.innerHTML = "<b></b><small></small>";
-    box.firstChild.textContent = p[0];
-    box.lastChild.textContent = p[2];
-    label.appendChild(cb); label.appendChild(box);
-    grid.appendChild(label);
-    boxes[p[1]] = cb;
-    cb.addEventListener("change", render);
-  });
-
-  function src() { return document.querySelector('input[name="pk-src"]:checked').value; }
-
-  function render() {
-    var needRange = Object.keys(NEEDS_RANGE).some(function (k) { return boxes[k].checked; });
-    // Range é obrigatório (e fica bloqueado) quando algum plugin depende dele
-    if (needRange) boxes.range.checked = true;
-    boxes.range.disabled = needRange;
-    boxes.range.parentNode.querySelector("small").textContent = needRange
-      ? "Incluído automaticamente: outro plugin depende dele"
-      : "Motor de progresso ligado ao scroll";
-
-    var chosen = PLUGINS.filter(function (p) { return boxes[p[1]].checked; });
-    var base = BASES[src()];
-    var lines = [
-      "<" + "!-- 1. CSS (obrigatório) -->",
-      '<link rel="stylesheet" href="' + base + '/css/emerge.css">',
-      "",
-      "<" + "!-- 2. Core -->",
-      '<script src="' + base + '/js/emerge.js"><\/script>'
-    ];
-    if (chosen.length) {
-      lines.push("", "<" + "!-- 3. Plugins" + (boxes.range.checked ? " (Range sempre primeiro)" : "") + " -->");
-      chosen.forEach(function (p) {
-        lines.push('<script src="' + base + "/js/emerge/" + p[1] + '.js"><\/script>');
-      });
-    }
-    lines.push("", "<scr" + "ipt>");
-    if (chosen.length) {
-      lines.push("  // " + (chosen.length > 1 ? "Registro dos plugins" : "Registro do plugin") + " (antes do init)");
-      lines.push("  Emerge.addPlugin(" + chosen.map(function (p) { return "Emerge" + p[0]; }).join(", ") + ");");
-    }
-    lines.push("  Emerge.init();", "<\/script>");
-    out.textContent = lines.join("\n");
-
-    hint.textContent = chosen.length === PLUGINS.length
-      ? "Você marcou todos os plugins — o emerge.bundle.js (Opção B) faz o mesmo, mas carrega tudo de uma vez com um único arquivo, já registrado."
-      : chosen.length === 0
-        ? "Nenhum plugin marcado: só o core (efeitos de entrada)."
-        : "";
-  }
-
-  document.getElementById("pk-all").addEventListener("click", function () {
-    Object.keys(boxes).forEach(function (k) { boxes[k].checked = true; }); render();
-  });
-  document.getElementById("pk-none").addEventListener("click", function () {
-    Object.keys(boxes).forEach(function (k) { boxes[k].checked = false; }); render();
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('input[name="pk-src"]'), function (r) {
-    r.addEventListener("change", render);
-  });
-  render();
-})();
 </script>
 </body>
 </html>
