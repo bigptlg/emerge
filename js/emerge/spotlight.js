@@ -150,6 +150,12 @@
         "-disable-tablet",
         "-disable-phone",
         "-disable-size",
+        "-only",
+        "-only-mobile",
+        "-only-desktop",
+        "-only-tablet",
+        "-only-phone",
+        "-only-size",
       ].map((s) => `data-emerge-spotlight${s}`),
       // Inline custom properties the plugin writes (restored on destroy).
       VARS = [
