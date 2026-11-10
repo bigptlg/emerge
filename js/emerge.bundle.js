@@ -184,15 +184,17 @@
       device: p,
       prefersReducedMotion: j,
       isDisabledFor: function (e, o) {
-        if (!e || !o) return !1;
+        if (!e) return !1;
+        // o vazio = o próprio core: data-emerge-disable… / data-emerge-only…
+        const pf = o ? `${o}-` : "";
         if (
-          (e.hasAttribute(`data-emerge-${o}-disable-mobile`) && p.mobile()) ||
-          (e.hasAttribute(`data-emerge-${o}-disable-desktop`) && !p.mobile()) ||
-          (e.hasAttribute(`data-emerge-${o}-disable-tablet`) && p.tablet()) ||
-          (e.hasAttribute(`data-emerge-${o}-disable-phone`) && p.phone())
+          (e.hasAttribute(`data-emerge-${pf}disable-mobile`) && p.mobile()) ||
+          (e.hasAttribute(`data-emerge-${pf}disable-desktop`) && !p.mobile()) ||
+          (e.hasAttribute(`data-emerge-${pf}disable-tablet`) && p.tablet()) ||
+          (e.hasAttribute(`data-emerge-${pf}disable-phone`) && p.phone())
         )
           return !0;
-        const f = e.getAttribute(`data-emerge-${o}-disable-size`);
+        const f = e.getAttribute(`data-emerge-${pf}disable-size`);
         if (
           f &&
           f
@@ -202,8 +204,8 @@
             .some(h)
         )
           return !0;
-        const L = D(e, `${o}-disable`, !1);
-        return (
+        const L = D(e, `${pf}disable`, !1);
+        if (
           L === !0 ||
           (L === "mobile"
             ? p.mobile()
@@ -212,7 +214,44 @@
               : L === "phone"
                 ? p.phone()
                 : L === "desktop" && !p.mobile())
-        );
+        )
+          return !0;
+        // "only": ativa SÓ nos dispositivos indicados (OR entre eles); fora
+        // deles o elemento fica desativado. Complementa o "disable".
+        //   data-emerge-<plugin>-only-mobile | -only-desktop | -only-tablet
+        //   | -only-phone | -only-size="max@768" | -only="mobile"
+        const ow = (n) => e.hasAttribute(`data-emerge-${pf}only-${n}`),
+          oa = D(e, `${pf}only`, !1),
+          os = e.getAttribute(`data-emerge-${pf}only-size`);
+        if (!(ow("mobile") || ow("desktop") || ow("tablet") || ow("phone") || os || oa))
+          return !1;
+        const om = (n) =>
+            n === "mobile"
+              ? p.mobile()
+              : n === "tablet"
+                ? p.tablet()
+                : n === "phone"
+                  ? p.phone()
+                  : n === "desktop"
+                    ? !p.mobile()
+                    : !1,
+          oy =
+            (ow("mobile") && p.mobile()) ||
+            (ow("desktop") && !p.mobile()) ||
+            (ow("tablet") && p.tablet()) ||
+            (ow("phone") && p.phone()) ||
+            (!!os &&
+              os
+                .split(",")
+                .map((k) => k.trim())
+                .filter(Boolean)
+                .some(h)) ||
+            (typeof oa == "string" &&
+              oa
+                .split(",")
+                .map((k) => k.trim().toLowerCase())
+                .some(om));
+        return !oy;
       },
       claim: function (e, o) {
         O.set(e, o || !0);
@@ -288,7 +327,7 @@
     return (H.set(e, o), o);
   }
   function u(e) {
-    if (Y.has(e) || x(e)) return;
+    if (Y.has(e) || x(e) || R.isDisabledFor(e, "")) return;
     const o = (function (W) {
       return {
         offset: s(W, "offset", z.offset),
@@ -3351,6 +3390,12 @@
         "-disable-tablet",
         "-disable-phone",
         "-disable-size",
+        "-only",
+        "-only-mobile",
+        "-only-desktop",
+        "-only-tablet",
+        "-only-phone",
+        "-only-size",
       ].map((s) => `data-emerge-spotlight${s}`),
       // Inline custom properties the plugin writes (restored on destroy).
       VARS = [
