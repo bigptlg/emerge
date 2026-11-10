@@ -1322,6 +1322,7 @@ video.emerge-media:not([controls]) { pointer-events: none; }
      target   seletor de um filho a animar em vez do próprio elemento
               (ex.: imagem dentro de um contentor com overflow: hidden)
    Desativação: data-emerge-parallax-disable-mobile|tablet|phone|desktop|size
+   Só ativar: data-emerge-parallax-only-mobile|tablet|phone|desktop|size
    (padrão core isDisabledFor) e prefers-reduced-motion — nada é escrito: o
    elemento fica na posição natural, sem alterações de layout.
    O JS escreve as propriedades individuais translate/rotate/scale (e opacity)
@@ -1474,6 +1475,7 @@ video.emerge-media:not([controls]) { pointer-events: none; }
    energia e brilho, e voltam ao normal quando as partículas assentam
    (emerge:particles:settle).
    Desativação: data-emerge-particles-disable-mobile|tablet|phone|desktop|size
+   Só ativar: data-emerge-particles-only-mobile|tablet|phone|desktop|size
    (padrão core isDisabledFor) e prefers-reduced-motion — nada é construído:
    o texto fica normal, sem canvas e sem alterações de layout.
    Acessibilidade: o texto real fica no DOM com color: transparent (escrito
