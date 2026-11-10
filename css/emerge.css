@@ -125,19 +125,19 @@
    Only applies once JS has initialised the element (.emerge-init), or to
    Text parts, so content stays visible without JS / with reduced motion.
    ========================================================================== */
-[data-emerge]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   opacity: var(--emerge-from-opacity);
   translate: var(--emerge-from-translate);
   rotate: var(--emerge-from-rotate);
   scale: var(--emerge-from-scale);
 }
-[data-emerge*="flip-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge*="flip-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   transform: var(--emerge-from-transform);
 }
-[data-emerge*="blur"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge*="blur"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   filter: var(--emerge-from-filter);
 }
-[data-emerge*="reveal-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge*="reveal-"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   clip-path: var(--emerge-from-clip);
 }
 
@@ -375,6 +375,114 @@ video.emerge-media:not([controls]) { pointer-events: none; }
 
 
 /* ==========================================================================
+   10.5 Reel — o sucessor unificado do Horizontal + Stack
+   Uma faixa presa ao ecrã com N painéis avançados pelo scroll, num espaçador.
+   O eixo define o movimento (data-emerge-reel-motion):
+     x (default) → o trilho translada na horizontal   (herda do Horizontal)
+     y           → o trilho translada na vertical
+     none        → painéis empilhados que trocam      (herda do Stack)
+   Por cima do movimento, cada painel leva um efeito de entrada
+   (data-emerge-reel-transition): none (default nos eixos x/y) |
+   fade (default no eixo none) | slide-up | slide-down | slide-left |
+   slide-right | zoom / zoom-in | zoom-out | blur | flip.
+   O modo é escrito pelo JS em data-emerge-reel-mode e lido pelo CSS:
+     scrub → contínuo: por frame, o JS escreve o transform do trilho e, em
+             cada painel, --emerge-reel-p (entrada 0..1) e --emerge-reel-dir
+             (-1 antes / +1 depois do painel ativo);
+     step  → discreto: o JS troca .emerge-active e escreve as variáveis uma
+             vez por troca; as transições CSS fazem a animação.
+   Tokens: --emerge-reel-duration, --emerge-reel-easing, --emerge-reel-shift,
+   --emerge-reel-blur, --emerge-reel-gap, --emerge-reel-padding,
+   --emerge-reel-item-width, --emerge-reel-height.
+   Nota: nenhum antecessor do elemento preso pode usar overflow: hidden/auto
+   (use overflow: clip) ou o sticky não funciona.
+   ========================================================================== */
+.emerge-reel-space { position: relative; }
+
+
+.emerge-reel {
+  position: relative; /* JS muda para sticky quando pin + sticky */
+  height: var(--emerge-reel-height, 100vh);
+  height: var(--emerge-reel-height, 100dvh);
+  overflow: hidden;
+}
+
+
+/* Trilho — só existe nos eixos x / y */
+.emerge-reel-track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--emerge-reel-gap, 0);
+  width: max-content;
+  height: 100%;
+  padding-inline: var(--emerge-reel-padding, 0);
+  will-change: transform;
+}
+.emerge-reel-axis-y .emerge-reel-track {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: max-content;
+  padding-inline: 0;
+  padding-block: var(--emerge-reel-padding, 0);
+}
+.emerge-reel-item {
+  flex: 0 0 auto;
+  width: var(--emerge-reel-item-width, auto);
+  max-width: none;
+  transition:
+    opacity    var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    translate  var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    scale      var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    rotate     var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    filter     var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease),
+    visibility var(--emerge-reel-duration, .6s) linear;
+}
+
+
+/* Eixo none: painéis empilhados (comportamento Stack) */
+.emerge-reel-axis-none .emerge-reel-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.emerge-reel-axis-none .emerge-reel-item.emerge-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+
+/* Step: o trilho desliza com transição até ao painel ativo */
+.emerge-reel[data-emerge-reel-mode="step"] .emerge-reel-track {
+  transition: transform var(--emerge-reel-duration, .6s) var(--emerge-reel-easing, ease);
+}
+/* Scrub: nada de transições — é o scroll que interpola */
+.emerge-reel[data-emerge-reel-mode="scrub"] .emerge-reel-item,
+.emerge-reel[data-emerge-reel-mode="scrub"] .emerge-reel-track {
+  transition: none;
+}
+
+
+/* Efeito de entrada por painel — nos três eixos e nos dois modos.
+   p = proximidade do painel ativo (0..1); dir = lado relativo (-1/0/+1).
+   No scrub o JS atualiza as variáveis por frame; no step escreve-as uma vez
+   por troca e a transição do .emerge-reel-item anima o resto. */
+.emerge-reel-item.fade { opacity: var(--emerge-reel-p, 1); }
+.emerge-reel-item.slide-up    { translate: 0 calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%)); }
+.emerge-reel-item.slide-down  { translate: 0 calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%) * -1); }
+.emerge-reel-item.slide-left  { translate: calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%)) 0; }
+.emerge-reel-item.slide-right { translate: calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-shift, 12%) * -1) 0; }
+.emerge-reel-item.zoom,
+.emerge-reel-item.zoom-in     { scale: calc(1 - (1 - var(--emerge-reel-p, 0)) * .08); }
+.emerge-reel-item.zoom-out    { scale: calc(1 + (1 - var(--emerge-reel-p, 0)) * .08); }
+.emerge-reel-item.blur        { filter: blur(calc((1 - var(--emerge-reel-p, 0)) * var(--emerge-reel-blur, 12px))); }
+.emerge-reel-item.flip        { rotate: x calc(var(--emerge-reel-dir, 0) * (1 - var(--emerge-reel-p, 0)) * -25deg); }
+
+/* ==========================================================================
    11. Print — always show everything
    ========================================================================== */
 @media print {
@@ -529,18 +637,18 @@ video.emerge-media:not([controls]) { pointer-events: none; }
    Applies only once JS has initialised the element (.emerge-init) so
    content stays visible without JS / with reduced motion.
    ========================================================================== */
-[data-emerge~="bounce"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge~="bounce"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   translate: var(--emerge-from-translate);
   opacity: var(--emerge-from-opacity);
 }
 
-[data-emerge~="skew-left"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]),
-[data-emerge~="skew-right"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge~="skew-left"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]),
+[data-emerge~="skew-right"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   transform: var(--emerge-from-transform);
 }
 
-[data-emerge*="reveal-circle"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]),
-[data-emerge*="reveal-diamond"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack]) {
+[data-emerge*="reveal-circle"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]),
+[data-emerge*="reveal-diamond"]:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   clip-path: var(--emerge-from-clip);
   opacity: var(--emerge-from-opacity);
 }
