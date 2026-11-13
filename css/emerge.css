@@ -1,4 +1,4 @@
-/* Emerge.js v1.7.2 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles) */
+/* Emerge.js v1.7.2 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles + Smooth) */
 
 
 /* ==========================================================================
@@ -1584,4 +1584,25 @@ video.emerge-media:not([controls]) { pointer-events: none; }
     color: inherit !important;
     -webkit-text-fill-color: currentcolor !important;
   }
+}
+
+
+/* ==========================================================================
+   27. Smooth — scroll suave tipo Lenis (plugin opt-in, data-emerge-smooth)
+   Classes aplicadas ao <html> pelo plugin:
+     .emerge-smooth            plugin ativo
+     .emerge-smooth-scrolling  a animar (mover/ler scroll: rato, âncora, scrollTo)
+     .emerge-smooth-stopped    Emerge.Smooth.stop() em curso (ex.: modal aberto)
+   O JS já aplica `scroll-behavior:auto` e `overflow:hidden` inline; as regras
+   abaixo são só a versão CSS (úteis para SSR/inspeção) e uma rede de segurança.
+   ========================================================================== */
+html.emerge-smooth {
+  scroll-behavior: auto !important;
+}
+html.emerge-smooth-stopped {
+  overflow: hidden;
+}
+/* iframes/vídeos embebidos não "roubam" a roda a meio da animação */
+html.emerge-smooth-scrolling iframe {
+  pointer-events: none;
 }
