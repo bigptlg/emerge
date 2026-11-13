@@ -20,7 +20,7 @@ Biblioteca leve de animações reveladas por scroll, construída sobre `Intersec
   - [Eventos](#eventos)
 - [Plugins](#plugins)
   - [Range](#range) · [Draw](#draw) · [Horizontal](#horizontal) · [Media](#media) · [Stack](#stack) · [Reel](#reel) · [Text](#text)
-  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles)
+  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles) · [Smooth](#smooth)
 - [Desativar ou ativar só por dispositivo ou largura](#desativar-ou-ativar-só-por-dispositivo-ou-largura)
 - [Criar um plugin](#criar-um-plugin)
 - [Conteúdo dinâmico](#conteúdo-dinâmico)
@@ -164,7 +164,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 /emerge.js
 /emerge.css
 /emerge/range.js  draw.js  horizontal.js  media.js  stack.js  reel.js  text.js
-        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js
+        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js  smooth.js
 ```
 
 ```html
@@ -180,7 +180,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 </script>
 ```
 
-Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`).
+Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`, `EmergeSmooth`).
 
 ### CommonJS / AMD
 
@@ -209,6 +209,7 @@ Emerge.addPlugin(require('./emerge/range.js'));
 | `Spotlight`  | —                                           |
 | `Magnetic`   | —                                           |
 | `Particles`  | — (não combinar com `data-emerge-split`)    |
+| `Smooth`     | —                                           |
 
 ---
 
@@ -1033,9 +1034,83 @@ Emerge.Particles.of(el); Emerge.Particles.all;
 
 ---
 
+## Smooth
+
+Scroll suave com inércia, ao estilo do Lenis. **Não substitui o scroll por `transform`**: intercepta a roda do rato, calcula uma posição suavizada e chama `window.scrollTo()` a cada frame. O scroll continua a ser o do browser, por isso `position: sticky`, `IntersectionObserver` e todos os plugins por scroll (Range, Reel, Scene, Parallax, Media…) funcionam sem alterações.
+
+É **opt-in**: registado no bundle, mas só atua quando ativado. Sem ativação, nada muda no teu site.
+
+```html
+<!-- 1. declarativo: no <html> (ou no <body>) -->
+<html data-emerge-smooth>
+
+<!-- 2. com opções -->
+<html data-emerge-smooth data-emerge-smooth-lerp="0.08" data-emerge-smooth-anchor-offset="-80">
+```
+
+```js
+// 3. por JS
+Emerge.init({ smooth: true });                     // ou { smooth: { lerp: 0.08, duration: 0 } }
+Emerge.Smooth.init({ lerp: 0.08 });                // ativar/reativar à mão
+```
+
+**O que é suavizado:** roda do rato e trackpad (vertical), links `#âncora` (com `scroll-margin-top` / `scroll-padding-top` respeitados) e `Emerge.Smooth.scrollTo()`. **Fica nativo:** toque, teclado, barra de scroll, gestos horizontais, `ctrl+roda` (zoom), `<textarea>`/contentores com `overflow: auto|scroll` que ainda podem andar na direção da roda, e qualquer elemento com `data-emerge-smooth-prevent`. Scroll que não foi iniciado pelo plugin (teclado, barra, `Reel.goTo`…) é detetado e a posição interna sincroniza-se.
+
+**Atributos** (no elemento com `data-emerge-smooth`):
+
+| Atributo                               | Padrão | Descrição |
+| -------------------------------------- | ------ | --------- |
+| `data-emerge-smooth`                   | —      | Ativa o plugin (`false` desliga, mesmo com `smooth: true` no `init`) |
+| `data-emerge-smooth-lerp`              | `0.1`  | Fração da distância percorrida por frame a 60 fps (0.01–1). Menor = mais suave/lento. Independente da taxa de atualização do ecrã |
+| `data-emerge-smooth-duration`          | `0`    | Segundos. `> 0` troca o modo *lerp* pelo modo *duração* (tween com `easing` a cada gesto da roda) |
+| `data-emerge-smooth-easing`            | `expo` | Só modo duração e `scrollTo`: `linear`, `quad`, `cubic`, `quart`, `sine`, `expo`, `in-out-cubic`, `in-out-expo` |
+| `data-emerge-smooth-wheel`             | `1`    | Multiplicador do deslocamento da roda |
+| `data-emerge-smooth-anchors`           | `true` | Links `#âncora` com scroll suave (e `history.pushState` + foco no destino) |
+| `data-emerge-smooth-anchor-offset`     | `0`    | Pixels somados ao destino das âncoras (ex.: `-80` para uma barra fixa) |
+| `data-emerge-smooth-anchor-duration`   | `1.2`  | Segundos |
+| `data-emerge-smooth-prevent`           | —      | **No elemento interior:** mantém o scroll nativo por cima dele. No elemento raiz: seletor CSS extra com o mesmo efeito |
+| `data-emerge-smooth-ignore`            | —      | **Num `<a>`:** deixa o browser tratar a âncora |
+
+**Opções globais** (`Emerge.init`): `smooth` (`false` | `true` | objeto), `smoothLerp`, `smoothDuration`, `smoothEasing`, `smoothWheel`, `smoothAnchors`, `smoothAnchorOffset`, `smoothAnchorDuration`, `smoothPrevent`. Precedência: atributo > objeto `smooth` > opções planas > padrões. Aceita também `data-emerge-smooth-disable-mobile`, `-only-desktop`, etc. (ver [Desativar ou ativar só por dispositivo](#desativar-ou-ativar-só-por-dispositivo-ou-largura)).
+
+**API** (`Emerge.Smooth`):
+
+```js
+Emerge.Smooth.init(opts);  Emerge.Smooth.destroy();      // ativar / repor o scroll nativo
+Emerge.Smooth.stop();      Emerge.Smooth.start();        // pausar / retomar (modais, menus) — também bloqueia teclado e toque
+Emerge.Smooth.toggle();
+
+Emerge.Smooth.scrollTo(alvo, {          // alvo: número | elemento | seletor | 'top' | 'bottom'
+  offset: 0, duration: 1.2, easing: 'expo',
+  immediate: false,                     // salta sem animar
+  lock: false,                          // ignora a roda até terminar
+  force: false,                         // funciona mesmo com stop()
+  onComplete() {}
+});
+
+const off = Emerge.Smooth.on('scroll', ({ scroll, target, limit, progress, velocity, direction }) => {});
+Emerge.Smooth.on('start' | 'stop', fn);  off();          // ou Emerge.Smooth.off(nome, fn)
+
+Emerge.Smooth.scroll;  .target;  .limit;  .progress;  .velocity;  .direction;
+Emerge.Smooth.active;  .stopped;  .isScrolling;  .options;
+```
+
+Se o plugin estiver inativo (por exemplo com `prefers-reduced-motion`), `Emerge.Smooth.scrollTo()` usa `window.scrollTo` nativo, sem animação em reduced motion — o teu código não precisa de verificar.
+
+**Eventos:** `emerge:smooth:enable` e `emerge:smooth:disable` (no `document`). **Classes no `<html>`:** `.emerge-smooth` (ativo), `.emerge-smooth-scrolling` (a animar), `.emerge-smooth-stopped` (após `stop()`).
+
+**Notas**
+- Com `prefers-reduced-motion` o core não inicializa os plugins: o scroll fica 100 % nativo.
+- Enquanto ativo, o plugin aplica `scroll-behavior: auto !important` ao `<html>` (um `scroll-behavior: smooth` do site brigaria com o `scrollTo` por frame) e repõe o valor original no `destroy()`.
+- `scroll-snap-type` no `<html>` não combina com scroll suave por JS — desativa o snap ou usa `data-emerge-smooth-disable`.
+- `Emerge.refreshHard()` recria o plugin só com a configuração declarativa (atributos e `Emerge.init`); opções passadas só em `Emerge.Smooth.init(opts)` têm de ser repetidas.
+- Os plugins Reel/Stack/Horizontal continuam a usar `scrollTo({ behavior: 'smooth' })` nativo nos seus `goTo`; funciona, mas sem o easing do Smooth.
+
+---
+
 ## Desativar ou ativar só por dispositivo ou largura
 
-Qualquer plugin pode ser **desativado** (`disable`) ou **ativado apenas** (`only`) por tipo de dispositivo ou largura, elemento a elemento. O prefixo é o nome do plugin: `range`, `draw`, `horizontal`, `media`, `stack`, `reel`, `split` (Text), `spotlight`, `scene`, `magnetic`, `parallax`, `particles`. Para o próprio efeito do core, o prefixo desaparece: `data-emerge-disable…` e `data-emerge-only…`.
+Qualquer plugin pode ser **desativado** (`disable`) ou **ativado apenas** (`only`) por tipo de dispositivo ou largura, elemento a elemento. O prefixo é o nome do plugin: `range`, `draw`, `horizontal`, `media`, `stack`, `reel`, `split` (Text), `spotlight`, `scene`, `magnetic`, `parallax`, `particles`, `smooth`. Para o próprio efeito do core, o prefixo desaparece: `data-emerge-disable…` e `data-emerge-only…`.
 
 O dispositivo é detetado pelo *user agent* (`mobile` = `phone` + `tablet`); a largura (`-size`) usa a janela atual.
 
