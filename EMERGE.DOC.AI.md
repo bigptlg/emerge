@@ -11,7 +11,7 @@
 1. Emerge anima elementos por scroll usando atributos HTML. Exemplo mínimo: `<h1 data-emerge="fade-up">Olá</h1>` + `Emerge.init()`.
 2. **CSS é obrigatório.** Sem `emerge.css` nada anima.
 3. **Dois modos de instalação:**
-   - **Bundle** (`emerge.bundle.js`): tudo pronto, 13 plugins já registrados. **Use por padrão** quando o usuário não pedir otimização, ao prototipar, ou na dúvida.
+   - **Bundle** (`emerge.bundle.js`): tudo pronto, 14 plugins já registrados. **Use por padrão** quando o usuário não pedir otimização, ao prototipar, ou na dúvida.
    - **Core + plugins** (`emerge.js` + `emerge/<plugin>.js`): você precisa chamar `Emerge.addPlugin(...)` manualmente e **`EmergeRange` SEMPRE primeiro**.
 4. Chame `Emerge.init()` **depois** do DOM existir (fim do `<body>` ou dentro de `DOMContentLoaded`).
 5. Atributos de plugin não registrado são **ignorados silenciosamente** (sem erro no console). Se um efeito "não faz nada", verifique primeiro se o plugin está registrado.
@@ -24,7 +24,7 @@
 | Arquivo | URL | O que é |
 |---|---|---|
 | CSS | `https://cdn.pedrodeoliveira.me/css/emerge.css` | **Obrigatório.** Estado oculto, keyframes, estilos dos plugins. |
-| Bundle | `https://cdn.pedrodeoliveira.me/js/emerge.bundle.js` | Core + 13 plugins **já registrados** + auto-loader de CSS. |
+| Bundle | `https://cdn.pedrodeoliveira.me/js/emerge.bundle.js` | Core + 14 plugins **já registrados** + auto-loader de CSS. |
 | Core isolado | `https://cdn.pedrodeoliveira.me/js/emerge.js` | Só core (efeitos de entrada, eventos, API, `addPlugin`). Sem plugins. |
 | Plugin | `https://cdn.pedrodeoliveira.me/js/emerge/<plugin>.js` | Um arquivo por plugin. **Precisa de `addPlugin`.** |
 | GitHub | `bigptlg/emerge` | Código-fonte. |
@@ -48,7 +48,7 @@ Nomes dos plugins (valor de `<plugin>` na URL): `range`, `draw`, `horizontal`, `
 </script>
 ```
 
-- O bundle **registra os 13 plugins sozinho** (na ordem correta). **Não chame `addPlugin` com o bundle.**
+- O bundle **registra os 14 plugins sozinho** (na ordem correta). **Não chame `addPlugin` com o bundle.**
 - O bundle tem um **auto-loader de CSS** (injeta `<link>` apontando para `<origem-do-script>/css/emerge.css@1.7.2` quando servido por HTTP).
   **Recomendação defensiva: declare o `<link>` do CSS você mesmo e coloque `data-emerge-css="false"` na tag do script**, como acima, para não depender do auto-loader nem carregar CSS duplicado.
   - `data-emerge-css="false"` → desliga o auto-loader.
@@ -101,10 +101,11 @@ Exemplo: projeto usa só Range, Text e Parallax.
 | Parallax | `EmergeParallax` | sim |
 | Particles | `EmergeParticles` | não |
 | Smooth | `EmergeSmooth` | não |
+| Motion | `EmergeMotion` | não (funciona com `follow` do Range sem código extra) |
 
 **Lista completa na ordem canônica (copie e remova o que não usa, mantendo Range primeiro):**
 ```js
-Emerge.addPlugin(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth);
+Emerge.addPlugin(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion);
 ```
 **Se registrar qualquer plugin que usa Range, inclua o Range.** Na dúvida, inclua.
 
@@ -141,6 +142,7 @@ O antigo `emerge.js` "tudo em um" agora é `emerge.bundle.js`. O `emerge.js` atu
 | Parallax por scroll (velocidade, camadas) | **Parallax** | 5.10 |
 | Texto que vira partículas e reage ao cursor | **Particles** | 5.11 |
 | Scroll suave com inércia (tipo Lenis), âncoras suaves, `scrollTo` | **Smooth** (opt-in: `data-emerge-smooth` no `<html>`) | 5.13 |
+| Estado inicial próprio da entrada (x/y/rotate/scale/skew/blur/brightness… combináveis, sem escrever CSS) | **Motion** (`data-emerge-motion="x:-60 blur:8"` + `data-emerge`) | 5.14 |
 | Stagger simples em lista | `data-emerge-delay` incremental (0,100,200…) | 4.4 |
 
 **Horizontal e Stack:** continuam funcionando e mantidos, mas **não recebem novidades**. Para código novo, **gere Reel**. Só use Horizontal/Stack se o projeto do usuário já os usa.
@@ -787,6 +789,57 @@ Regras: com `prefers-reduced-motion` fica inativo (`scrollTo` cai para o nativo)
 </script>
 ```
 
+### 5.14 Motion — estado inicial personalizado da entrada
+
+Para quando os presets de `data-emerge` não chegam: você diz **de onde o elemento parte** (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao estilo natural. Não é uma biblioteca de timeline: o Motion **só descreve o ponto de partida**; o estado final é sempre o CSS natural do elemento (como no resto do Emerge).
+
+**Instalação:** bundle → nada a fazer. Modular → `<script src=".../js/emerge/motion.js">` + `Emerge.addPlugin(..., EmergeMotion)` (global `EmergeMotion`, não depende do Range, pode vir em qualquer posição).
+
+**Uso:** `data-emerge` (pode ser vazio) **é obrigatório**; o Motion é ativado pela presença de `data-emerge-motion` (shorthand) e/ou de `data-emerge-motion-<prop>` (um atributo por propriedade; os individuais ganham ao shorthand).
+
+```html
+<!-- shorthand: "prop:valor" separados por espaço, vírgula ou ; -->
+<div data-emerge data-emerge-motion="x:-80 rotate:-8 scale:.85 blur:10"></div>
+
+<!-- atributos individuais (equivalente) -->
+<div data-emerge data-emerge-motion-y="40" data-emerge-motion-opacity="0"></div>
+
+<!-- tempo/easing/once/mirror são do CORE -->
+<div data-emerge data-emerge-duration="900" data-emerge-delay="150" data-emerge-easing="ease-out-back"
+     data-emerge-motion="y:60 rotate-x:50"></div>
+```
+
+| Propriedade (alias) | Valor aceito | Unidade padrão |
+|---|---|---|
+| `x`, `y`, `z` (`translate-x/y/z`, `translateX`…) | número ou `px % em rem vw vh vmin vmax` | px |
+| `rotate` | número ou `deg rad grad turn` | deg |
+| `rotate-x`, `rotate-y` | idem (3D, usa `perspective`, token `--emerge-perspective`) | deg |
+| `skew-x`, `skew-y` | idem | deg |
+| `scale`, `scale-x`, `scale-y` | número ou `%` (`50%` = `.5`) | — |
+| `opacity` | 0–1 ou `%` | — |
+| `blur` | número ≥ 0 ou `px em rem vw vh vmin vmax` | px |
+| `brightness`, `saturate` | número ≥ 0 ou `%` | — |
+| `grayscale` | 0–1 ou `%` | — |
+| `repeat` | inteiro ≥ 1 ou `infinite` (total de execuções) | 1 |
+| `direction` | `normal` \| `alternate` (vai e volta; sem `repeat` assume `infinite`; contagem par é arredondada para ímpar para terminar no estado natural) | `normal` |
+
+Valores inválidos são **ignorados** (nunca chegam ao CSS). Diagnóstico: `Emerge.Motion.read(el)` → `{ props, repeat, direction, invalid }`.
+
+**Regras de combinação**
+- Sem preset (`data-emerge` vazio) **não há fade por omissão**: só anima o que indicar. Com preset (`data-emerge="fade-up"`) o fade/translate do preset continuam, e o Motion **sobrepõe** só as propriedades que indicar (`x`/`y`/`z` substituem o translate do preset por inteiro; `opacity:1` remove o fade).
+- `rotate-x/y` e `skew-x/y` usam `transform` (como `flip-*`/`skew-*` do core) e **substituem** o `transform` próprio do elemento durante a entrada; `blur/brightness/saturate/grayscale` usam `filter` (idem). `x/y/z`, `rotate`, `scale` usam as propriedades individuais e **não** mexem no `transform`.
+- Se combinar com um preset que ocupa o mesmo slot (`flip-*`, `blur`, `skew-*`), o Motion vence nesse slot.
+
+**Integração**
+- **Range:** funciona sem código extra. `data-emerge data-emerge-follow data-emerge-motion="x:-120 blur:8"` faz o scrub do mesmo movimento com o scroll (`repeat`/`direction` são ignorados em `follow`).
+- **Text:** com `data-emerge-split` as partes só são animadas individualmente se `data-emerge` tiver valor (ex.: `data-emerge="fade"`; é um comportamento do Text); nesse caso o Motion é aplicado a **cada parte** (use `opacity:1` para não haver fade). Com `data-emerge` vazio o Motion anima o elemento inteiro.
+- **Dinâmico:** elementos adicionados/removidos são tratados pelo core. Depois de mudar atributos Motion em JS, chame `Emerge.refresh()` (ou `Emerge.Motion.apply(el)`).
+- Desativar/ativar por dispositivo: `data-emerge-motion-disable[-mobile|-desktop|-size]`, `-only-*` (o elemento fica com a animação base do core). `prefers-reduced-motion`: o core não ativa nada → conteúdo visível, sem Motion.
+
+**API `Emerge.Motion`:** `apply(elOuSeletor)`, `clear(elOuSeletor)`, `read(el)`, `props` (nomes canónicos), `all` (elementos geridos). Classes: `emerge-motion`, `-transform`, `-filter`, `-loop`. Sem opções globais.
+
+**Limitações:** só estado **inicial** (sem estado final nem keyframes intermédios; sem `reverse`); um único easing/duração para todas as propriedades do elemento; `perspective` vem do token CSS (`--emerge-perspective`), não de atributo; um `transform`/`filter` natural do elemento é substituído durante a entrada; precisa de navegador com `translate`/`rotate`/`scale` individuais (o mesmo requisito do core).
+
 ---
 
 ## 6. Ativar/desativar por dispositivo ou largura (vale para core e todos os plugins)
@@ -1047,3 +1100,4 @@ Emerge.addPlugin({
 | Parallax | `data-emerge-parallax` | `data-emerge-parallax-*` |
 | Particles | `data-emerge-particles` | `data-emerge-particles-*` |
 | Smooth | `data-emerge-smooth` (no `<html>`/`<body>`) | `data-emerge-smooth-*` |
+| Motion | `data-emerge-motion="x:-60 …"` ou `data-emerge-motion-<prop>` (junto com `data-emerge`) | `data-emerge-motion-*` (propriedades, `repeat`, `direction`, disable/only) |

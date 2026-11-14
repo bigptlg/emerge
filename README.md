@@ -20,7 +20,7 @@ Biblioteca leve de animações reveladas por scroll, construída sobre `Intersec
   - [Eventos](#eventos)
 - [Plugins](#plugins)
   - [Range](#range) · [Draw](#draw) · [Horizontal](#horizontal) · [Media](#media) · [Stack](#stack) · [Reel](#reel) · [Text](#text)
-  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles) · [Smooth](#smooth)
+  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles) · [Smooth](#smooth) · [Motion](#motion)
 - [Desativar ou ativar só por dispositivo ou largura](#desativar-ou-ativar-só-por-dispositivo-ou-largura)
 - [Criar um plugin](#criar-um-plugin)
 - [Conteúdo dinâmico](#conteúdo-dinâmico)
@@ -164,7 +164,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 /emerge.js
 /emerge.css
 /emerge/range.js  draw.js  horizontal.js  media.js  stack.js  reel.js  text.js
-        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js  smooth.js
+        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js  smooth.js  motion.js
 ```
 
 ```html
@@ -180,7 +180,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 </script>
 ```
 
-Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`, `EmergeSmooth`).
+Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`, `EmergeSmooth`, `EmergeMotion`).
 
 ### CommonJS / AMD
 
@@ -210,6 +210,7 @@ Emerge.addPlugin(require('./emerge/range.js'));
 | `Magnetic`   | —                                           |
 | `Particles`  | — (não combinar com `data-emerge-split`)    |
 | `Smooth`     | —                                           |
+| `Motion`     | — (funciona com o modo `follow` do Range e com o Text sem configuração extra) |
 
 ---
 
@@ -1108,6 +1109,75 @@ Se o plugin estiver inativo (por exemplo com `prefers-reduced-motion`), `Emerge.
 
 ---
 
+## Motion
+
+Estado inicial personalizado da animação de entrada. Quando os presets de `data-emerge` não chegam, indicas **de onde o elemento parte** (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao seu estilo natural. O Motion só descreve o ponto de partida: o estado final é sempre o CSS natural do elemento, como no resto do Emerge.
+
+**Instalação:** no bundle já vem registado. Com ficheiros separados: `<script src="/emerge/motion.js">` e `Emerge.addPlugin(EmergeMotion)` (não depende do Range e pode ser registado em qualquer posição).
+
+**Ativação:** `data-emerge` (pode ser vazio) mais `data-emerge-motion` (shorthand) e/ou `data-emerge-motion-<propriedade>`. Se usares os dois, os atributos individuais ganham.
+
+```html
+<!-- shorthand: "propriedade:valor" separados por espaço, vírgula ou ; -->
+<div data-emerge data-emerge-motion="x:-80 rotate:-8 scale:.85 blur:10"></div>
+
+<!-- atributos individuais (equivalente) -->
+<div data-emerge data-emerge-motion-y="40" data-emerge-motion-opacity="0"></div>
+
+<!-- duração, atraso, easing, once e mirror são do Core -->
+<div data-emerge data-emerge-duration="900" data-emerge-delay="150"
+     data-emerge-easing="ease-out-back" data-emerge-motion="y:60 rotate-x:50"></div>
+
+<!-- flutuação em ciclo -->
+<div data-emerge data-emerge-motion="y:12 repeat:infinite direction:alternate"></div>
+```
+
+| Propriedade (alias) | Valor aceite | Unidade por omissão |
+| ------------------- | ------------ | ------------------- |
+| `x`, `y`, `z` (`translate-x/y/z`, `translateX`…) | número ou `px % em rem vw vh vmin vmax` | px |
+| `rotate` | número ou `deg rad grad turn` | deg |
+| `rotate-x`, `rotate-y` | idem (3D, usa o token `--emerge-perspective`) | deg |
+| `skew-x`, `skew-y` | idem | deg |
+| `scale`, `scale-x`, `scale-y` | número ou `%` (`50%` = `.5`) | — |
+| `opacity` | 0–1 ou `%` | — |
+| `blur` | número ≥ 0 ou `px em rem vw vh vmin vmax` | px |
+| `brightness`, `saturate` | número ≥ 0 ou `%` | — |
+| `grayscale` | 0–1 ou `%` | — |
+| `repeat` | inteiro ≥ 1 ou `infinite` (total de execuções) | 1 |
+| `direction` | `normal` ou `alternate` (vai e volta; sem `repeat` assume `infinite`; uma contagem par é arredondada para ímpar para terminar no estado natural) | `normal` |
+
+Valores inválidos são ignorados e nunca chegam ao CSS.
+
+**Combinar com presets**
+- Sem preset (`data-emerge` vazio) não há fade por omissão: só anima o que indicares.
+- Com preset (`data-emerge="fade-up"`) o fade e o deslocamento do preset mantêm-se, e o Motion sobrepõe só as propriedades que indicares. `x`/`y`/`z` substituem o deslocamento do preset por inteiro; `opacity:1` remove o fade.
+- `rotate-x/y` e `skew-x/y` usam `transform`, e `blur/brightness/saturate/grayscale` usam `filter` (como `flip-*`, `skew-*` e `blur` do Core); se o preset ocupar o mesmo slot, o Motion vence. `x/y/z`, `rotate` e `scale` usam as propriedades individuais e não tocam no `transform`.
+
+**Range:** funciona sem código extra. `data-emerge data-emerge-follow data-emerge-motion="x:-120 blur:8"` faz o scrub do mesmo movimento com o scroll (`repeat` e `direction` são ignorados em `follow`).
+
+**Text:** com `data-emerge-split`, as partes só são animadas individualmente se `data-emerge` tiver valor (por exemplo `data-emerge="fade"`, comportamento do Text); nesse caso o Motion aplica-se a cada parte (usa `opacity:1` para não haver fade). Com `data-emerge` vazio anima o elemento inteiro.
+
+**Desativar por dispositivo:** `data-emerge-motion-disable[-mobile|-desktop|-tablet|-phone|-size]` e `data-emerge-motion-only-*`. O elemento fica com a animação base do Core.
+
+**API** (`Emerge.Motion`):
+
+```js
+Emerge.Motion.apply(el | seletor);   // relê os atributos e repinta
+Emerge.Motion.clear(el | seletor);   // remove as variáveis e classes do Motion
+Emerge.Motion.read(el);              // { has, props, repeat, direction, invalid }
+Emerge.Motion.props;                 // nomes canónicos das propriedades
+Emerge.Motion.all;                   // elementos geridos
+```
+
+**Classes:** `.emerge-motion`, `.emerge-motion-transform`, `.emerge-motion-filter`, `.emerge-motion-loop`. Não há opções globais.
+
+**Notas**
+- Elementos adicionados ou removidos depois do `init` são tratados pelo Core; depois de mudares atributos Motion em JS chama `Emerge.refresh()` (ou `Emerge.Motion.apply(el)`).
+- Com `prefers-reduced-motion` o Core não ativa nada: o conteúdo fica visível e sem Motion.
+- Limitações: só estado **inicial** (sem estado final explícito, keyframes intermédios nem `reverse`); uma única duração e easing por elemento; a `perspective` vem do token CSS e não de atributo; um `transform` ou `filter` natural do elemento é substituído durante a entrada.
+
+---
+
 ## Desativar ou ativar só por dispositivo ou largura
 
 Qualquer plugin pode ser **desativado** (`disable`) ou **ativado apenas** (`only`) por tipo de dispositivo ou largura, elemento a elemento. O prefixo é o nome do plugin: `range`, `draw`, `horizontal`, `media`, `stack`, `reel`, `split` (Text), `spotlight`, `scene`, `magnetic`, `parallax`, `particles`, `smooth`. Para o próprio efeito do core, o prefixo desaparece: `data-emerge-disable…` e `data-emerge-only…`.
@@ -1215,6 +1285,7 @@ Por omissão (`respectReducedMotion: true`), se o utilizador tiver a preferênci
 | Nada anima só para alguns visitantes | Têm `prefers-reduced-motion` ativo (por omissão a Emerge respeita-o) |
 | A versão da CDN do jsDelivr está atrás | O jsDelivr guarda cache. Usa a [CDN oficial](#cdn-oficial-recomendada) ou fixa uma tag de versão |
 | `Particles` junto com `data-emerge-split` | Não combinar no mesmo elemento |
+| `data-emerge-motion` não faz nada | Falta `data-emerge` no elemento (pode ir vazio), o plugin Motion não está registado, ou o valor é inválido (vê `Emerge.Motion.read(el).invalid`) |
 | Elementos adicionados depois do init não animam | Só com `disableMutationObserver: true`: chama `Emerge.refresh()` |
 
 ## Compatibilidade
