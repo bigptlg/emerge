@@ -2176,7 +2176,7 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
             <tr><td><code>data-emerge-media</code></td><td><code>"video, audio, canvas"</code></td><td>Seletor da mídia dentro do elemento. Vazio = o próprio elemento, se for mídia.</td></tr>
             <tr><td><code>data-emerge-media-range</code></td><td><code>"0,1"</code></td><td>Faixa da duração usada, <code>"de,até"</code> em fração (0–1).</td></tr>
             <tr><td><code>data-emerge-media-pause</code></td><td><code>true</code></td><td>Pausa o vídeo e remove <code>autoplay</code> (o scroll é quem manda).</td></tr>
-            <tr><td><code>data-emerge-media-precision</code></td><td><code>3</code></td><td>Casas decimais do <code>currentTime</code> (menos casas = menos seeks).</td></tr>
+            <tr><td><code>data-emerge-media-precision</code></td><td><code>3</code></td><td>Casas decimais do <code>currentTime</code>: seeks cujo tempo arredondado não mudou são ignorados. Não reduz o custo de cada seek — para isso veja <a href="#media-limites">Limitações do navegador</a>.</td></tr>
             <tr><td><code>data-emerge-media-first-frame</code> / <code>-last-frame</code></td><td>—</td><td>Delimitam a sequência de frames do canvas (prefixo + contador zero-padded são detectados automaticamente).</td></tr>
             <tr><td><code>data-emerge-media-frame-step</code></td><td><code>1</code></td><td>Pula frames da sequência (1 = todos).</td></tr>
             <tr><td><code>data-emerge-media-fit</code></td><td><code>cover</code></td><td>Ajuste do desenho no canvas: <code>cover</code> ou <code>contain</code>.</td></tr>
@@ -2204,6 +2204,174 @@ Emerge.Horizontal.all;                     <span class="tk-c">// todas as faixas
           </p>
         </div>
       </div>
+
+      <h3 class="sub" id="media-limites">Limitações do navegador e como contornar</h3>
+      <p>
+        No scrub de vídeo, o plugin só altera <code>video.currentTime</code>; quem decodifica cada
+        quadro é o navegador. Por isso a maior parte dos travamentos vem do <strong>arquivo</strong> e do
+        <strong>servidor</strong>, não do plugin. Esta seção lista os problemas mais comuns e a correção de cada um.
+      </p>
+
+      <div class="callout warn">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Um vídeo exportado normalmente não serve para scrub</strong>
+          <p>Câmeras, editores e conversores gravam um keyframe a cada 2 s (ou ~250 quadros) e usam B-frames. Para mostrar um quadro no meio do GOP, o navegador decodifica desde o keyframe anterior, e o plugin aguarda o evento <code>seeked</code> antes do próximo seek. A fluidez é, portanto, limitada pelo tempo de cada seek, e não pelo número de pedidos por segundo.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Sintoma, causa e solução</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Sintoma</th><th>Causa provável</th><th>O que fazer</th></tr></thead>
+          <tbody>
+            <tr><td>Vídeo roda a 10–20 fps durante o scroll, mesmo em máquina boa</td><td>GOP longo, B-frames, resolução alta</td><td>Reencodar com keyframes curtos e sem B-frames (<a href="#media-encode">comandos abaixo</a>).</td></tr>
+            <tr><td>Seek só funciona depois de baixar o arquivo inteiro, ou fica errático</td><td><code>moov</code> no fim do MP4, ou servidor sem suporte a HTTP Range</td><td>Usar <code>-movflags +faststart</code> e confirmar a resposta <code>206 Partial Content</code> do servidor.</td></tr>
+            <tr><td><code>preload="auto"</code> não surte efeito</td><td>O plugin define <code>preload="metadata"</code> (só respeita <code>"none"</code>) e alguns navegadores móveis ignoram o atributo</td><td>Para arquivos pequenos, baixe como Blob (<a href="#media-encode">exemplo abaixo</a>).</td></tr>
+            <tr><td>Micro-saltos ou o vídeo "briga" com o scroll</td><td><code>autoplay</code> ou <code>loop</code> no elemento</td><td>Remova ambos. O plugin já pausa o vídeo (<code>data-emerge-media-pause</code>).</td></tr>
+            <tr><td>O vídeo não toca em um navegador específico</td><td>Codec ou formato de pixel não suportado</td><td>Use <code>-pix_fmt yuv420p</code> e ofereça H.264 em MP4; teste cada arquivo isoladamente.</td></tr>
+            <tr><td>Nada se move: o vídeo fica parado no primeiro quadro</td><td>O elemento não tem os atributos do <a href="#range">Range</a></td><td>Adicione <code>data-emerge-from</code> / <code>data-emerge-to</code> ao mesmo elemento.</td></tr>
+            <tr><td>Áudio picotado ao rolar</td><td>Seek constante em <code>&lt;audio&gt;</code> não reproduz som contínuo</td><td>Use áudio só como efeito pontual; evite scrub de trilha longa.</td></tr>
+            <tr><td>Canvas lento ou instável no celular</td><td>Muitos quadros, ou imagens grandes demais para a memória</td><td>Use <code>data-emerge-media-frame-step</code> e reduza a resolução dos quadros.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub" id="media-encode">Preparando o arquivo</h3>
+      <p>
+        Regra prática: keyframe a cada 0,5 s ou menos é aceitável; a cada 0,15–0,2 s é fluido
+        (GOP de 4 a 6 quadros a 30 fps). Os comandos abaixo usam <a href="https://ffmpeg.org/" rel="noopener">ffmpeg</a>.
+      </p>
+      <ul>
+        <li><code>-g 5 -keyint_min 5</code>: keyframes a cada 5 quadros. Sem <code>-keyint_min</code>, o x264 pode pular keyframes.</li>
+        <li><code>-sc_threshold 0</code>: desliga a detecção de cena, que inseriria keyframes em posições imprevisíveis.</li>
+        <li><code>-bf 0 -refs 1</code>: sem B-frames; cada quadro P depende só do anterior, o que encurta a cadeia de decodificação de cada seek.</li>
+        <li><code>-tune fastdecode</code>: desliga recursos caros de decodificar, com pequena perda de qualidade.</li>
+        <li><code>scale=1280:-2</code>: menos pixels por seek. Para uma hero, 720p costuma bastar.</li>
+        <li><code>-movflags +faststart</code>: move o <code>moov</code> para o início, permitindo seek antes do download completo.</li>
+        <li><code>-an</code>: sem áudio, que não serve ao scrub e só aumenta o arquivo.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">bash</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c"># MP4 para scrub (recomendado)</span>
+ffmpeg -i video.mp4 \
+  -vf "scale=1280:-2" \
+  -c:v libx264 -crf 24 -preset fast \
+  -tune fastdecode -bf 0 -refs 1 \
+  -g 5 -keyint_min 5 -sc_threshold 0 \
+  -pix_fmt yuv420p -movflags +faststart -an \
+  video_scrub.mp4</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">bash</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c"># WebM (VP9) para scrub</span>
+ffmpeg -i video.mp4 \
+  -vf "scale=1280:-2" \
+  -c:v libvpx-vp9 -b:v 0 -crf 30 \
+  -g 5 -pix_fmt yuv420p -an \
+  video_scrub.webm
+
+<span class="tk-c"># a partir de uma sequência de imagens</span>
+ffmpeg -framerate 30 -i frame-%03d.webp \
+  -c:v libvpx-vp9 -b:v 0 -crf 30 -g 5 \
+  -pix_fmt yuv420p -an video.webm</code></pre>
+      </div>
+
+      <p>
+        O valor de <code>-g</code> é um compromisso: <code>-g 1</code> dá máxima fluidez e arquivo bem maior
+        (ideal para clipes de até ~10 s); <code>-g 5</code> é um bom ponto de partida; <code>-g 10</code>
+        é mais leve, com seeks um pouco mais caros, aceitável em clipes longos.
+      </p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">bash</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c"># se ainda travar: menor resolução e perfil baseline</span>
+ffmpeg -i video.mp4 \
+  -vf "scale=960:-2" \
+  -c:v libx264 -crf 26 -preset ultrafast \
+  -tune fastdecode -profile:v baseline \
+  -bf 0 -refs 1 \
+  -g 5 -keyint_min 5 -sc_threshold 0 \
+  -pix_fmt yuv420p -movflags +faststart -an \
+  video_scrub.mp4
+
+<span class="tk-c"># clipes curtos (≤ 10 s): todo frame é keyframe. Mais fluido, arquivo bem maior</span>
+ffmpeg -i video.mp4 -vf "scale=1280:-2" -c:v libx264 -crf 24 \
+  -g 1 -pix_fmt yuv420p -movflags +faststart -an video_scrub.mp4</code></pre>
+      </div>
+
+
+      <h3 class="sub">Verificando o arquivo e o servidor</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">bash</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c"># tipos de frame: num scrub só devem aparecer I e P (sem B)</span>
+ffprobe -v error -select_streams v:0 -show_entries frame=pict_type \
+  -of csv=p=0 video_scrub.mp4 | sort | uniq -c
+
+<span class="tk-c"># quantos keyframes? (esperado: cerca de 1 a cada 5 frames)</span>
+ffprobe -v error -select_streams v:0 -skip_frame nokey \
+  -show_entries frame=pts_time -of csv=p=0 video_scrub.mp4 | wc -l
+
+<span class="tk-c"># faststart: "moov" deve aparecer antes de "mdat"</span>
+ffprobe -v trace video_scrub.mp4 2&gt;&amp;1 | grep -m2 -E "type:'(moov|mdat)'"
+
+<span class="tk-c"># o servidor responde a pedidos parciais? (esperado: 206 Partial Content)</span>
+curl -sI -H "Range: bytes=0-1" https://seusite.com/video_scrub.mp4 | head -1</code></pre>
+      </div>
+
+
+      <h3 class="sub">Marcação e carregamento</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- vídeo de scrub: sem autoplay e sem loop --&gt;</span>
+<span class="tk-t">&lt;video</span> <span class="tk-a">data-emerge-media</span>
+        <span class="tk-a">data-emerge-from</span>=<span class="tk-s">"enter"</span> <span class="tk-a">data-emerge-to</span>=<span class="tk-s">"exit"</span>
+        <span class="tk-a">muted</span> <span class="tk-a">playsinline</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;source</span> <span class="tk-a">src</span>=<span class="tk-s">"video_scrub.mp4"</span> <span class="tk-a">type</span>=<span class="tk-s">"video/mp4"</span><span class="tk-t">&gt;</span>
+<span class="tk-t">&lt;/video&gt;</span></code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">// ficheiro pequeno (≈ 5 MB ou menos): baixa tudo e serve da memória.</span>
+<span class="tk-c">// Faça ANTES de Emerge.init() para o plugin já ler a duração final.</span>
+const v = document.querySelector(<span class="tk-s">"#hero-video"</span>);
+const blob = await (await fetch(v.currentSrc || v.src)).blob();
+v.src = URL.createObjectURL(blob);
+
+Emerge.init();</code></pre>
+      </div>
+
+
+      <div class="callout tip">
+        <span class="co-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></svg></span>
+        <div class="co-body">
+          <strong class="co-title">Vários formatos: meça, não presuma</strong>
+          <p>O navegador usa a <em>primeira</em> <code>&lt;source&gt;</code> que consegue reproduzir, então a ordem decide qual arquivo será servido. O custo de seek de cada codec varia por navegador, sistema e hardware (por exemplo, decodificação por hardware de H.264 em Safari). Teste o WebM e o MP4 isoladamente em Chrome, Firefox e Safari antes de decidir a ordem ou servir apenas um deles.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Quando trocar vídeo por canvas</h3>
+      <p>
+        Se, mesmo com o arquivo otimizado, o vídeo ainda travar (principalmente em celulares), use a
+        sequência de quadros no <code>&lt;canvas&gt;</code>. Cada quadro é uma imagem independente: não há
+        codec, GOP nem seek de vídeo. O custo é outro: <strong>muitos pedidos HTTP e mais bytes</strong>
+        (centenas de imagens), compensado por CDN, <code>data-emerge-media-frame-step</code> e o pré-load
+        progressivo do plugin. Acompanhe o carregamento pelos eventos
+        <code>emerge-media-progress</code> e <code>emerge-media-ready</code>.
+      </p>
     </section>
 
     <!-- ───────── PLUGIN: STACK ───────── -->
