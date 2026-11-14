@@ -1,4 +1,4 @@
-/* Emerge.js v1.7.2 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles + Smooth) */
+/* Emerge.js v1.7.2 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles + Smooth + Motion) */
 
 
 /* ==========================================================================
@@ -1605,4 +1605,32 @@ html.emerge-smooth-stopped {
 /* iframes/vídeos embebidos não "roubam" a roda a meio da animação */
 html.emerge-smooth-scrolling iframe {
   pointer-events: none;
+}
+
+
+/* ==========================================================================
+   28. Motion — estado inicial personalizado (plugin opt-in, data-emerge-motion)
+   O plugin só escreve variáveis inline (--emerge-from-*, --emerge-a-transform,
+   --emerge-a-filter, --emerge-motion-*) e classes .emerge-motion*.
+   opacity/translate/rotate/scale usam as regras do Core; aqui ficam só:
+     - pré-estado de transform (rotate-x/y, skew) e de filter (blur, …);
+     - encadeamento dos slots transform/filter (como flip/blur do Core);
+     - repetição e direção (só fora do modo follow do Range).
+   Os keyframes reutilizados são os do Core: emerge-flip e emerge-blur.
+   ========================================================================== */
+[data-emerge].emerge-motion-transform:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
+  transform: var(--emerge-from-transform);
+}
+[data-emerge].emerge-motion-filter:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
+  filter: var(--emerge-from-filter);
+}
+
+[data-emerge]:is(.emerge-motion-transform, .emerge-motion-filter).emerge-animate:not(.emerge-follow, .emerge-draw-path),
+[data-emerge]:is(.emerge-motion-transform, .emerge-motion-filter).emerge-follow {
+  animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip);
+}
+
+[data-emerge].emerge-motion-loop.emerge-animate:not(.emerge-follow, .emerge-draw-path) {
+  animation-iteration-count: var(--emerge-motion-repeat, 1);
+  animation-direction: var(--emerge-motion-direction, normal);
 }
