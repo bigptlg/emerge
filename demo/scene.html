@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emerge · Scene — demo</title>
+<script src="../demo-assets/demo.js"></script>
+<link rel="stylesheet" href="https://cdn.pedrodeoliveira.me/css/emerge.css">
+<link rel="stylesheet" href="../demo-assets/demo.css">
+<style>
+  .sc { background: var(--bg); position: relative; }
+  .sc [data-emerge-scene-content] { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; z-index: 1; }
+  .sc [data-emerge-scene-content] h2 { font-size: clamp(30px, 6vw, 68px); margin: 0; letter-spacing: -.03em; }
+  .sc [data-emerge-scene-content] p { color: var(--dim); margin: 8px 0 0; max-width: 52ch; }
+  .sc [data-emerge-scene-panel] { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--on-g); font-weight: 800; font-size: clamp(26px, 5vw, 56px); letter-spacing: -.02em; }
+  .sc [data-emerge-scene-panel] small { display: block; font: 600 14px "JetBrains Mono", monospace; opacity: .85; margin-top: 10px; letter-spacing: .02em; }
+  .pg1 [data-emerge-scene-panel] { background: var(--g1); }
+  .pg2 [data-emerge-scene-panel] { background: var(--g2); }
+  .pg3 [data-emerge-scene-panel] { background: var(--g3); }
+  .pg4 [data-emerge-scene-panel] { background: var(--g5); }
+  .pg5 [data-emerge-scene-panel] { background: var(--g4); }
+  .sc [data-emerge-scene-layer] { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .sc [data-emerge-scene-layer="a"] { background: radial-gradient(40% 50% at 20% 30%, color-mix(in srgb, var(--acc) 35%, transparent), transparent 70%); }
+  .sc [data-emerge-scene-layer="b"] { background: radial-gradient(40% 50% at 80% 70%, color-mix(in srgb, var(--acc2) 35%, transparent), transparent 70%); }
+  .sc .cover { background: var(--bg); }
+  nav.presets { position: fixed; left: 14px; bottom: 14px; z-index: 60; display: flex; gap: 6px; flex-wrap: wrap; max-width: 55vw; }
+  nav.presets a { background: var(--topnav-bg); backdrop-filter: blur(8px); border: 1px solid var(--line); color: var(--dim); border-radius: 99px; padding: 4px 11px; font: 12px "JetBrains Mono", monospace; text-decoration: none; }
+  nav.presets a:hover { color: var(--txt); border-color: var(--line2); }
+  .gap { max-width: 1040px; margin: 0 auto; padding: 64px 20px 30px; }
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-switch" class="switch-input" aria-label="Alternar tema claro/escuro">
+
+<nav class="topnav">
+  <a class="brand" href="../demos.html">
+    <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs><linearGradient id="lg-b" x1="0" y1="26" x2="26" y2="0"><stop offset="0" stop-color="#0b6ef2"/><stop offset="1" stop-color="#0aa2c0"/></linearGradient></defs>
+      <path d="M4 5.5h18" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M4 13h12" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M4 20.5h7" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
+    </svg>
+    Emerge <span class="ver">v1.10.0</span>
+  </a>
+  <a href="../demos.html">Todas as demos</a>
+  <b>Scene</b>
+  <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </label>
+</nav>
+
+<nav class="presets" aria-label="Saltar para preset"><a href="#unfold">unfold</a><a href="#fold">fold</a><a href="#bloom">bloom</a><a href="#zoom">zoom</a><a href="#slide">slide</a><a href="#wheel">wheel</a><a href="#curtain">curtain</a><a href="#blur">blur</a></nav>
+<div class="hud" id="hud">cena: <b>—</b><br>progresso: <b>0</b></div>
+
+<main>
+<header class="hero">
+  <p class="kicker" data-emerge="fade-right">Plugin · Scene</p>
+  <h1 data-emerge="fade-up">Heroes que se abrem em palco.</h1>
+  <p class="lead" data-emerge="fade-up" data-emerge-delay="150">A secção <b>prende</b> (sticky + espaçador) e o scroll conduz um painel em 3D. O valor de <code class="i">data-emerge-scene</code> é o preset — há 8; aqui estão todos em sequência. Requer o Range (já no bundle).</p>
+  <div class="facts" data-emerge="fade-up" data-emerge-delay="300">
+    <span class="fact"><b>presets</b> unfold · fold · bloom · zoom · slide · wheel · curtain · blur</span>
+    <span class="fact"><b>anatomia</b> content · panel · cover · layer</span>
+    <span class="fact"><b>eventos</b> emerge:scene:progress</span>
+  </div>
+</header>
+</main>
+
+<!-- 1 · UNFOLD -->
+<section class="sc pg1" id="unfold" data-emerge-scene="unfold" data-emerge-scene-distance="900">
+  <div data-emerge-scene-content><div><h2>unfold</h2><p>O painel nasce deitado em 3D (rotateX 90°, escala 0.44) e desdobra até cobrir o ecrã. É o único preset com camadas de luz e cover.</p></div></div>
+  <div data-emerge-scene-layer="a" aria-hidden="true"></div><div data-emerge-scene-layer="b" aria-hidden="true"></div>
+  <div data-emerge-scene-panel>unfold<small>rotateX 90° → 0 · scale .44 → 1</small><div data-emerge-scene-cover></div></div>
+</section>
+
+<div class="gap"><h2>fold + bloom</h2><p class="lead">A sequência clássica: <code class="i">fold</code> com <code class="i">scale="0"</code> encolhe a página até um cartão e some; o <code class="i">bloom</code> seguinte renasce desse ponto. Duas cenas, uma transição contínua.</p></div>
+
+<!-- 2 · FOLD -->
+<section class="sc pg2" id="fold" data-emerge-scene="fold" data-emerge-scene-scale="0" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>fold</h2></div>
+  <div data-emerge-scene-panel>fold<small>scale 1 → 0 · encolhe até sumir</small></div>
+</section>
+
+<!-- 3 · BLOOM -->
+<section class="sc pg4" id="bloom" data-emerge-scene="bloom" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>bloom</h2></div>
+  <div data-emerge-scene-panel>bloom<small>nasce pequeno e transparente pelo centro</small></div>
+</section>
+
+<div class="gap"><h2>Os outros presets</h2></div>
+
+<!-- 4 · ZOOM -->
+<section class="sc pg5" id="zoom" data-emerge-scene="zoom" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>zoom</h2></div>
+  <div data-emerge-scene-panel>zoom<small>entra grande (1.6) e recua ao tamanho natural</small></div>
+</section>
+
+<!-- 5 · SLIDE -->
+<section class="sc pg1" id="slide" data-emerge-scene="slide" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>slide</h2></div>
+  <div data-emerge-scene-panel>slide<small>empurra pela direita · translateX 100% → 0</small></div>
+</section>
+
+<!-- 6 · WHEEL -->
+<section class="sc pg2" id="wheel" data-emerge-scene="wheel" data-emerge-scene-spin="75" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>wheel</h2></div>
+  <div data-emerge-scene-panel>wheel<small>rotateY 75° → 0 · scale .7</small></div>
+</section>
+
+<!-- 7 · CURTAIN -->
+<section class="sc pg3" id="curtain" data-emerge-scene="curtain" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>curtain</h2></div>
+  <div data-emerge-scene-panel>curtain<small>íris clip-path: circle() do centro</small></div>
+</section>
+
+<!-- 8 · BLUR -->
+<section class="sc pg4" id="blur" data-emerge-scene="blur" data-emerge-scene-blur="30" data-emerge-scene-distance="800">
+  <div data-emerge-scene-content><h2>blur</h2></div>
+  <div data-emerge-scene-panel>blur<small>entra desfocado (24px) e foca ao rolar</small></div>
+</section>
+
+<main>
+<section class="demo">
+<pre class="code">&lt;section data-emerge-scene="bloom" data-emerge-scene-distance="1200"&gt;
+  &lt;div data-emerge-scene-content&gt;&lt;h1&gt;Título&lt;/h1&gt;&lt;/div&gt;
+  &lt;div <b>data-emerge-scene-panel</b>&gt;…cresce pelo centro…&lt;/div&gt;  &lt;!-- filho DIRETO --&gt;
+&lt;/section&gt;
+body { overflow-x: clip; }   /* nunca overflow:hidden num ancestral */</pre>
+  <p class="hint">Em reduced-motion, impressão ou <code class="i">data-emerge-scene-disable</code>, a cena entra em modo estático: sem pin, painel plano, tudo visível. Personalização por atributo (<code class="i">-distance · -scale · -tilt · -spin · -blur · -radius · -smooth</code>) ou tokens <code class="i">:root</code> (só unfold).</p>
+  <div class="spacer">↓ fim do palco ↓</div>
+</section>
+
+<nav class="nextprev" aria-label="Navegação entre demos">
+  <a href="spotlight.html"><small>← anterior</small><b>Spotlight</b></a>
+  <a class="nx" href="magnetic.html"><small>próxima demo →</small><b>Magnetic</b></a>
+</nav>
+</main>
+
+<script src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" data-emerge-css="false"></script>
+<script>
+  Emerge.init();
+  document.addEventListener("emerge:scene:progress", function (e) {
+    document.getElementById("hud").innerHTML = "cena: <b>" + (e.detail.el.getAttribute("data-emerge-scene")) + "</b><br>progresso: <b>" + e.detail.progress.toFixed(2) + "</b>";
+  });
+</script>
+</body>
+</html>

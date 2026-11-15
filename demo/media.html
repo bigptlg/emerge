@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emerge · Media — demo</title>
+<script src="../demo-assets/demo.js"></script>
+<link rel="stylesheet" href="https://cdn.pedrodeoliveira.me/css/emerge.css">
+<link rel="stylesheet" href="../demo-assets/demo.css">
+<style>
+  .track { height: 280vh; }
+  .sticky { position: sticky; top: 11vh; display: grid; gap: 12px; }
+  video, canvas { width: 100%; aspect-ratio: 16/9; border-radius: 16px; border: 1px solid var(--line); background: var(--card2); display: block; }
+  .cv { aspect-ratio: 16/9; }
+  .cv canvas { height: 100%; }
+  .meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cap { font: 700 clamp(17px, 2.6vw, 24px)/1.3 "Inter", sans-serif; letter-spacing: -.01em; color: var(--txt); min-height: 1.4em; transition: opacity .25s; }
+  .cap.swap { opacity: 0; }
+  .pct { font: 600 12.5px "JetBrains Mono", monospace; color: var(--acc); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-switch" class="switch-input" aria-label="Alternar tema claro/escuro">
+
+<nav class="topnav">
+  <a class="brand" href="../demos.html">
+    <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs><linearGradient id="lg-b" x1="0" y1="26" x2="26" y2="0"><stop offset="0" stop-color="#0b6ef2"/><stop offset="1" stop-color="#0aa2c0"/></linearGradient></defs>
+      <path d="M4 5.5h18" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M4 13h12" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M4 20.5h7" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
+    </svg>
+    Emerge <span class="ver">v1.10.0</span>
+  </a>
+  <a href="../demos.html">Todas as demos</a>
+  <b>Media</b>
+  <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </label>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="kicker" data-emerge="fade-right">Plugin · Media</p>
+  <h1 data-emerge="fade-up">O scroll é o play.</h1>
+  <p class="lead" data-emerge="fade-up" data-emerge-delay="150">Scrub de <b>vídeo</b> ou de uma <b>sequência de frames em canvas</b>. Precisa do Range: <code class="i">data-emerge-follow</code> dá o progresso contínuo e a janela vem de uma <b>zona</b> (o contentor alto) via <code class="i">data-emerge-in</code> — porque o vídeo fica <code class="i">sticky</code> e nunca “sai” do ecrã. Rola para a frente e para trás.</p>
+  <div class="facts" data-emerge="fade-up" data-emerge-delay="300">
+    <span class="fact"><b>modos</b> vídeo/áudio · canvas (frames)</span>
+    <span class="fact"><b>janela</b> media-range="0,1"</span>
+    <span class="fact"><b>eventos</b> emerge-media-ready · -progress</span>
+  </div>
+</header>
+
+<!-- 1 · VÍDEO -->
+<section class="demo">
+  <h2><span class="num">1</span> Vídeo (<code class="i">data-emerge-media</code>)</h2>
+  <p class="lead">O vídeo foi codificado com keyframes em todos os frames (<code class="i">-g 1</code>) para o seek ser instantâneo. Usa <code class="i">muted playsinline</code>. <b>Nota:</b> o seek precisa de um servidor com HTTP Range (<code class="i">npx serve</code>, nginx, Apache…); o <code class="i">python3 -m http.server</code> não suporta e o vídeo não avança — a sequência de frames (2) funciona em qualquer servidor.</p>
+  <div class="track" id="t1" data-emerge-zone="m1" data-emerge-from="top@80%" data-emerge-to="bottom@20%"><div class="sticky">
+    <video data-emerge-media data-emerge-follow data-emerge-in="m1" data-emerge-media-range="0,1" src="../demo-assets/scrub.mp4" muted playsinline preload="auto"></video>
+    <div class="cap" id="cap">A viagem começa…</div>
+    <div class="bar"><i id="vb"></i></div>
+    <div class="meta"><code class="i" id="vi">currentTime —</code><span class="pct" id="vp">0%</span></div>
+  </div></div>
+<pre class="code">&lt;div class="track" <b>data-emerge-zone="m1"</b> data-emerge-from="top@80%" data-emerge-to="bottom@20%"&gt;  &lt;!-- contentor alto; o vídeo fica sticky --&gt;
+&lt;video <b>data-emerge-media</b> <b>data-emerge-follow</b> <b>data-emerge-in="m1"</b>
+       data-emerge-media-range="0,1" src="tour.mp4" muted playsinline&gt;&lt;/video&gt;</pre>
+</section>
+
+<!-- 2 · FRAMES -->
+<section class="demo">
+  <h2><span class="num">2</span> Sequência de frames (<code class="i">media="canvas"</code>)</h2>
+  <p class="lead">60 imagens <code class="i">f_001.webp … f_060.webp</code>: o plugin deteta o prefixo e o contador zero-padded automaticamente. <code class="i">frame-step="2"</code> carrega só metade — o dobro de leveza, o mesmo movimento.</p>
+  <div class="track" id="t2" data-emerge-zone="m2" data-emerge-from="top@80%" data-emerge-to="bottom@20%"><div class="sticky">
+    <div class="cv" data-emerge-media="canvas" data-emerge-follow data-emerge-in="m2"
+         data-emerge-media-first-frame="../demo-assets/frames/f_001.webp" data-emerge-media-last-frame="../demo-assets/frames/f_060.webp"
+         data-emerge-media-frame-step="2"><canvas></canvas></div>
+    <div class="bar"><i id="fb"></i></div>
+    <div class="meta"><code class="i" id="fi">a carregar frames…</code><span class="pct" id="fp">—</span></div>
+  </div></div>
+<pre class="code">&lt;div <b>data-emerge-media="canvas"</b> data-emerge-follow data-emerge-in="m2"
+     data-emerge-media-first-frame="frames/f_001.webp"
+     data-emerge-media-last-frame="frames/f_060.webp"
+     data-emerge-media-frame-step="2"&gt;&lt;canvas&gt;&lt;/canvas&gt;&lt;/div&gt;</pre>
+  <p class="hint">Eventos no elemento de mídia: <code class="i">emerge-media-ready</code> e <code class="i">emerge-media-progress</code> <code class="i">{loaded, total, percent}</code>. Com reduced motion só é mostrado o frame central.</p>
+</section>
+
+<nav class="nextprev" aria-label="Navegação entre demos">
+  <a href="reel.html"><small>← anterior</small><b>Reel</b></a>
+  <a class="nx" href="compare.html"><small>próxima demo →</small><b>Compare</b></a>
+</nav>
+</main>
+
+<script src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" data-emerge-css="false"></script>
+<script>
+  Emerge.init();
+
+  /* leitura ao vivo do vídeo + legendas por progresso */
+  var v = document.querySelector("video"), vi = document.getElementById("vi"),
+      vp = document.getElementById("vp"), vb = document.getElementById("vb"), cap = document.getElementById("cap");
+  (function tick() {
+    var p = v.duration ? v.currentTime / v.duration : 0;
+    vi.textContent = "currentTime " + (v.currentTime || 0).toFixed(2) + "s / " + (v.duration ? v.duration.toFixed(2) : "—") + "s";
+    vp.textContent = Math.round(p * 100) + "%";
+    vb.style.setProperty("--p", p);
+    requestAnimationFrame(tick);
+  })();
+
+  var CAPS = ["A viagem começa…", "Meio do percurso: o scrub responde ao scroll em ambos os sentidos.", "Fim: o scroll mandou no vídeo do início ao fim."];
+  var lastCap = 0;
+  Emerge.Range.watch({
+    on: "#t1", from: "top@80%", to: "bottom@20%",
+    onProgress: function (o) {
+      var i = o.progress < .33 ? 0 : (o.progress < .72 ? 1 : 2);
+      if (i !== lastCap) {
+        lastCap = i;
+        cap.classList.add("swap");
+        setTimeout(function () { cap.textContent = CAPS[i]; cap.classList.remove("swap"); }, 220);
+      }
+    }
+  });
+
+  /* progresso do carregamento dos frames (os eventos saem no canvas) */
+  var cv = document.querySelector(".cv canvas"), fi = document.getElementById("fi"), fp = document.getElementById("fp"), fb = document.getElementById("fb");
+  cv.addEventListener("emerge-media-progress", function (e) {
+    fi.textContent = "frames " + e.detail.loaded + "/" + e.detail.total;
+    fp.textContent = Math.round(e.detail.percent) + "%";
+    fb.style.setProperty("--p", e.detail.percent / 100);
+  });
+  cv.addEventListener("emerge-media-ready", function () { fi.textContent = "frames prontos — rola para scrub"; });
+</script>
+</body>
+</html>

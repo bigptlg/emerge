@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emerge · Compare — demo</title>
+<script src="../demo-assets/demo.js"></script>
+<link rel="stylesheet" href="https://cdn.pedrodeoliveira.me/css/emerge.css">
+<link rel="stylesheet" href="../demo-assets/demo.css">
+<style>
+  /* playground */
+  .pg { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; margin-top: 20px; }
+  @media (max-width: 860px) { .pg { grid-template-columns: 1fr; } }
+  .ctl { display: grid; gap: 10px; }
+  .row select, .row input[type=color] { grid-column: 2 / 4; }
+  input[type=color] { width: 100%; height: 30px; border: 1px solid var(--line2); border-radius: 9px; background: var(--card); padding: 2px; cursor: pointer; }
+  pre.out {
+    margin: 12px 0 0; background: var(--code-bg); border: 1px solid var(--code-line);
+    border-radius: 14px; padding: 14px; font-size: 12.75px; line-height: 1.6; color: var(--code-txt);
+    white-space: pre-wrap; word-break: break-word; box-shadow: var(--shadow);
+  }
+  pre.out b { color: var(--code-acc); }
+
+  /* grelhas */
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+  .cell { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; align-content: start; box-shadow: var(--shadow); }
+  .cell h3 { margin: 0; font-size: 15px; }
+  .cell code { font-size: 11.5px; color: var(--acc); word-break: break-word; font-family: "JetBrains Mono", monospace; }
+
+  /* comparadores */
+  .cmp { --emerge-compare-radius: 12px; }
+  .wide { width: 100%; max-width: 760px; }
+  .tall { max-width: 420px; }
+
+  /* estilos de divisor — só variáveis e CSS do autor */
+  .st-acc { --emerge-compare-line-color: var(--acc); --emerge-compare-line-width: 3px;
+            --emerge-compare-handle-size: 54px; --emerge-compare-handle-bg: var(--acc);
+            --emerge-compare-handle-color: #ffffff; --emerge-compare-handle-border: 0; --emerge-compare-focus-color: #fff; }
+  .st-minimal { --emerge-compare-line-width: 1px; --emerge-compare-hit: 28px; }
+  .st-minimal .emerge-compare-handle { display: none; }
+  .st-square { --emerge-compare-line-color: #fff; --emerge-compare-line-width: 4px; }
+  .st-square .emerge-compare-handle { border-radius: 10px; --emerge-compare-handle-size: 40px; --emerge-compare-handle-bg: #fff; --emerge-compare-handle-color: #111; --emerge-compare-handle-border: 0; }
+
+  /* contentor redimensionável */
+  .rz { resize: horizontal; overflow: hidden; max-width: 100%; min-width: 200px; width: 640px; border: 1px dashed var(--line2); padding: 8px; border-radius: 14px; margin-top: 20px; }
+
+  /* conteúdo HTML genérico */
+  .ui { display: grid; place-content: center; gap: 10px; padding: 28px; font: 600 20px "Inter", sans-serif; }
+  .ui small { font: 400 13px "Inter", sans-serif; opacity: .75; }
+  .ui .btn { justify-self: start; padding: 8px 16px; border-radius: 999px; font: 600 14px "Inter", sans-serif; }
+  .ui.light { background: #f4f6fb; color: #111827; } .ui.light .btn { background: #111827; color: #fff; }
+  .ui.dark  { background: #0b1020; color: #f4f6fb; } .ui.dark  .btn { background: var(--acc); color: #fff; }
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-switch" class="switch-input" aria-label="Alternar tema claro/escuro">
+
+<nav class="topnav">
+  <a class="brand" href="../demos.html">
+    <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs><linearGradient id="lg-b" x1="0" y1="26" x2="26" y2="0"><stop offset="0" stop-color="#0b6ef2"/><stop offset="1" stop-color="#0aa2c0"/></linearGradient></defs>
+      <path d="M4 5.5h18" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M4 13h12" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M4 20.5h7" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
+    </svg>
+    Emerge <span class="ver">v1.10.0</span>
+  </a>
+  <a href="../demos.html">Todas as demos</a>
+  <b>Compare</b>
+  <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </label>
+</nav>
+
+<main>
+
+<header class="hero">
+  <p class="kicker" data-emerge="fade-right">Plugin · Compare</p>
+  <h1 data-emerge="fade-up">Antes e depois, <span style="color:var(--acc)">com um divisor.</span></h1>
+  <p class="lead" data-emerge="fade-up" data-emerge-delay="150">Duas camadas sobrepostas e um divisor interactivo: arrasta, clica numa posição ou usa o teclado (setas, Home, End, PageUp/PageDown). <b>Autónomo</b>: não usa <code class="i">data-emerge</code>, não depende do Range e funciona com reduced-motion.</p>
+  <div class="facts" data-emerge="fade-up" data-emerge-delay="300">
+    <span class="fact"><b>modos</b> slider · hold</span>
+    <span class="fact"><b>orientação</b> horizontal · vertical</span>
+    <span class="fact"><b>camadas</b> imagens ou HTML</span>
+    <span class="fact"><b>api</b> set() · hold() · get()</span>
+  </div>
+</header>
+
+<!-- 1 · HORIZONTAL + PLAYGROUND -->
+<section class="demo">
+  <h2><span class="num">1</span> Horizontal e playground</h2>
+  <p class="lead">O 1.º filho fica à esquerda, o 2.º à direita. Experimenta os controlos: nada precisa de código.</p>
+  <div class="pg">
+    <div class="panel ctl" id="ctl">
+      <div class="row"><label for="c-or">orientation</label>
+        <select id="c-or"><option>horizontal</option><option>vertical</option></select></div>
+      <div class="row"><label for="c-pos">position</label><input id="c-pos" type="range" min="0" max="100" value="50"><output id="o-pos">50</output></div>
+      <div class="row"><label for="c-fit">fit</label>
+        <select id="c-fit"><option>cover</option><option>contain</option></select></div>
+      <div class="row"><label for="c-ratio">ratio</label>
+        <select id="c-ratio"><option value="">natural</option><option>16 / 9</option><option>4 / 3</option><option>1 / 1</option><option>3 / 4</option></select></div>
+      <div class="row"><label for="c-lw">line-width</label><input id="c-lw" type="range" min="1" max="10" value="2"><output id="o-lw">2</output></div>
+      <div class="row"><label for="c-hs">handle-size</label><input id="c-hs" type="range" min="24" max="80" value="44"><output id="o-hs">44</output></div>
+      <div class="row"><label for="c-lc">line-color</label><input id="c-lc" type="color" value="#4da3ff"></div>
+      <div class="row"><label for="c-hc">handle-bg</label><input id="c-hc" type="color" value="#0f2142"></div>
+    </div>
+    <div>
+      <div id="pg-cmp" class="cmp" data-emerge-compare data-emerge-compare-label="Comparar paisagem original e editada">
+        <img src="../demo-assets/landscape-before.svg" width="1600" height="1000" alt="Paisagem original, cores apagadas">
+        <img src="../demo-assets/landscape-after.svg"  width="1600" height="1000" alt="Paisagem editada, cores vivas">
+      </div>
+      <pre class="out" id="pg-code"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · VERTICAL -->
+<section class="demo">
+  <h2><span class="num">2</span> Vertical</h2>
+  <p class="lead"><code class="i">data-emerge-compare-orientation="vertical"</code>: o divisor é horizontal; o 1.º filho fica em cima. Teclado: ↑ ↓.</p>
+  <div class="cmp tall" data-emerge-compare data-emerge-compare-orientation="vertical" style="--emerge-compare-ratio: 4 / 3">
+    <img src="../demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes">
+    <img src="../demo-assets/landscape-after.svg"  width="1600" height="1000" alt="Depois">
+  </div>
+</section>
+
+<!-- 2b · SEGURAR -->
+<section class="demo">
+  <h2><span class="num">2b</span> Segurar para ver a outra versão</h2>
+  <p class="lead"><code class="i">data-emerge-compare-mode="hold"</code>: sem divisor. Prime e mantém (rato ou dedo) em qualquer ponto para ver a 1.ª camada; ao largar volta à 2.ª. Pelo teclado: Espaço ou Enter no botão.</p>
+  <div class="grid3">
+    <div class="cell">
+      <div class="cmp" data-emerge-compare data-emerge-compare-mode="hold" style="--emerge-compare-ratio:4 / 3">
+        <img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois">
+      </div>
+      <h3>Horizontal (omissão)</h3><code>mode="hold"</code>
+    </div>
+    <div class="cell">
+      <div class="cmp" data-emerge-compare data-emerge-compare-mode="hold" data-emerge-compare-orientation="vertical"
+           data-emerge-compare-label="Segura para ver o antes" style="--emerge-compare-ratio:4 / 3">
+        <img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois">
+      </div>
+      <h3>Vertical + texto próprio</h3><code>orientation="vertical" label="…"</code>
+    </div>
+    <div class="cell">
+      <div class="cmp st-acc" data-emerge-compare data-emerge-compare-mode="hold" style="--emerge-compare-ratio:4 / 3; --emerge-compare-hold-duration:.8s">
+        <img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois">
+      </div>
+      <h3>Transição lenta (0.8s)</h3><code>--emerge-compare-hold-duration: .8s</code>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · POSIÇÕES INICIAIS -->
+<section class="demo">
+  <h2><span class="num">3</span> Posições iniciais</h2>
+  <div class="grid3">
+    <div class="cell"><div class="cmp" data-emerge-compare data-emerge-compare-position="25" style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><h3>25 %</h3><code>position="25"</code></div>
+    <div class="cell"><div class="cmp" data-emerge-compare style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><h3>50 % (omissão)</h3><code>sem atributo</code></div>
+    <div class="cell"><div class="cmp" data-emerge-compare data-emerge-compare-position="75" style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><h3>75 %</h3><code>position="75"</code></div>
+  </div>
+</section>
+
+<!-- 4 · ESTILOS -->
+<section class="demo">
+  <h2><span class="num">4</span> Estilos de divisor</h2>
+  <p class="lead">Só variáveis CSS e regras do autor — ver o CSS no fim da página.</p>
+  <div class="grid3">
+    <div class="cell"><div class="cmp st-acc" data-emerge-compare style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><h3>Acento, indicador cheio</h3><code>.st-acc</code></div>
+    <div class="cell"><div class="cmp st-minimal" data-emerge-compare style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><h3>Só linha fina</h3><code>.st-minimal</code></div>
+    <div class="cell"><div class="cmp st-square" data-emerge-compare style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><h3>Quadrado, linha grossa</h3><code>.st-square</code></div>
+    <div class="cell"><div class="cmp" data-emerge-compare style="--emerge-compare-ratio:4 / 3"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"><span data-emerge-compare-handle style="font:700 12px 'JetBrains Mono',monospace;letter-spacing:.04em">A|B</span></div><h3>Indicador personalizado</h3><code>&lt;span data-emerge-compare-handle&gt;</code></div>
+  </div>
+</section>
+
+<!-- 5 · RESPONSIVO -->
+<section class="demo">
+  <h2><span class="num">5</span> Responsivo e proporções</h2>
+  <p class="lead">Arrasta o canto inferior direito da caixa tracejada: o comparador acompanha o contentor. As imagens nunca são esticadas — <code class="i">object-fit</code> faz o enquadramento.</p>
+  <div class="rz">
+    <div class="cmp" data-emerge-compare>
+      <img src="../demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes">
+      <img src="../demo-assets/landscape-after.svg"  width="1600" height="1000" alt="Depois">
+    </div>
+  </div>
+  <div class="grid3">
+    <div class="cell"><div class="cmp" data-emerge-compare style="--emerge-compare-ratio:1 / 1"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><code>ratio 1 / 1 · cover</code></div>
+    <div class="cell"><div class="cmp" data-emerge-compare style="--emerge-compare-ratio:21 / 9"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><code>ratio 21 / 9 · cover</code></div>
+    <div class="cell"><div class="cmp" data-emerge-compare style="--emerge-compare-ratio:1 / 1; --emerge-compare-fit:contain; background:#0a1830"><img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><code>ratio 1 / 1 · contain</code></div>
+  </div>
+</section>
+
+<!-- 6 · HTML -->
+<section class="demo">
+  <h2><span class="num">6</span> Conteúdo HTML (não só imagens)</h2>
+  <p class="lead">As camadas podem ser qualquer elemento: aqui, o mesmo cartão em tema claro e escuro.</p>
+  <div class="cmp wide" data-emerge-compare data-emerge-compare-position="40" data-emerge-compare-label="Comparar tema claro e escuro" style="--emerge-compare-ratio: 16 / 7">
+    <div class="ui light"><span>Bom dia, Luanda</span><small>Tema claro</small><span class="btn">Continuar</span></div>
+    <div class="ui dark"><span>Bom dia, Luanda</span><small>Tema escuro</small><span class="btn">Continuar</span></div>
+  </div>
+</section>
+
+<!-- 7 · DINÂMICO + API -->
+<section class="demo">
+  <h2><span class="num">7</span> Elementos dinâmicos e API</h2>
+  <p class="lead">Comparadores adicionados depois do carregamento são ligados automaticamente pelo observer do plugin.</p>
+  <div class="btns" style="margin-bottom:12px">
+    <button id="add">Adicionar comparador</button>
+    <button class="ghost" id="to0">Emerge.Compare.set(…, 0)</button>
+    <button class="ghost" id="to100">set(…, 100)</button>
+  </div>
+  <div id="dyn" class="grid3" style="margin-top:0"></div>
+  <pre class="out" id="evt">evento emerge:compare:change → (mexe num comparador)</pre>
+</section>
+
+<!-- 8 · CSS -->
+<section class="demo">
+  <h2><span class="num">8</span> Personalização por CSS</h2>
+  <p class="lead">O estilo “acento” da secção 4, inteiro:</p>
+<pre class="out">.st-acc {
+  <b>--emerge-compare-line-color</b>: var(--acc);
+  <b>--emerge-compare-line-width</b>: 3px;
+  <b>--emerge-compare-handle-size</b>: 54px;
+  <b>--emerge-compare-handle-bg</b>: var(--acc);
+  <b>--emerge-compare-handle-color</b>: #fff;       /* cor das setas */
+  <b>--emerge-compare-handle-border</b>: 0;
+  <b>--emerge-compare-focus-color</b>: #fff;        /* anel de foco do teclado */
+}
+/* sem indicador, só linha */
+.st-minimal .emerge-compare-handle { display: none; }
+/* estados: hover e arrasto */
+.st-square .emerge-compare-divider:hover .emerge-compare-handle { rotate: 8deg; }
+.my-cmp.emerge-compare-dragging { cursor: grabbing; }</pre>
+</section>
+
+<nav class="nextprev" aria-label="Navegação entre demos">
+  <a href="media.html"><small>← anterior</small><b>Media</b></a>
+  <a class="nx" href="spotlight.html"><small>próxima demo →</small><b>Spotlight</b></a>
+</nav>
+</main>
+
+<script src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" data-emerge-css="false"></script>
+<script>
+  Emerge.init();
+
+  /* ---- playground: só atributos e variáveis CSS ---- */
+  var cmp = document.getElementById("pg-cmp");
+  var st = { or: "horizontal", pos: 50, fit: "cover", ratio: "", lw: 2, hs: 44, lc: "#4da3ff", hc: "#0f2142" };
+  function rebuild() {                       // a orientação/posição inicial são lidas na criação
+    Emerge.Compare.destroy(cmp);
+    cmp.setAttribute("data-emerge-compare-orientation", st.or);
+    cmp.setAttribute("data-emerge-compare-position", st.pos);
+    Emerge.Compare.build(cmp);
+  }
+  function paint() {
+    cmp.style.setProperty("--emerge-compare-fit", st.fit);
+    st.ratio ? cmp.style.setProperty("--emerge-compare-ratio", st.ratio) : cmp.style.removeProperty("--emerge-compare-ratio");
+    cmp.style.setProperty("--emerge-compare-line-width", st.lw + "px");
+    cmp.style.setProperty("--emerge-compare-handle-size", st.hs + "px");
+    cmp.style.setProperty("--emerge-compare-line-color", st.lc);
+    cmp.style.setProperty("--emerge-compare-handle-bg", st.hc + "99");
+    var css = ['<div data-emerge-compare' + (st.or !== "horizontal" ? '\n     data-emerge-compare-orientation="' + st.or + '"' : '') + (st.pos !== 50 ? '\n     data-emerge-compare-position="' + st.pos + '"' : '') + '>', '  <img src="antes.jpg"  alt="Antes">', '  <img src="depois.jpg" alt="Depois">', '</div>', '',
+      '.cmp {', '  --emerge-compare-fit: ' + st.fit + ';' + (st.ratio ? '\n  --emerge-compare-ratio: ' + st.ratio + ';' : ''), '  --emerge-compare-line-width: ' + st.lw + 'px;', '  --emerge-compare-handle-size: ' + st.hs + 'px;', '  --emerge-compare-line-color: ' + st.lc + ';', '  --emerge-compare-handle-bg: ' + st.hc + '99;', '}'];
+    document.getElementById("pg-code").textContent = css.join("\n");
+  }
+  function bind(id, key, out, num, rb) {
+    var i = document.getElementById(id);
+    i.addEventListener("input", function () {
+      st[key] = num ? Number(i.value) : i.value;
+      if (out) document.getElementById(out).textContent = i.value;
+      rb ? rebuild() : paint();
+    });
+  }
+  bind("c-or", "or", null, false, true);
+  bind("c-pos", "pos", "o-pos", true, true);
+  bind("c-fit", "fit"); bind("c-ratio", "ratio");
+  bind("c-lw", "lw", "o-lw", true); bind("c-hs", "hs", "o-hs", true);
+  bind("c-lc", "lc"); bind("c-hc", "hc");
+  paint();
+
+  /* ---- dinâmico ---- */
+  var n = 0, dyn = document.getElementById("dyn"), evt = document.getElementById("evt");
+  function addOne() {
+    n++;
+    var d = document.createElement("div");
+    d.className = "cell";
+    d.innerHTML = '<div class="cmp" data-emerge-compare data-emerge-compare-position="' + (20 + (n * 15) % 60) + '" style="--emerge-compare-ratio:4 / 3">' +
+      '<img src="../demo-assets/landscape-before.svg" alt="Antes"><img src="../demo-assets/landscape-after.svg" alt="Depois"></div><code>adicionado #' + n + '</code>';
+    dyn.appendChild(d);
+  }
+  document.getElementById("add").addEventListener("click", addOne);
+  function last() { var l = dyn.querySelectorAll(".cmp"); return l[l.length - 1] || cmp; }
+  document.getElementById("to0").addEventListener("click", function () { Emerge.Compare.set(last(), 0); });
+  document.getElementById("to100").addEventListener("click", function () { Emerge.Compare.set(last(), 100); });
+  document.addEventListener("emerge:compare:change", function (e) {
+    evt.textContent = "emerge:compare:change → position " + e.detail.position.toFixed(1);
+  });
+  addOne();
+</script>
+</body>
+</html>

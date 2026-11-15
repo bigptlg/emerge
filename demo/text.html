@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emerge · Text — demo</title>
+<script src="../demo-assets/demo.js"></script>
+<link rel="stylesheet" href="https://cdn.pedrodeoliveira.me/css/emerge.css">
+<link rel="stylesheet" href="../demo-assets/demo.css">
+<style>
+  .big { font-size: clamp(34px, 6.5vw, 66px); line-height: 1.06; letter-spacing: -.03em; font-weight: 800; margin: 12px 0 0; }
+  .big.sm { font-size: clamp(26px, 4.4vw, 44px); }
+  .track { height: 150vh; }
+  .sticky { position: sticky; top: 24vh; display: grid; gap: 18px; justify-items: center; text-align: center; }
+  .pg2 { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
+  .grp { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-switch" class="switch-input" aria-label="Alternar tema claro/escuro">
+
+<nav class="topnav">
+  <a class="brand" href="../demos.html">
+    <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs><linearGradient id="lg-b" x1="0" y1="26" x2="26" y2="0"><stop offset="0" stop-color="#0b6ef2"/><stop offset="1" stop-color="#0aa2c0"/></linearGradient></defs>
+      <path d="M4 5.5h18" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M4 13h12" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M4 20.5h7" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
+    </svg>
+    Emerge <span class="ver">v1.10.0</span>
+  </a>
+  <a href="../demos.html">Todas as demos</a>
+  <b>Text</b>
+  <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </label>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="kicker" data-emerge="fade-right">Plugin · Text</p>
+  <h1 data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="26" data-emerge-order="center" data-emerge-easing="ease-out-cubic">Letra a letra.</h1>
+  <p class="lead" data-emerge="fade-up" data-emerge-delay="300">Divide em <code class="i">chars</code>, <code class="i">words</code> ou <code class="i">lines</code> e replica o efeito do host em cada parte com stagger. Acessível: o original fica em <code class="i">aria-label</code> e as partes em <code class="i">aria-hidden</code>.</p>
+  <div class="facts" data-emerge="fade-up" data-emerge-delay="420">
+    <span class="fact"><b>split</b> chars · words · lines</span>
+    <span class="fact"><b>ordem</b> forward · reverse · center · edges · random</span>
+    <span class="fact"><b>scroll</b> follow + spread</span>
+    <span class="fact"><b>api</b> split() · parts() · restore()</span>
+  </div>
+</header>
+
+<!-- 1 · MODOS -->
+<section class="demo">
+  <h2><span class="num">1</span> chars · words · lines</h2>
+  <div class="grid" style="grid-template-columns:1fr">
+    <div class="card"><h3 class="big" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="30">Design em movimento</h3><code>split="chars" step="30"</code></div>
+    <div class="card"><h3 class="big" data-emerge="zoom-in" data-emerge-split="words" data-emerge-step="120" data-emerge-easing="ease-out-back">Cada palavra entra a seguir à outra</h3><code>split="words" step="120" · zoom-in</code></div>
+    <div class="card"><p class="lead" style="font-size:19px;max-width:52ch" data-emerge="fade-up" data-emerge-split="lines" data-emerge-step="140">As linhas são calculadas a partir do layout real e recalculadas ao redimensionar a janela. Experimenta mudar a largura do browser: o texto reparte-se de novo, sem partir o stagger.</p><code>split="lines" step="140"</code></div>
+  </div>
+</section>
+
+<!-- 2 · ORDENS -->
+<section class="demo">
+  <h2><span class="num">2</span> As cinco ordens de stagger</h2>
+  <p class="lead">O mesmo título, cinco formas de organizar o desfasamento (<code class="i">data-emerge-order</code>). Repete cada uma para comparar.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="card"><h3 class="big sm" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="34" data-emerge-order="forward">Forward</h3><code>order="forward"</code><button class="ghost small rp">Repetir</button></div>
+    <div class="card"><h3 class="big sm" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="34" data-emerge-order="reverse">Reverse</h3><code>order="reverse"</code><button class="ghost small rp">Repetir</button></div>
+    <div class="card"><h3 class="big sm" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="34" data-emerge-order="center">Center</h3><code>order="center"</code><button class="ghost small rp">Repetir</button></div>
+    <div class="card"><h3 class="big sm" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="34" data-emerge-order="edges">Edges</h3><code>order="edges"</code><button class="ghost small rp">Repetir</button></div>
+    <div class="card"><h3 class="big sm" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="34" data-emerge-order="random">Random</h3><code>order="random"</code><button class="ghost small rp">Repetir</button></div>
+  </div>
+</section>
+
+<!-- 3 · PLAYGROUND -->
+<section class="demo">
+  <h2><span class="num">3</span> Playground</h2>
+  <div class="panel pg2">
+    <div class="grp">
+      <div class="row"><label>split</label><select id="sp"><option>chars</option><option>words</option><option>lines</option></select></div>
+      <div class="row"><label>order</label><select id="od"><option>forward</option><option>reverse</option><option>center</option><option>edges</option><option>random</option></select></div>
+      <div class="row"><label>efeito</label><select id="ef"><option>fade-up</option><option>fade-left</option><option>zoom-in</option><option>flip-up</option><option>blur</option><option>rotate-left</option><option>bounce</option></select></div>
+      <div class="row"><label>step</label><input id="st" type="range" min="5" max="250" value="40"><output id="sto">40</output></div>
+    </div>
+    <div class="stage" style="min-height:180px">
+      <h2 class="big" id="pgt" data-emerge="fade-up" data-emerge-split="chars" data-emerge-step="40">Texto de teste</h2>
+    </div>
+    <div class="btns"><button id="rep">Repetir</button><button class="ghost" id="rst">Restaurar original</button></div>
+  </div>
+<pre class="code" id="pgc"></pre>
+</section>
+
+<!-- 4 · SCROLL -->
+<section class="demo">
+  <h2><span class="num">4</span> Dirigido pelo scroll</h2>
+  <p class="lead">Com <code class="i">follow</code> do Range o stagger é escrito pelo próprio scroll; <code class="i">spread</code> (0–0.95) define quanto do percurso é gasto no desfasamento.</p>
+  <div class="track"><div class="sticky">
+    <h2 class="big" data-emerge="fade-up" data-emerge-split="chars" data-emerge-from="enter" data-emerge-to="center" data-emerge-follow data-emerge-spread="0.7">O scroll escreve este título</h2>
+  </div></div>
+<pre class="code">&lt;h2 data-emerge="fade-up" data-emerge-split="chars"
+    data-emerge-from="enter" data-emerge-to="center"
+    <b>data-emerge-follow</b> <b>data-emerge-spread="0.7"</b>&gt;…&lt;/h2&gt;</pre>
+</section>
+
+<!-- 5 · TEXT + MOTION -->
+<section class="demo">
+  <h2><span class="num">5</span> Combinado com Motion</h2>
+  <p class="lead">Com <code class="i">data-emerge-split</code> e um efeito no host, o Motion é aplicado a <b>cada parte</b>: cada letra pode partir em 3D. É assim que se fazem aberturas de site.</p>
+  <h2 class="big" data-emerge="fade" data-emerge-split="chars" data-emerge-step="40" data-emerge-duration="800" data-emerge-easing="ease-out-back"
+      data-emerge-motion="y:70 rotate-x:70 blur:6 opacity:0" style="margin-top:22px">Entrada em 3D</h2>
+  <p class="hint">Regra da doc: não combinar <code class="i">data-emerge-particles</code> no mesmo elemento, nem usar <code class="i">chars</code> em parágrafos longos.</p>
+</section>
+
+<nav class="nextprev" aria-label="Navegação entre demos">
+  <a href="draw.html"><small>← anterior</small><b>Draw</b></a>
+  <a class="nx" href="motion.html"><small>próxima demo →</small><b>Motion</b></a>
+</nav>
+</main>
+
+<script src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" data-emerge-css="false"></script>
+<script>
+  Emerge.init();
+
+  /* replay de elementos divididos: os spans internos é que têm data-emerge */
+  function replaySplit(host) {
+    var parts = host.querySelectorAll("[data-emerge]");
+    var cls = (window.Emerge && Emerge.options && Emerge.options.animatedClassName) || "emerge-animate";
+    var targets = host.hasAttribute("data-emerge") ? [host].concat(Array.prototype.slice.call(parts)) : parts;
+    targets.forEach(function (p) { p.classList.remove(cls); });
+    void host.offsetWidth;
+    requestAnimationFrame(function () {
+      targets.forEach(function (p) { p.classList.add(cls); });
+    });
+  }
+  document.querySelectorAll(".rp").forEach(function (b) {
+    b.addEventListener("click", function () { replaySplit(b.closest(".card").querySelector(".big")); });
+  });
+
+  /* playground */
+  var t = document.getElementById("pgt"), sp = document.getElementById("sp"), od = document.getElementById("od"),
+      st = document.getElementById("st"), ef = document.getElementById("ef");
+
+  function code() {
+    document.getElementById("pgc").textContent = '<h2 data-emerge="' + ef.value + '" data-emerge-split="' + sp.value + '"\n    data-emerge-step="' + st.value + '" data-emerge-order="' + od.value + '">Texto de teste</h2>';
+  }
+  function rep() {
+    Emerge.Text.restore(t);
+    t.textContent = "Texto de teste";
+    t.setAttribute("data-emerge", ef.value);
+    t.setAttribute("data-emerge-split", sp.value);
+    t.setAttribute("data-emerge-step", st.value);
+    t.setAttribute("data-emerge-order", od.value);
+    t.removeAttribute("aria-label");
+    Emerge.refreshHard();
+    replaySplit(t);
+    code();
+  }
+  st.oninput = function () { document.getElementById("sto").textContent = st.value; code(); };
+  [sp, od, ef].forEach(function (e) { e.onchange = code; });
+  document.getElementById("rep").onclick = rep;
+  document.getElementById("rst").onclick = function () { Emerge.Text.restore(t); };
+  code();
+</script>
+</body>
+</html>

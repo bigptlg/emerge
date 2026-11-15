@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emerge · Motion — demo</title>
+<script src="../demo-assets/demo.js"></script>
+<link rel="stylesheet" href="https://cdn.pedrodeoliveira.me/css/emerge.css">
+<link rel="stylesheet" href="../demo-assets/demo.css">
+<style>
+  .pg { display: grid; grid-template-columns: 330px 1fr; gap: 18px; margin-top: 20px; }
+  @media (max-width: 820px) { .pg { grid-template-columns: 1fr; } }
+  .stagewrap { display: grid; gap: 14px; grid-template-rows: 1fr auto; }
+  .stage { min-height: 300px; perspective: 900px; }
+  .subject {
+    width: 150px; height: 150px; border-radius: 22px; display: grid; place-items: center;
+    color: var(--on-g); font: 700 18px "Inter", sans-serif;
+    background: var(--g1); box-shadow: 0 16px 40px color-mix(in srgb, var(--acc) 35%, transparent);
+  }
+  pre.out {
+    margin: 0; background: var(--code-bg); border: 1px solid var(--code-line);
+    border-radius: 14px; padding: 14px; font-size: 12.75px; line-height: 1.6; color: var(--code-txt);
+    white-space: pre-wrap; word-break: break-word; box-shadow: var(--shadow);
+  }
+  pre.out b { color: var(--code-acc); font-weight: 600; }
+  pre.out i { color: var(--code-dim); }
+
+  .card .demo { height: 116px; border-radius: 12px; display: grid; place-items: center; background: var(--card2); border: 1px solid var(--line); overflow: hidden; perspective: 700px; }
+  .card .chip { width: 66px; height: 66px; }
+  .card .re { justify-self: start; padding: 5px 11px; font-size: 12px; }
+  .bar-demo { width: 160px; height: 14px; border-radius: 99px; background: var(--g1); transform-origin: left center; }
+  .photo { width: 120px; height: 80px; border-radius: 10px; background: conic-gradient(from 200deg, #f59e0b, #ef4444, #8b5cf6, #3b82f6, #10b981, #f59e0b); }
+
+  .scrub-track { height: 130vh; display: grid; align-content: start; }
+  .scrub { position: sticky; top: 30vh; display: grid; place-items: center; }
+  .scrub .chip { width: 120px; height: 120px; border-radius: 26px; }
+  h2.split { font-size: clamp(34px, 7vw, 70px); margin: 24px 0 0; letter-spacing: -.02em; }
+  .both { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  @media (max-width: 700px) { .both { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-switch" class="switch-input" aria-label="Alternar tema claro/escuro">
+
+<nav class="topnav">
+  <a class="brand" href="../demos.html">
+    <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs><linearGradient id="lg-b" x1="0" y1="26" x2="26" y2="0"><stop offset="0" stop-color="#0b6ef2"/><stop offset="1" stop-color="#0aa2c0"/></linearGradient></defs>
+      <path d="M4 5.5h18" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M4 13h12" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M4 20.5h7" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
+    </svg>
+    Emerge <span class="ver">v1.10.0</span>
+  </a>
+  <a href="../demos.html">Todas as demos</a>
+  <b>Motion</b>
+  <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </label>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="kicker" data-emerge data-emerge-motion="x:-30 blur:6">Plugin · Motion</p>
+  <h1 data-emerge data-emerge-duration="900" data-emerge-easing="ease-out-back" data-emerge-motion="y:50 scale:.92 blur:12">De onde a entrada parte, <span style="color:var(--acc)">tu decides.</span></h1>
+  <p class="lead" data-emerge data-emerge-delay="150" data-emerge-motion="y:24 opacity:0">
+    O Motion define o estado <b>inicial</b> da animação com atributos HTML; por omissão o final é sempre o estilo natural do elemento — e com <code class="i">to-</code> decides também o fim. Duração, atraso e easing continuam a ser do Core. Esta própria página usa o plugin.
+  </p>
+  <div class="facts" data-emerge="fade-up" data-emerge-delay="400">
+    <span class="fact"><b>props</b> x · y · rotate · scale · skew · blur · brightness</span>
+    <span class="fact"><b>final</b> to- · from- · hold</span>
+    <span class="fact"><b>api</b> apply() · clear() · read()</span>
+  </div>
+</header>
+
+<!-- 1 · PLAYGROUND -->
+<section class="demo">
+  <h2 data-emerge data-emerge-motion="x:-24 opacity:0"><span class="num">1</span> Playground</h2>
+  <p class="lead" data-emerge data-emerge-motion="y:16 opacity:0">Mexe nos sliders: o atributo <code class="i">data-emerge-motion</code> é gerado e aplicado em tempo real. Só aparecem no código os valores diferentes do natural.</p>
+
+  <div class="pg">
+    <div class="panel ctl" id="ctl"></div>
+    <div class="stagewrap">
+      <div class="stage"><div class="subject" id="subject" data-emerge>Motion</div></div>
+      <pre class="out" id="out"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · GALERIA -->
+<section class="demo">
+  <h2 data-emerge data-emerge-motion="x:-24 opacity:0"><span class="num">2</span> Galeria</h2>
+  <p class="lead" data-emerge data-emerge-motion="y:16 opacity:0">Cada cartão tem o seu próprio Motion. Os três últimos definem também o estado final (<code class="i">to-</code>): o elemento fica onde indicares.</p>
+  <div class="grid" id="gallery">
+
+    <div class="card" data-emerge data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" data-emerge data-emerge-duration="800" data-emerge-motion="x:-90 rotate:-45"></div></div>
+      <h3>Deslize com rotação</h3><code>x:-90 rotate:-45</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="80" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" style="background:var(--g2)" data-emerge data-emerge-duration="900" data-emerge-motion="rotate-x:80 opacity:0"></div></div>
+      <h3>Flip 3D</h3><code>rotate-x:80 opacity:0</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="160" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" style="background:var(--g4)" data-emerge data-emerge-duration="800" data-emerge-motion="skew-x:35 x:60 opacity:0"></div></div>
+      <h3>Skew diagonal</h3><code>skew-x:35 x:60 opacity:0</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="photo rp" data-emerge data-emerge-duration="1100" data-emerge-motion="blur:14 grayscale:1 brightness:.5 scale:1.15"></div></div>
+      <h3>Foco + cor</h3><code>blur:14 grayscale:1 brightness:.5</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="80" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="bar-demo rp" data-emerge data-emerge-duration="900" data-emerge-easing="ease-out-quad" data-emerge-motion="scale-x:0"></div></div>
+      <h3>Barra que cresce</h3><code>scale-x:0</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="160" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip" style="background:var(--g5)" data-emerge data-emerge-duration="1600" data-emerge-easing="ease-in-out" data-emerge-motion="y:14 repeat:infinite direction:alternate"></div></div>
+      <h3>Flutuar em ciclo</h3><code>y:14 repeat:infinite direction:alternate</code>
+    </div>
+
+    <div class="card" data-emerge data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" data-emerge="fade-up" data-emerge-duration="900" data-emerge-motion="scale:.4 rotate:90"></div></div>
+      <h3>Preset + Motion</h3><code>data-emerge="fade-up" + scale:.4 rotate:90</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="80" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" style="background:var(--g3)" data-emerge data-emerge-duration="1000" data-emerge-easing="ease-out-back" data-emerge-motion="translate-y:80% scale-x:1.6 scale-y:.4"></div></div>
+      <h3>Esmagar e subir</h3><code>translate-y:80% scale-x:1.6 scale-y:.4</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="160" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" data-emerge data-emerge-duration="900" data-emerge-easing="ease-out-back" data-emerge-motion="x:-90 opacity:0 to-x:40 to-opacity:.6 to-scale:1.25"></div></div>
+      <h3>Estado final manual</h3><code>x:-90 opacity:0 to-x:40 to-opacity:.6 to-scale:1.25</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" style="background:var(--g2)" data-emerge data-emerge-duration="1000" data-emerge-motion-from="rotate:-90 blur:10 opacity:0" data-emerge-motion-to="rotate:15 blur:0 brightness:1.3"></div></div>
+      <h3>Grupos from / to</h3><code>-from="rotate:-90 blur:10" -to="rotate:15 brightness:1.3"</code><button class="ghost re">Repetir</button>
+    </div>
+
+    <div class="card" data-emerge data-emerge-delay="80" data-emerge-motion="y:30 opacity:0">
+      <div class="demo"><div class="chip rp" style="background:var(--g4)" data-emerge data-emerge-duration="900" data-emerge-motion-y="50" data-emerge-motion-to-y="-20"></div></div>
+      <h3>Atributos individuais</h3><code>-y="50" -to-y="-20"</code><button class="ghost re">Repetir</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- 3 · RANGE -->
+<section class="demo">
+  <h2 data-emerge data-emerge-motion="x:-24 opacity:0"><span class="num">3</span> Com o Range (scroll-linked)</h2>
+  <p class="lead" data-emerge data-emerge-motion="y:16 opacity:0">Com <code class="i">data-emerge-follow</code> o mesmo Motion deixa de ser “dispara ao entrar” e passa a acompanhar o scroll.</p>
+  <div class="scrub-track">
+    <div class="scrub">
+      <div class="chip" data-emerge data-emerge-follow data-emerge-from="top@100%" data-emerge-to="top@35%"
+           data-emerge-motion="x:-260 rotate:-180 scale:.3 blur:10 opacity:.2"></div>
+    </div>
+  </div>
+  <p class="hint">x:-260 rotate:-180 scale:.3 blur:10 opacity:.2 → natural, de acordo com o scroll.</p>
+</section>
+
+<!-- 3b · HOLD -->
+<section class="demo">
+  <h2 data-emerge data-emerge-motion="x:-24 opacity:0"><span class="num">3b</span> Pausa no meio (hold)</h2>
+  <p class="lead" data-emerge data-emerge-motion="y:16 opacity:0">Vem de <code class="i">x:260</code>, pára no centro durante 20&nbsp;% do scroll e só depois segue para <code class="i">to-x:-260</code>.</p>
+  <div class="scrub-track">
+    <div class="scrub">
+      <div class="chip" style="background:var(--g2)" data-emerge data-emerge-follow data-emerge-from="top@100%" data-emerge-to="top@0%"
+           data-emerge-motion="x:260 to-x:-260 hold:20"></div>
+    </div>
+  </div>
+  <p class="hint">x:260 → 0 (pausa 20 %) → -260</p>
+</section>
+
+<!-- 4 · TEXTO + PRESET -->
+<section class="demo">
+  <h2 data-emerge data-emerge-motion="x:-24 opacity:0"><span class="num">4</span> Texto dividido e presets</h2>
+  <p class="lead" data-emerge data-emerge-motion="y:16 opacity:0">Com <code class="i">data-emerge-split</code> o Motion é aplicado a cada letra (o Text só anima as partes quando <code class="i">data-emerge</code> tem valor).</p>
+  <h2 class="split" data-emerge="fade" data-emerge-split="chars" data-emerge-step="40" data-emerge-duration="700"
+      data-emerge-easing="ease-out-back" data-emerge-motion="y:60 rotate:12 blur:8 opacity:0">Letra a letra</h2>
+
+  <div class="both">
+    <div class="panel" data-emerge="fade-up" data-emerge-motion="rotate:-6">
+      <b>fade-up + rotate:-6</b><p class="hint">O preset mantém o fade e o deslocamento; o Motion só acrescenta a rotação.</p>
+    </div>
+    <div class="panel" data-emerge="fade-up" data-emerge-motion="y:120 opacity:1">
+      <b>fade-up + y:120 opacity:1</b><p class="hint">O Motion substitui o deslocamento e remove o fade.</p>
+    </div>
+  </div>
+</section>
+
+<nav class="nextprev" aria-label="Navegação entre demos">
+  <a href="text.html"><small>← anterior</small><b>Text</b></a>
+  <a class="nx" href="reel.html"><small>próxima demo →</small><b>Reel</b></a>
+</nav>
+</main>
+
+<script src="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" data-emerge-css="false"></script>
+<script>
+  Emerge.init({ duration: 600, once: false });
+
+  /* replay genérico */
+  function replay(el) { EmergeDemo.replay(el); }
+  document.querySelectorAll("#gallery .re").forEach(function (b) {
+    b.addEventListener("click", function () { replay(b.closest(".card").querySelector(".rp")); });
+  });
+
+  /* playground */
+  var DEFS = [
+    ["x", -200, 200, 1, 0, "px"], ["y", -200, 200, 1, 0, "px"],
+    ["rotate", -180, 180, 1, 0, "deg"], ["rotate-x", -90, 90, 1, 0, "deg"], ["rotate-y", -90, 90, 1, 0, "deg"],
+    ["skew-x", -45, 45, 1, 0, "deg"], ["scale", 0, 2, .05, 1, ""],
+    ["opacity", 0, 1, .05, 1, ""], ["blur", 0, 20, 1, 0, "px"],
+    ["brightness", 0, 2, .05, 1, ""], ["grayscale", 0, 1, .05, 0, ""]
+  ];
+  var ctl = document.getElementById("ctl"), subject = document.getElementById("subject"), out = document.getElementById("out");
+  var vals = {};
+
+  function addRow(label, input, outputEl) {
+    var r = document.createElement("div"); r.className = "row";
+    var l = document.createElement("label"); l.textContent = label;
+    r.appendChild(l); r.appendChild(input); if (outputEl) r.appendChild(outputEl); ctl.appendChild(r);
+  }
+  DEFS.forEach(function (d) {
+    var i = document.createElement("input"); i.type = "range"; i.min = d[1]; i.max = d[2]; i.step = d[3]; i.value = d[4];
+    var o = document.createElement("output"); o.textContent = d[4];
+    vals[d[0]] = d[4];
+    i.addEventListener("input", function () { vals[d[0]] = Number(i.value); o.textContent = i.value; update(false); });
+    i.addEventListener("change", function () { update(true); });
+    addRow(d[0], i, o);
+  });
+
+  function select(label, opts) {
+    var s = document.createElement("select");
+    opts.forEach(function (o) { var e = document.createElement("option"); e.value = o; e.textContent = o; s.appendChild(e); });
+    s.addEventListener("change", function () { update(true); });
+    addRow(label, s); return s;
+  }
+  var dur = document.createElement("input"); dur.type = "range"; dur.min = 200; dur.max = 2500; dur.step = 50; dur.value = 800;
+  var durO = document.createElement("output"); durO.textContent = "800";
+  dur.addEventListener("input", function () { durO.textContent = dur.value; update(false); });
+  dur.addEventListener("change", function () { update(true); });
+  addRow("duration", dur, durO);
+  var selEase = select("easing", ["ease", "ease-out", "ease-in-out", "ease-out-back", "ease-in-back", "ease-out-quad", "linear"]);
+  var selRep = select("repeat", ["1", "3", "infinite"]);
+  var selDir = select("direction", ["normal", "alternate"]);
+
+  var btns = document.createElement("div"); btns.className = "btns";
+  var bPlay = document.createElement("button"); bPlay.textContent = "Repetir";
+  var bReset = document.createElement("button"); bReset.className = "ghost"; bReset.textContent = "Repor";
+  btns.appendChild(bPlay); btns.appendChild(bReset); ctl.appendChild(btns);
+
+  function build() {
+    var parts = [];
+    DEFS.forEach(function (d) { if (vals[d[0]] !== d[4]) parts.push(d[0] + ":" + vals[d[0]] + d[5]); });
+    if (selRep.value !== "1") parts.push("repeat:" + selRep.value);
+    if (selDir.value !== "normal") parts.push("direction:" + selDir.value);
+    return parts.join(" ");
+  }
+  function update(play) {
+    var m = build();
+    if (m) subject.setAttribute("data-emerge-motion", m); else subject.removeAttribute("data-emerge-motion");
+    subject.style.setProperty("--emerge-duration", dur.value + "ms");
+    subject.style.setProperty("--emerge-easing", Emerge.core.resolveEasing(selEase.value));
+    Emerge.Motion.apply(subject);
+    var attrs = ['data-emerge', 'data-emerge-duration="' + dur.value + '"'];
+    if (selEase.value !== "ease") attrs.push('data-emerge-easing="' + selEase.value + '"');
+    out.innerHTML = '&lt;div ' + attrs.join(" ") + (m ? '\n     <b>data-emerge-motion="' + m + '"</b>' : '') + '&gt;&lt;/div&gt;' +
+      (m ? "" : "\n\n<i>(sem Motion: o Core faz o fade por omissão)</i>");
+    if (play) replay(subject);
+  }
+  bPlay.addEventListener("click", function () { replay(subject); });
+  bReset.addEventListener("click", function () {
+    ctl.querySelectorAll("input[type=range]").forEach(function (i, n) {
+      if (n < DEFS.length) { i.value = DEFS[n][4]; vals[DEFS[n][0]] = DEFS[n][4]; i.nextElementSibling.textContent = DEFS[n][4]; }
+    });
+    dur.value = 800; durO.textContent = "800"; selEase.value = "ease"; selRep.value = "1"; selDir.value = "normal";
+    update(true);
+  });
+
+  subject.setAttribute("data-emerge-motion", "x:-120 rotate:-20 scale:.6");
+  vals.x = -120; vals.rotate = -20; vals.scale = .6;
+  ctl.querySelectorAll("input[type=range]").forEach(function (i, n) {
+    if (n < DEFS.length && vals[DEFS[n][0]] !== DEFS[n][4]) { i.value = vals[DEFS[n][0]]; i.nextElementSibling.textContent = vals[DEFS[n][0]]; }
+  });
+  update(false);
+</script>
+</body>
+</html>
