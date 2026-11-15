@@ -1,4 +1,4 @@
-/* Emerge.js v1.7.2 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles + Smooth + Motion) */
+/* Emerge.js v1.10.0 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles + Smooth + Motion + Compare) */
 
 
 /* ==========================================================================
@@ -1617,6 +1617,11 @@ html.emerge-smooth-scrolling iframe {
      - encadeamento dos slots transform/filter (como flip/blur do Core);
      - repetição e direção (só fora do modo follow do Range).
    Os keyframes reutilizados são os do Core: emerge-flip e emerge-blur.
+
+   Estado FINAL manual (to-*): uma classe por canal (.emerge-motion-to-<canal>)
+   fixa o valor final (--emerge-to-*) enquanto o elemento está animado. Como
+   os keyframes do Core só definem "from", a animação interpola até esse valor
+   e o elemento permanece nele (também no modo follow do Range).
    ========================================================================== */
 [data-emerge].emerge-motion-transform:is(.emerge-init, .emerge-part):not(.emerge-animate, .emerge-follow, .emerge-draw-path, [data-emerge-horizontal], [data-emerge-stack], [data-emerge-reel]) {
   transform: var(--emerge-from-transform);
@@ -1630,7 +1635,263 @@ html.emerge-smooth-scrolling iframe {
   animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip);
 }
 
+/* estado final manual (to-*) */
+[data-emerge].emerge-motion-to-opacity:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path)   { opacity:   var(--emerge-to-opacity); }
+[data-emerge].emerge-motion-to-translate:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path) { translate: var(--emerge-to-translate); }
+[data-emerge].emerge-motion-to-rotate:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path)    { rotate:    var(--emerge-to-rotate); }
+[data-emerge].emerge-motion-to-scale:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path)     { scale:     var(--emerge-to-scale); }
+[data-emerge].emerge-motion-to-transform:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path) { transform: var(--emerge-to-transform); }
+[data-emerge].emerge-motion-to-filter:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path)    { filter:    var(--emerge-to-filter); }
+
+/* hold: ponto de repouso com pausa (keyframes gerados pelo plugin em --emerge-a-hold) */
+[data-emerge].emerge-motion-hold:is(.emerge-animate, .emerge-follow):not(.emerge-draw-path) {
+  animation-name: emerge-in, var(--emerge-a-transform), var(--emerge-a-filter), var(--emerge-a-clip), var(--emerge-a-hold);
+}
+
 [data-emerge].emerge-motion-loop.emerge-animate:not(.emerge-follow, .emerge-draw-path) {
   animation-iteration-count: var(--emerge-motion-repeat, 1);
   animation-direction: var(--emerge-motion-direction, normal);
+}
+
+
+/* ==========================================================================
+   29. Compare — comparação visual antes/depois (plugin autónomo,
+   data-emerge-compare). Não é uma animação de entrada: não usa data-emerge.
+   Marcação: o 1.º filho é o lado esquerdo/topo, o 2.º o lado direito/base;
+   o JS acrescenta só o divisor (.emerge-compare-divider, role="slider").
+   Estado: UMA variável, --emerge-compare-pos (0%..100%), escrita pelo JS no
+   contentor; a camada de cima é revelada por clip-path que a lê e o divisor
+   posiciona-se com a mesma variável.
+   Sem JS ou com o plugin desactivado as camadas ficam empilhadas na mesma
+   célula de grelha (o mesmo tamanho do estado activo, sem salto de layout) e
+   vê-se a imagem "depois".
+   Tokens (todos opcionais, definam-nos no contentor ou em :root):
+     --emerge-compare-ratio          proporção do contentor (ex.: 16 / 9)
+     --emerge-compare-fit            cover (omissão) | contain
+     --emerge-compare-radius         border-radius do contentor
+     --emerge-compare-line-color     cor da linha
+     --emerge-compare-line-width     espessura da linha
+     --emerge-compare-handle-size    diâmetro do indicador
+     --emerge-compare-handle-bg      fundo do indicador
+     --emerge-compare-handle-color   cor das setas
+     --emerge-compare-handle-border  borda do indicador
+     --emerge-compare-handle-shadow  sombra do indicador
+     --emerge-compare-focus-color    cor do anel de foco
+     --emerge-compare-hit            largura da zona de agarre do divisor
+     --emerge-compare-hold-duration  duração da transição do modo "segurar"
+   ========================================================================== */
+/* variável de estado registada: permite transicionar o clip-path no modo
+   "segurar" (sem suporte a @property a troca é instantânea, igualmente correcta) */
+@property --emerge-compare-pos {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+:root {
+  --emerge-compare-fit: cover;
+  --emerge-compare-line-color: #fff;
+  --emerge-compare-line-width: 2px;
+  --emerge-compare-handle-size: 44px;
+  --emerge-compare-handle-bg: rgba(15, 18, 24, .55);
+  --emerge-compare-handle-color: #fff;
+  --emerge-compare-handle-border: 2px solid #fff;
+  --emerge-compare-handle-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+  --emerge-compare-focus-color: #60a5fa;
+  --emerge-compare-hit: 44px;
+  --emerge-compare-hold-duration: .35s;
+}
+
+[data-emerge-compare] {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border-radius: var(--emerge-compare-radius, 0);
+  aspect-ratio: var(--emerge-compare-ratio, auto);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* o scroll da página nunca é bloqueado: só o eixo do divisor é nosso */
+  touch-action: pan-y;
+}
+[data-emerge-compare].emerge-compare-vertical {
+  touch-action: pan-x;
+}
+
+/* camadas na mesma célula de grelha (com ou sem JS) */
+[data-emerge-compare] > :not(.emerge-compare-divider):not(.emerge-compare-hold-btn):not([data-emerge-compare-handle]) {
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: var(--emerge-compare-fit, cover);
+  -webkit-user-drag: none;
+}
+[data-emerge-compare] > [data-emerge-compare-handle] { display: none; }
+
+/* a camada de cima só mostra a parte depois do divisor */
+.emerge-compare > .emerge-compare-after {
+  clip-path: inset(0 0 0 var(--emerge-compare-pos, 50%));
+}
+.emerge-compare-vertical > .emerge-compare-after {
+  clip-path: inset(var(--emerge-compare-pos, 50%) 0 0 0);
+}
+
+/* divisor: zona de agarre transparente centrada na posição */
+.emerge-compare-divider {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: var(--emerge-compare-pos, 50%);
+  width: var(--emerge-compare-hit, 44px);
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  cursor: ew-resize;
+  outline: none;
+  touch-action: pan-y;
+}
+.emerge-compare-vertical > .emerge-compare-divider {
+  top: var(--emerge-compare-pos, 50%);
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: var(--emerge-compare-hit, 44px);
+  translate: 0 -50%;
+  cursor: ns-resize;
+  touch-action: pan-x;
+}
+
+/* linha */
+.emerge-compare-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--emerge-compare-line-width, 2px);
+  translate: -50% 0;
+  background: var(--emerge-compare-line-color, #fff);
+  pointer-events: none;
+}
+.emerge-compare-vertical .emerge-compare-line {
+  top: 50%;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: var(--emerge-compare-line-width, 2px);
+  translate: 0 -50%;
+}
+
+/* indicador com setas (chevrons desenhados por CSS) */
+.emerge-compare-handle {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: var(--emerge-compare-handle-size, 44px);
+  height: var(--emerge-compare-handle-size, 44px);
+  border-radius: 50%;
+  border: var(--emerge-compare-handle-border, 2px solid #fff);
+  background: var(--emerge-compare-handle-bg, rgba(15, 18, 24, .55));
+  color: var(--emerge-compare-handle-color, #fff);
+  box-shadow: var(--emerge-compare-handle-shadow, 0 2px 10px rgba(0, 0, 0, .35));
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+.emerge-compare-handle::before,
+.emerge-compare-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 22%;
+  height: 22%;
+  border: solid currentColor;
+  border-width: 0 0 2px 2px;
+  box-sizing: border-box;
+}
+.emerge-compare-handle::before { left: 26%;  translate: 0 -50%;     rotate: 45deg; }
+.emerge-compare-handle::after  { right: 26%; translate: 0 -50%;     rotate: -135deg; }
+.emerge-compare-vertical .emerge-compare-handle::before { top: 26%;  left: 50%; translate: -50% 0; rotate: 135deg; }
+.emerge-compare-vertical .emerge-compare-handle::after  { top: auto; bottom: 26%; left: 50%; right: auto; translate: -50% 0; rotate: -45deg; }
+
+/* handle personalizado (<span data-emerge-compare-handle>): sem setas */
+.emerge-compare-handle-custom::before,
+.emerge-compare-handle-custom::after { display: none; }
+.emerge-compare-handle > [data-emerge-compare-handle] {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+/* estados: hover, arrasto e foco do teclado */
+.emerge-compare-divider:hover .emerge-compare-handle,
+.emerge-compare-dragging .emerge-compare-handle {
+  scale: 1.08;
+}
+.emerge-compare-dragging { cursor: grabbing; }
+.emerge-compare-divider:focus-visible .emerge-compare-handle {
+  outline: 3px solid var(--emerge-compare-focus-color, #60a5fa);
+  outline-offset: 3px;
+}
+.emerge-compare-divider:focus-visible .emerge-compare-line {
+  box-shadow: 0 0 0 2px var(--emerge-compare-focus-color, #60a5fa);
+}
+
+/* modo "segurar" (data-emerge-compare-mode="hold"): sem divisor; premir em
+   qualquer ponto mostra a 1.ª camada, largar volta à 2.ª */
+.emerge-compare-hold-mode {
+  touch-action: auto;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  transition: --emerge-compare-pos var(--emerge-compare-hold-duration, .35s) cubic-bezier(.4, 0, .2, 1);
+}
+.emerge-compare-hold-btn {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 14px;
+  translate: -50% 0;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: .55em 1.1em;
+  border: var(--emerge-compare-handle-border, 2px solid #fff);
+  border-radius: 999px;
+  background: var(--emerge-compare-handle-bg, rgba(15, 18, 24, .55));
+  color: var(--emerge-compare-handle-color, #fff);
+  box-shadow: var(--emerge-compare-handle-shadow, 0 2px 10px rgba(0, 0, 0, .35));
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  font: 600 13px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: .01em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  outline: none;
+}
+.emerge-compare-vertical.emerge-compare-hold-mode .emerge-compare-hold-btn { bottom: 14px; }
+.emerge-compare-hold-btn:hover { scale: 1.04; }
+.emerge-compare-holding .emerge-compare-hold-btn,
+.emerge-compare-hold-btn[aria-pressed="true"] { scale: .96; }
+.emerge-compare-hold-btn:focus-visible {
+  outline: 3px solid var(--emerge-compare-focus-color, #60a5fa);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .emerge-compare-hold-mode { transition: none; }
+}
+.emerge-reduced .emerge-compare-hold-mode { transition: none; }
+
+/* Print: mostra só o "depois" (sem divisor) */
+@media print {
+  .emerge-compare > .emerge-compare-after { clip-path: none !important; }
+  .emerge-compare-divider { display: none !important; }
 }
