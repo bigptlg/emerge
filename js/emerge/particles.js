@@ -1,4 +1,4 @@
-/*! Emerge.js v1.7.2 — plugin Particles (global: EmergeParticles) */
+/*! Emerge.js v1.10.0 — plugin Particles (global: EmergeParticles) */
 (function (i, d) {
     typeof exports == "object" && typeof module != "undefined"
       ? (module.exports = d())

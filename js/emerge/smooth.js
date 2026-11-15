@@ -1,4 +1,4 @@
-/*! Emerge.js v1.7.2 — plugin Smooth (global: EmergeSmooth) */
+/*! Emerge.js v1.10.0 — plugin Smooth (global: EmergeSmooth) */
 (function (i, d) {
   typeof exports == "object" && typeof module != "undefined"
     ? (module.exports = d())

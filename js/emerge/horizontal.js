@@ -1,4 +1,4 @@
-/*! Emerge.js v1.7.2 — plugin Horizontal (global: EmergeHorizontal) */
+/*! Emerge.js v1.10.0 — plugin Horizontal (global: EmergeHorizontal) */
 (function (i, d) {
     typeof exports == "object" && typeof module != "undefined"
       ? (module.exports = d())
