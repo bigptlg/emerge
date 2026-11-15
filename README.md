@@ -4,6 +4,8 @@ Biblioteca leve de animações reveladas por scroll, construída sobre `Intersec
 
 **Versão:** 1.10.0 · **Código-fonte:** [github.com/bigptlg/emerge](https://github.com/bigptlg/emerge) · **CDN oficial:** [cdn.pedrodeoliveira.me](https://cdn.pedrodeoliveira.me/)
 
+**Ver online:** [documentação (index.html)](https://bigptlg.github.io/emerge) · [hub das demos](https://bigptlg.github.io/emerge/demos.html)
+
 ## Índice
 
 - [Instalação](#instalação) (CDN, bundle, ficheiros separados)
@@ -20,7 +22,7 @@ Biblioteca leve de animações reveladas por scroll, construída sobre `Intersec
   - [Eventos](#eventos)
 - [Plugins](#plugins)
   - [Range](#range) · [Draw](#draw) · [Horizontal](#horizontal) · [Media](#media) · [Stack](#stack) · [Reel](#reel) · [Text](#text)
-  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles) · [Smooth](#smooth) · [Motion](#motion)
+  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles) · [Smooth](#smooth) · [Motion](#motion) · [Compare](#compare)
 - [Desativar ou ativar só por dispositivo ou largura](#desativar-ou-ativar-só-por-dispositivo-ou-largura)
 - [Criar um plugin](#criar-um-plugin)
 - [Conteúdo dinâmico](#conteúdo-dinâmico)
@@ -164,7 +166,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 /emerge.js
 /emerge.css
 /emerge/range.js  draw.js  horizontal.js  media.js  stack.js  reel.js  text.js
-        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js  smooth.js  motion.js
+        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js  smooth.js  motion.js  compare.js
 ```
 
 ```html
@@ -180,7 +182,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 </script>
 ```
 
-Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`, `EmergeSmooth`, `EmergeMotion`).
+Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`, `EmergeSmooth`, `EmergeMotion`, `EmergeCompare`).
 
 ### CommonJS / AMD
 
@@ -211,6 +213,7 @@ Emerge.addPlugin(require('./emerge/range.js'));
 | `Particles`  | — (não combinar com `data-emerge-split`)    |
 | `Smooth`     | —                                           |
 | `Motion`     | — (funciona com o modo `follow` do Range e com o Text sem configuração extra) |
+| `Compare`    | — (autónomo: não usa `data-emerge`)         |
 
 ---
 
@@ -1225,6 +1228,135 @@ Emerge.Motion.all;                   // elementos geridos
 - Elementos adicionados ou removidos depois do `init` são tratados pelo Core; depois de mudares atributos Motion em JS chama `Emerge.refresh()` (ou `Emerge.Motion.apply(el)`).
 - Com `prefers-reduced-motion` o Core não ativa nada: o conteúdo fica visível e sem Motion.
 - Limitações: só estado inicial e final (sem keyframes intermédios nem `reverse`); uma única duração e easing por elemento; a `perspective` vem do token CSS e não de atributo; um `transform` ou `filter` natural do elemento é substituído durante a entrada.
+
+---
+
+## Compare
+
+Comparação visual **antes/depois**: duas camadas sobrepostas e um divisor interativo. O caso principal são duas imagens, mas as camadas podem ser qualquer HTML. É um componente autónomo: **não usa `data-emerge`**, não depende do Range e não tem animações próprias.
+
+**Instalação:** no bundle já vem registado. Com ficheiros separados: `<script src="/emerge/compare.js">` e `Emerge.addPlugin(EmergeCompare)` (também funciona sozinho, sem Range).
+
+```html
+<div data-emerge-compare>
+  <img src="antes.jpg"  width="1600" height="1000" alt="Estado anterior">
+  <img src="depois.jpg" width="1600" height="1000" alt="Estado posterior">
+</div>
+```
+
+O **1.º filho** fica à esquerda (ou em cima) e o **2.º** à direita (ou em baixo). O plugin acrescenta só um elemento, o divisor. Indica `width` e `height` nas imagens (ou `--emerge-compare-ratio`) para o contentor reservar o espaço antes de as imagens carregarem (sem CLS).
+
+### Atributos
+
+| Atributo | Valores | Omissão | O que faz |
+|---|---|---|---|
+| `data-emerge-compare` | — | — | Ativa o comparador |
+| `data-emerge-compare-orientation` | `horizontal` \| `vertical` | `horizontal` | Horizontal: divisor vertical (esquerda↔direita). Vertical: divisor horizontal (cima↔baixo) |
+| `data-emerge-compare-mode` | `slider` \| `hold` | `slider` | `hold`: sem divisor; **segurar** mostra a outra versão (ver [Modo segurar](#modo-segurar)) |
+| `data-emerge-compare-position` | `0`–`100` (ou `25%`) | `50` | Posição inicial do divisor |
+| `data-emerge-compare-step` | `0.1`–`50` | `2` | Passo das setas, em %. `Shift`, `PageUp` e `PageDown` usam 5×o passo |
+| `data-emerge-compare-label` | texto | `Comparar: mover o divisor` (slider) · `Segurar para ver o original` (hold) | `aria-label` do divisor; no modo `hold` é o texto do botão |
+| `data-emerge-compare-handle` | — | — | Num filho extra (`<span data-emerge-compare-handle>↔</span>`): substitui as setas do indicador |
+| `data-emerge-compare-disable[-mobile\|-desktop\|-size]` / `-only-*` | — | — | [Desativar ou ativar só por dispositivo](#desativar-ou-ativar-só-por-dispositivo-ou-largura). Desativado, ficam as camadas empilhadas (vê-se o "depois") |
+
+Não há opções globais. A orientação e a posição inicial são lidas quando o comparador é criado (para as mudar por JS: `Emerge.Compare.destroy(el)`, mudar o atributo e `Emerge.Compare.build(el)`).
+
+### Modo segurar
+
+Em vez de arrastar, **segura** para ver a outra versão: enquanto manténs premido (rato, dedo ou tecla) vês a **1.ª camada**; ao largar volta a **2.ª** (o repouso). Não há divisor.
+
+```html
+<div data-emerge-compare data-emerge-compare-mode="hold"
+     data-emerge-compare-label="Segurar para ver o original">
+  <img src="antes.jpg" alt="Antes"><img src="depois.jpg" alt="Depois">
+</div>
+```
+
+- **Rato / toque:** premir em qualquer ponto do contentor; continua seguro mesmo que o ponteiro saia dele. Um gesto de scroll (toque) liberta-o. O menu de contexto do toque longo é bloqueado só neste contentor.
+- **Teclado:** o plugin acrescenta um `<button class="emerge-compare-hold-btn">` focável (texto = `data-emerge-compare-label`). Mantém `Espaço` ou `Enter` premido; perder o foco larga. Tem `aria-pressed`.
+- `orientation` define a direção do "wipe" (horizontal: da esquerda para a direita; vertical: de cima para baixo). `position` e `step` não se aplicam.
+- A troca é uma transição CSS de `--emerge-compare-pos`, com a duração em `--emerge-compare-hold-duration` (`.35s`; sem suporte a `@property`, ou com `prefers-reduced-motion`, é instantânea). Classes: `.emerge-compare-hold-mode`, `.emerge-compare-holding`, `.emerge-compare-hold-btn`. Para esconder o botão: `.x .emerge-compare-hold-btn { display: none }` (a interação com rato/toque mantém-se).
+- API: `Emerge.Compare.hold(el, true | false)` mostra ou larga; `get(el)` devolve `0` (repouso) ou `100` (a segurar); `set()` é ignorado. Evento `emerge:compare:hold` (`{ holding, position }`).
+
+### Interação e acessibilidade
+
+- **Rato / caneta / toque** (Pointer Events): arrasta o divisor, ou clica/toca numa posição para o mover para lá. Agarrar o divisor não faz saltar. O arrasto continua mesmo que o ponteiro saia do contentor.
+- **O scroll da página nunca é bloqueado**: o contentor usa `touch-action: pan-y` (horizontal) ou `pan-x` (vertical). Um gesto no outro eixo faz scroll normalmente e não move o divisor.
+- **Teclado:** o divisor é um `role="slider"` focável (`Tab`) com `aria-valuenow`, `aria-valuetext`, `aria-orientation` e `aria-label`. `←` `→` `↑` `↓` movem um passo; `Shift`+seta e `PageUp`/`PageDown` movem 5 passos; `Home`/`End` vão a 0 e 100. O foco do teclado tem um anel visível (`:focus-visible`).
+- Funciona com `prefers-reduced-motion` (o Compare não tem movimento próprio).
+
+### Personalização por CSS
+
+Tudo por variáveis (no contentor ou em `:root`) e classes; nada é configurado por atributos:
+
+| Variável | Omissão | |
+|---|---|---|
+| `--emerge-compare-ratio` | `auto` | Proporção do contentor (ex.: `16 / 9`). Sem ela, usa a das imagens |
+| `--emerge-compare-fit` | `cover` | `cover` ou `contain`: como as camadas preenchem o contentor (nunca esticam) |
+| `--emerge-compare-radius` | `0` | `border-radius` do contentor |
+| `--emerge-compare-line-color` / `-line-width` | `#fff` / `2px` | Linha do divisor |
+| `--emerge-compare-handle-size` | `44px` | Diâmetro do indicador |
+| `--emerge-compare-handle-bg` / `-handle-color` | `rgba(15,18,24,.55)` / `#fff` | Fundo e cor das setas |
+| `--emerge-compare-handle-border` / `-handle-shadow` | `2px solid #fff` / sombra | Borda e sombra |
+| `--emerge-compare-focus-color` | `#60a5fa` | Anel de foco |
+| `--emerge-compare-hit` | `44px` | Largura da zona de agarre do divisor |
+
+`--emerge-compare-pos` (em %) é escrita pelo plugin: podes lê-la em CSS, não a definas.
+
+```css
+.meu-comparador {
+  --emerge-compare-line-color: #6ee7b7;
+  --emerge-compare-handle-size: 54px;
+  --emerge-compare-handle-bg: #6ee7b7;
+  --emerge-compare-handle-color: #06281b;
+  --emerge-compare-handle-border: 0;
+}
+.meu-comparador .emerge-compare-handle { display: none; }          /* só linha */
+.emerge-compare-divider:hover .emerge-compare-handle { rotate: 8deg; }
+.emerge-compare-dragging { cursor: grabbing; }                      /* a arrastar */
+```
+
+**Classes:** `.emerge-compare` (contentor ativo), `.emerge-compare-vertical`, `.emerge-compare-dragging`, `.emerge-compare-layer` + `.emerge-compare-before` / `.emerge-compare-after`, `.emerge-compare-divider` (o slider), `.emerge-compare-line`, `.emerge-compare-handle` (+ `-custom`).
+
+### Exemplos
+
+```html
+<!-- vertical, a começar a 25 % -->
+<div data-emerge-compare data-emerge-compare-orientation="vertical"
+     data-emerge-compare-position="25" style="--emerge-compare-ratio: 4 / 3">
+  <img src="antes.jpg" alt="Antes"><img src="depois.jpg" alt="Depois">
+</div>
+
+<!-- HTML em vez de imagens, com indicador próprio -->
+<div data-emerge-compare style="--emerge-compare-ratio: 16 / 7">
+  <div class="tema-claro">…</div>
+  <div class="tema-escuro">…</div>
+  <span data-emerge-compare-handle>A|B</span>
+</div>
+```
+
+### API
+
+```js
+Emerge.Compare.build(el | seletor);      // cria (devolve a instância; ignora o que já existe)
+Emerge.Compare.destroy(el | seletor);    // remove o divisor, classes e variável
+Emerge.Compare.destroyAll();
+Emerge.Compare.scan(raiz?);              // liga os [data-emerge-compare] ainda sem instância
+Emerge.Compare.set(el, 0..100);          // move o divisor (dispara emerge:compare:change)
+Emerge.Compare.hold(el, true | false);   // modo hold: mostra / larga a outra versão
+Emerge.Compare.get(el);                  // posição atual (0..100) ou null
+Emerge.Compare.of(el);                   // a instância
+Emerge.Compare.all;                      // todas as instâncias
+```
+
+**Eventos** (disparados no contentor e sobem até ao `document`; `detail.el` é o contentor): `emerge:compare:build`, `emerge:compare:change` (`{ position }`), `emerge:compare:hold` (`{ holding, position }`, modo hold) e `emerge:compare:destroy`.
+
+**Notas e limitações**
+- Elementos adicionados ou removidos depois do `init` são tratados por um observer próprio (respeita `disableMutationObserver`); `Emerge.refresh()` não duplica divisores.
+- Só os **dois primeiros filhos** (sem contar o handle personalizado) são camadas. Não há legendas incluídas: se as quiseres, põe-nas dentro de cada camada (quando for HTML) ou sobrepõe as tuas.
+- As setas são sempre `→`/`↓` = aumenta a posição, também em páginas RTL.
+- Precisa de `clip-path`, `aspect-ratio` e das propriedades individuais `translate`/`rotate`/`scale` (o mesmo requisito do core).
+- Sem JS, ou desativado, as camadas ficam na mesma célula de grelha (mesmo tamanho do estado ativo, sem salto de layout) e vê-se a imagem "depois". Na impressão só aparece o "depois", sem divisor.
 
 ---
 

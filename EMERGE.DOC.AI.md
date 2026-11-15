@@ -11,7 +11,7 @@
 1. Emerge anima elementos por scroll usando atributos HTML. Exemplo mínimo: `<h1 data-emerge="fade-up">Olá</h1>` + `Emerge.init()`.
 2. **CSS é obrigatório.** Sem `emerge.css` nada anima.
 3. **Dois modos de instalação:**
-   - **Bundle** (`emerge.bundle.js`): tudo pronto, 14 plugins já registrados. **Use por padrão** quando o usuário não pedir otimização, ao prototipar, ou na dúvida.
+   - **Bundle** (`emerge.bundle.js`): tudo pronto, 15 plugins já registrados. **Use por padrão** quando o usuário não pedir otimização, ao prototipar, ou na dúvida.
    - **Core + plugins** (`emerge.js` + `emerge/<plugin>.js`): você precisa chamar `Emerge.addPlugin(...)` manualmente e **`EmergeRange` SEMPRE primeiro**.
 4. Chame `Emerge.init()` **depois** do DOM existir (fim do `<body>` ou dentro de `DOMContentLoaded`).
 5. Atributos de plugin não registrado são **ignorados silenciosamente** (sem erro no console). Se um efeito "não faz nada", verifique primeiro se o plugin está registrado.
@@ -24,7 +24,7 @@
 | Arquivo | URL | O que é |
 |---|---|---|
 | CSS | `https://cdn.pedrodeoliveira.me/css/emerge.css` | **Obrigatório.** Estado oculto, keyframes, estilos dos plugins. |
-| Bundle | `https://cdn.pedrodeoliveira.me/js/emerge.bundle.js` | Core + 14 plugins **já registrados** + auto-loader de CSS. |
+| Bundle | `https://cdn.pedrodeoliveira.me/js/emerge.bundle.js` | Core + 15 plugins **já registrados** + auto-loader de CSS. |
 | Core isolado | `https://cdn.pedrodeoliveira.me/js/emerge.js` | Só core (efeitos de entrada, eventos, API, `addPlugin`). Sem plugins. |
 | Plugin | `https://cdn.pedrodeoliveira.me/js/emerge/<plugin>.js` | Um arquivo por plugin. **Precisa de `addPlugin`.** |
 | GitHub | `bigptlg/emerge` | Código-fonte. |
@@ -32,7 +32,7 @@
 
 **Prefira sempre a CDN oficial** (versões novas saem lá primeiro).
 
-Nomes dos plugins (valor de `<plugin>` na URL): `range`, `draw`, `horizontal`, `media`, `stack`, `reel`, `text`, `spotlight`, `scene`, `magnetic`, `parallax`, `particles`, `smooth`.
+Nomes dos 15 plugins (valor de `<plugin>` na URL): `range`, `draw`, `horizontal`, `media`, `stack`, `reel`, `text`, `spotlight`, `scene`, `magnetic`, `parallax`, `particles`, `smooth`, `motion`, `compare`.
 
 ---
 
@@ -48,7 +48,7 @@ Nomes dos plugins (valor de `<plugin>` na URL): `range`, `draw`, `horizontal`, `
 </script>
 ```
 
-- O bundle **registra os 14 plugins sozinho** (na ordem correta). **Não chame `addPlugin` com o bundle.**
+- O bundle **registra os 15 plugins sozinho** (na ordem correta). **Não chame `addPlugin` com o bundle.**
 - O bundle tem um **auto-loader de CSS** (injeta `<link>` apontando para `<origem-do-script>/css/emerge.css@1.10.0` quando servido por HTTP).
   **Recomendação defensiva: declare o `<link>` do CSS você mesmo e coloque `data-emerge-css="false"` na tag do script**, como acima, para não depender do auto-loader nem carregar CSS duplicado.
   - `data-emerge-css="false"` → desliga o auto-loader.
@@ -102,10 +102,11 @@ Exemplo: projeto usa só Range, Text e Parallax.
 | Particles | `EmergeParticles` | não |
 | Smooth | `EmergeSmooth` | não |
 | Motion | `EmergeMotion` | não (funciona com `follow` do Range sem código extra) |
+| Compare | `EmergeCompare` | não (autônomo, não usa `data-emerge`) |
 
 **Lista completa na ordem canônica (copie e remova o que não usa, mantendo Range primeiro):**
 ```js
-Emerge.addPlugin(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion);
+Emerge.addPlugin(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion, EmergeCompare);
 ```
 **Se registrar qualquer plugin que usa Range, inclua o Range.** Na dúvida, inclua.
 
@@ -142,10 +143,52 @@ O antigo `emerge.js` "tudo em um" agora é `emerge.bundle.js`. O `emerge.js` atu
 | Parallax por scroll (velocidade, camadas) | **Parallax** | 5.10 |
 | Texto que vira partículas e reage ao cursor | **Particles** | 5.11 |
 | Scroll suave com inércia (tipo Lenis), âncoras suaves, `scrollTo` | **Smooth** (opt-in: `data-emerge-smooth` no `<html>`) | 5.13 |
+| Comparar duas imagens/conteúdos (antes/depois) com divisor arrastável | **Compare** (`data-emerge-compare`, sem `data-emerge`) | 5.15 |
 | Estado inicial próprio da entrada (x/y/rotate/scale/skew/blur/brightness… combináveis, sem escrever CSS) | **Motion** (`data-emerge-motion="x:-60 blur:8"` + `data-emerge`) | 5.14 |
 | Stagger simples em lista | `data-emerge-delay` incremental (0,100,200…) | 4.4 |
 
 **Horizontal e Stack:** continuam funcionando e mantidos, mas **não recebem novidades**. Para código novo, **gere Reel**. Só use Horizontal/Stack se o projeto do usuário já os usa.
+
+### 3.1 Protocolo obrigatório de decisão para agentes de IA
+
+Antes de escrever HTML, CSS ou JavaScript com Emerge, siga esta sequência. Não salte directamente para código personalizado.
+
+1. **Traduzir o pedido em comportamento observável.** Identifique se o utilizador quer entrada por viewport, progresso ligado ao scroll, interacção com ponteiro, navegação/scroll, composição de painéis, transformação de mídia ou comparação.
+2. **Verificar se o Core já resolve.** Para entradas simples, use `data-emerge` e as opções do Core. Não carregue plugins para efeitos que o Core já oferece.
+3. **Escolher o menor conjunto de plugins capaz de cumprir o pedido.** Prefira um plugin especializado a reconstruir o mesmo comportamento com vários efeitos genéricos.
+4. **Resolver dependências antes do markup.** Em instalação modular, inclua e registe Range antes de qualquer plugin que o consuma. Com o bundle, os 15 plugins já estão registados.
+5. **Preferir a interface declarativa.** Use atributos `data-*` quando a funcionalidade estiver documentada. Use API JavaScript para controlo dinâmico, integração com dados/eventos, criação manual ou quando a API for explicitamente necessária.
+6. **Compor por responsabilidades.** Um elemento pode receber Core + Motion + Range quando cada camada tem um papel distinto; não coloque dois plugins que disputam o mesmo DOM, canal CSS ou gesto no mesmo elemento.
+7. **Verificar layout e ambiente.** Considere sticky/overflow, filhos directos, dimensões, proporções de mídia, mobile, reduced motion e conteúdo sem JavaScript.
+8. **Validar os nomes exactos.** Confirme activador, opções, valores aceites, API e dependências na secção do plugin. Não deduza atributos a partir de nomes de opções JavaScript.
+9. **Entregar o exemplo mínimo funcional.** Inclua CSS obrigatório, registo correcto, inicialização e estrutura HTML completa. Só acrescente refinamentos depois de garantir a versão básica.
+10. **Diagnosticar antes de substituir.** Se algo não funcionar, inspeccione `Emerge.version`, `Emerge.plugins`, atributos, CSS, dependências e dimensões antes de criar uma implementação alternativa.
+
+**Hierarquia de escolha:**
+
+- Entrada simples, stagger manual, visibilidade e efeitos de atenção → **Core**.
+- Estado inicial/final personalizado, sem timeline → **Motion** + Core.
+- Progresso 0→1, scrub e callbacks de scroll → **Range**.
+- Desenho SVG → **Draw**; texto dividido → **Text**; vídeo/frames → **Media**.
+- Sequência horizontal/vertical/painéis pinados → **Reel**.
+- Hero/painel 3D pinado com preset → **Scene**.
+- Profundidade por camadas → **Parallax**.
+- Luz que segue ponteiro → **Spotlight**; atracção do elemento → **Magnetic**.
+- Tipografia em partículas → **Particles**.
+- Scroll suavizado e navegação por âncoras → **Smooth**.
+- Antes/depois → **Compare**.
+
+**Regras para não desperdiçar capacidades:**
+
+- Não use Range manualmente se o modo declarativo `data-emerge-follow` já satisfaz o pedido.
+- Não use Motion como substituto de Reel, Scene ou Media: Motion anima propriedades de um elemento, não cria uma sequência/pin/motor de mídia.
+- Não use Parallax para criar painéis sequenciais; use Reel.
+- Não use Spotlight para atracção magnética, nem Magnetic para iluminação.
+- Não use Particles em parágrafos longos ou em conjunto com Text split no mesmo elemento.
+- Não use Smooth como se fosse um motor de animação; ele suaviza a rolagem mantendo o scroll nativo.
+- Não adicione `data-emerge` ao Compare: o plugin não depende do Core para a sua activação.
+- Não carregue Horizontal/Stack em projectos novos quando Reel satisfaz o caso; preserve-os apenas para compatibilidade com projectos existentes.
+- Não invente opções globais. Só passe a `Emerge.init()` opções documentadas pelo Core ou pelo plugin.
 
 ---
 
@@ -298,7 +341,8 @@ document.addEventListener("emerge:in:hero", () => startHeroVideo());
 Convenções que valem para **todos** os plugins:
 - Ativação por atributo no **elemento hospedeiro** (`data-emerge-<plugin>`).
 - Opções por atributo `data-emerge-<plugin>-<opção>`, opções globais em `Emerge.init({ <plugin><Opção> })`, tokens CSS `--emerge-<plugin>-*`.
-- Cada plugin expõe `Emerge.<Plugin>` com `build(el)`, `destroy(el)`, `scan()`, `measure()`, `of(el)`, `all` (variações por plugin abaixo).
+- **Não existe uma API uniforme para todos os plugins.** Cada plugin expõe apenas os métodos descritos na sua própria secção. Não invente `build`, `destroy`, `scan`, `measure`, `of` ou `all` para um plugin sem confirmação nesta documentação.
+- `Emerge.<Plugin>` é a API pública instalada pelo Core; o nome e os métodos concretos variam por plugin. Compare é autónomo e não usa `data-emerge`; Motion é aplicado pelo ciclo de vida do Core.
 - Desativar/ativar por dispositivo: sufixos descritos na seção 6.
 
 ### 5.1 Range — motor scroll-linked (**registrar 1º**)
@@ -854,13 +898,34 @@ Valores inválidos são **ignorados** (nunca chegam ao CSS). Diagnóstico: `Emer
 
 **API `Emerge.Motion`:** `apply(elOuSeletor)`, `clear(elOuSeletor)`, `read(el)`, `props` (nomes canónicos), `all` (elementos geridos). Classes: `emerge-motion`, `-transform`, `-filter`, `-loop`, `emerge-motion-to` e `emerge-motion-to-{opacity,translate,rotate,scale,transform,filter}`. Sem opções globais.
 
-**Limitações:** só estado **inicial** (sem estado final nem keyframes intermédios; sem `reverse`); um único easing/duração para todas as propriedades do elemento; `perspective` vem do token CSS (`--emerge-perspective`), não de atributo; um `transform`/`filter` natural do elemento é substituído durante a entrada; precisa de navegador com `translate`/`rotate`/`scale` individuais (o mesmo requisito do core).
+**Limitações reais:** não é um motor de timeline nem aceita keyframes intermédios arbitrários; existe um único easing/duração do Core para todas as propriedades do elemento; não há uma opção `reverse` independente (o sentido alternado é `direction="alternate"` com `repeat`); `perspective` vem do token CSS (`--emerge-perspective`), não de atributo; `rotate-x/y` e `skew-x/y` ocupam o slot `transform`, e `blur/brightness/saturate/grayscale` ocupam `filter`, podendo substituir os estilos naturais desses canais durante a animação; precisa de suporte às propriedades individuais `translate`/`rotate`/`scale`.
+
+### 5.15 Compare — comparação antes/depois com divisor (**autônomo**)
+
+Duas camadas sobrepostas e um divisor interativo (imagens ou qualquer HTML). **Não usa `data-emerge`, não depende do Range e não tem animação própria.** Funciona também com `prefers-reduced-motion`.
+
+```html
+<div data-emerge-compare>
+  <img src="antes.jpg"  width="1600" height="1000" alt="Antes">   <!-- 1º filho: esquerda/topo -->
+  <img src="depois.jpg" width="1600" height="1000" alt="Depois">  <!-- 2º filho: direita/base -->
+</div>
+```
+
+- Só os **dois primeiros filhos** (ignorando `[data-emerge-compare-handle]`) são camadas. O plugin acrescenta apenas o divisor (`role="slider"`). Ponha `width`/`height` nas imagens ou `--emerge-compare-ratio` para não haver CLS.
+- **Atributos** (`data-emerge-compare-*`): `mode` (`slider` padrão | `hold`), `orientation` (`horizontal` padrão | `vertical`), `position` (0–100 ou `25%`, padrão 50), `step` (passo das setas em %, padrão 2), `label` (aria-label), `handle` (marca um filho extra que substitui as setas do indicador), `disable[-mobile|-desktop|-size]`, `only-*`. Sem opções globais. Orientação e posição inicial são lidas ao criar: para mudar por JS use `destroy(el)` → alterar atributo → `build(el)`.
+- **Modo segurar** (`data-emerge-compare-mode="hold"`): sem divisor; enquanto o usuário **segura** (mouse/toque em qualquer ponto, ou Espaço/Enter no botão) vê a **1ª camada**; ao soltar volta a 2ª. O plugin cria um `<button class="emerge-compare-hold-btn" aria-pressed>` com o texto de `data-emerge-compare-label` (padrão "Segurar para ver o original"). Estado = a mesma `--emerge-compare-pos` (0 repouso / 100 segurando), com transição CSS (`--emerge-compare-hold-duration`, padrão `.35s`; instantânea em reduced motion). `orientation` define a direção do wipe; `position`/`step` não se aplicam; `set()` é ignorado → use `Emerge.Compare.hold(el, true|false)`. Scroll por toque solta; `contextmenu` bloqueado no contêiner; perder o foco solta. Evento `emerge:compare:hold` (`{ holding, position }`). Classes `emerge-compare-hold-mode`, `-holding`, `-hold-btn`.
+- **Personalização**: só variáveis CSS e classes. Tokens: `--emerge-compare-ratio` (padrão `auto`), `-fit` (`cover`|`contain`), `-radius`, `-line-color`, `-line-width`, `-handle-size`, `-handle-bg`, `-handle-color`, `-handle-border`, `-handle-shadow`, `-focus-color`, `-hit`, `-hold-duration`. `--emerge-compare-pos` é escrita pelo plugin (não definir). Classes: `emerge-compare`, `-vertical`, `-dragging`, `-layer`/`-before`/`-after`, `-divider`, `-line`, `-handle` (`-custom`). Ex.: só linha → `.x .emerge-compare-handle{display:none}`.
+- **Interação**: Pointer Events (mouse/caneta/toque); arrastar o divisor ou clicar/tocar numa posição move para lá; `touch-action: pan-y` (horizontal) / `pan-x` (vertical) → o scroll da página nunca é bloqueado e um gesto no outro eixo não move o divisor. Teclado (divisor focável): setas = 1 passo; `Shift`+seta, `PageUp/PageDown` = 5 passos; `Home/End` = 0/100. `:focus-visible` com anel. ARIA: `aria-valuenow/valuetext/orientation/label`.
+- **Como funciona**: estado = variável CSS `--emerge-compare-pos` no contêiner; a camada de cima é revelada por `clip-path` e o divisor usa a mesma variável. Camadas na mesma célula de grid (com ou sem JS), `object-fit` (nunca estica); sem JS vê-se só o "depois", sem salto de layout.
+- **Dinâmico**: observer próprio (respeita `disableMutationObserver`); `Emerge.refresh()` não duplica; nós removidos são destruídos.
+- **API `Emerge.Compare`**: `build(el|sel)`, `destroy(el|sel)`, `destroyAll()`, `scan(raiz?)`, `set(el, 0..100)`, `hold(el, bool)`, `get(el)`, `of(el)`, `all`. **Eventos** (no contêiner, borbulham até `document`, `detail.el`): `emerge:compare:build`, `emerge:compare:change` (`{ position }`), `emerge:compare:hold`, `emerge:compare:destroy`.
+- **Limitações**: só 2 camadas; sem legendas embutidas; `→`/`↓` sempre aumentam (inclusive em RTL); requer `clip-path`, `aspect-ratio` e `translate/rotate/scale` individuais; impressão mostra só o "depois".
 
 ---
 
 ## 6. Ativar/desativar por dispositivo ou largura (vale para core e todos os plugins)
 
-O dispositivo vem do user agent (`mobile` = `phone` + `tablet`). Prefixos por feature: core = `data-emerge-`; plugins = `data-emerge-<feature>-` onde `<feature>` ∈ `range, draw, horizontal, media, stack, reel, split, spotlight, scene, magnetic, parallax, particles, smooth` (**atenção:** o plugin Text usa `split`).
+O dispositivo vem do user agent (`mobile` = `phone` + `tablet`). Prefixos por feature: core = `data-emerge-`; plugins = `data-emerge-<feature>-` onde `<feature>` ∈ `range, draw, horizontal, media, stack, reel, split, spotlight, scene, magnetic, parallax, particles, smooth, motion, compare` (**atenção:** o plugin Text usa `split`).
 
 **Desativar (`disable`):**
 ```html
@@ -1001,6 +1066,91 @@ document.addEventListener("emerge:reel:change", ({ detail }) => console.log("pai
 
 ---
 
+## 8.13 Padrões de composição — combinar sem criar conflitos
+
+A IA deve compor plugins por **responsabilidade**, não por quantidade. As combinações abaixo são padrões orientadores; mantenha cada efeito no elemento mais apropriado.
+
+### A. Entrada + estado personalizado
+```html
+<h1 data-emerge="fade-up"
+    data-emerge-motion="y:48 rotate:-3"
+    data-emerge-duration="900"
+    data-emerge-easing="ease-out-cubic">
+  Título
+</h1>
+```
+Core controla quando/duração/easing; Motion personaliza o estado de partida. Não duplique o mesmo canal no preset e no Motion sem intenção: `x/y/z` substituem o translate do preset e `opacity:1` remove o fade.
+
+### B. Scrub + estado personalizado
+```html
+<div data-emerge
+     data-emerge-from="enter"
+     data-emerge-to="exit"
+     data-emerge-follow
+     data-emerge-motion="y:100 opacity:0.2 to-y:-40 to-opacity:1">
+  Conteúdo
+</div>
+```
+Range fornece o progresso; Motion define os estados. Em `follow`, `repeat` e `direction` do Motion são ignorados.
+
+### C. Parallax de fundo + conteúdo com entrada
+```html
+<section data-emerge-parallax="0.18">
+  <img src="fundo.jpg" alt="" data-emerge-parallax-layer="0.35">
+  <div data-emerge="fade-up" data-emerge-delay="120">
+    <h2>Conteúdo</h2>
+  </div>
+</section>
+```
+Parallax controla profundidade; Core controla a entrada do conteúdo. Evite aplicar dois sistemas de movimento ao mesmo nó se ambos escreverem a mesma propriedade.
+
+### D. Reel + animação interna
+```html
+<section data-emerge-reel data-emerge-reel-motion="x">
+  <article><h2 data-emerge="fade-up">Painel 1</h2></article>
+  <article><h2 data-emerge="fade-up">Painel 2</h2></article>
+</section>
+```
+Reel gere trilho, pin e progresso dos painéis; Core anima os elementos internos. Evite colocar outro pin (Scene/Horizontal/Stack/Reel) dentro do mesmo percurso sem testar cuidadosamente o layout.
+
+### E. Scene + conteúdo independente
+```html
+<section data-emerge-scene="unfold" data-emerge-scene-distance="1100">
+  <div data-emerge-scene-content><h1 data-emerge="fade-up">Abertura</h1></div>
+  <div data-emerge-scene-panel><h2 data-emerge="fade-up">Painel revelado</h2></div>
+</section>
+```
+Scene controla o painel e o pin; Core pode animar conteúdo interno. O painel da Scene continua a ser filho directo obrigatório.
+
+### F. Spotlight + conteúdo
+```html
+<figure data-emerge-spotlight="reveal" data-emerge-spotlight-radius="150">
+  <img src="monocromatica.jpg" alt="Descrição da imagem">
+  <img data-emerge-spotlight-layer src="colorida.jpg" alt="">
+</figure>
+```
+Spotlight precisa de um host contêiner e de uma camada identificada; não o aplique directamente a `<img>`.
+
+### G. Compare dentro de uma secção animada
+```html
+<section data-emerge="fade-up">
+  <div data-emerge-compare>
+    <img src="antes.jpg" width="1600" height="1000" alt="Antes">
+    <img src="depois.jpg" width="1600" height="1000" alt="Depois">
+  </div>
+</section>
+```
+Core pode animar o invólucro; Compare controla apenas a comparação. Não aplique `data-emerge` ao próprio host Compare.
+
+### Limites de composição
+- **Um proprietário por propriedade/canal no mesmo elemento.** Se Core/Motion/um plugin e CSS personalizado escreverem `transform`, `filter`, `translate`, `scale`, `rotate`, `opacity` ou `clip-path` no mesmo nó, pode haver disputa. Separe em wrappers quando necessário.
+- **Um proprietário por gesto.** Compare, Spotlight, Magnetic e Smooth podem responder a pointer/touch/scroll de formas diferentes. Não os empilhe no mesmo alvo interactivo sem definir claramente qual gesto pertence a cada um.
+- **Um pin por secção/percurso.** Não aninhe Reel, Scene, Horizontal ou Stack sem uma razão explícita e validação visual.
+- **Range é infraestrutura, não decoração.** Registe-o quando um plugin ou modo realmente depender dele; não adicione Range por hábito ao bundle.
+- **Use wrappers para separar responsabilidades.** Exemplo: wrapper externo com Parallax, filho com Core/Motion, e elemento interior com conteúdo. Confirme que o CSS do wrapper não cria overflow que quebre sticky.
+
+---
+
 ## 9. Erros comuns & diagnóstico
 
 | Sintoma | Causa provável | Correção |
@@ -1020,7 +1170,13 @@ document.addEventListener("emerge:reel:change", ({ detail }) => console.log("pai
 | Particles não aparecem / conflita com Text | `split` e `particles` no mesmo elemento | Use apenas um. |
 | Spotlight não funciona em `<img>` | Hosts são contêineres | Envolva em `<figure>`/`<div>` e use `data-emerge-spotlight-layer`. |
 | Magnetic não responde no celular | Toque ignorado por padrão | `data-emerge-magnetic-touch="true"` se realmente quiser. |
-| Vídeo do Media não "scrubba" | Faltam `data-emerge-from/to` ou vídeo sem `muted playsinline` | Adicione-os; confira `-media-range`. |
+| Vídeo do Media não "scrubba" | Faltam `data-emerge-from/to`, Range não está registado, o vídeo não está pronto ou a configuração de mídia está incompleta | Confirme Range, `from/to`, `muted playsinline`, carregamento/duração e `-media-range`. |
+| Motion parece ignorar `to-*` | Nome `to-` inválido, propriedade não suportada ou conflito no mesmo canal com preset/CSS | Use apenas propriedades documentadas; confira `Emerge.Motion.read(el).invalid` e separe canais em wrappers quando necessário. |
+| Motion não anima elemento sem `data-emerge` | Motion é integrado ao ciclo de entrada do Core | Acrescente `data-emerge` quando quiser entrada pelo Core; para Motion sem preset, use `data-emerge` vazio. |
+| Reel não monta todos os painéis | Painéis não são filhos directos ou há menos de 2 filhos elegíveis | Use pelo menos 2 filhos directos; exclua itens com `data-emerge-reel-exclude`. |
+| Compare não aparece | Falta o segundo filho elegível, ou `data-emerge-compare` foi colocado no elemento errado | Coloque o atributo no contêiner com duas camadas-filhas; não acrescente `data-emerge` ao host Compare. |
+| Plugins parecem ter métodos inexistentes | Foi assumida uma API uniforme | Consulte a API específica de cada plugin; não presuma `measure()`, `all()` ou `scan()` em todos. |
+| Animação entra em conflito com CSS hover | Motion fixa um canal `to-*` enquanto está animado | Use `!important` quando adequado ou mova hover/interacção para um elemento filho separado. |
 | CSS carregado duas vezes | `<link>` manual + auto-loader do bundle | `data-emerge-css="false"` no `<script>` do bundle. |
 | Auto-loader não injeta CSS | Script dinâmico, `file://`, ou `document.currentScript` nulo | Use `<link>` manual. |
 | jsDelivr com versão antiga | Cache | Fixe `@1.10.0` depois do repo (nunca no fim do arquivo) ou use a CDN oficial. |
@@ -1117,3 +1273,4 @@ Emerge.addPlugin({
 | Particles | `data-emerge-particles` | `data-emerge-particles-*` |
 | Smooth | `data-emerge-smooth` (no `<html>`/`<body>`) | `data-emerge-smooth-*` |
 | Motion | `data-emerge-motion="x:-60 …"` ou `data-emerge-motion-<prop>` (junto com `data-emerge`) | `data-emerge-motion-*` (propriedades, `repeat`, `direction`, disable/only) |
+| Compare | `data-emerge-compare` (sem `data-emerge`) | `data-emerge-compare-*` (`mode`, `orientation`, `position`, `step`, `label`, `handle`, disable/only) |

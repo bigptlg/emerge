@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emerge.js — Documentação</title>
-<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 14 plugins: Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Smooth e Motion.">
+<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 15 plugins: Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Smooth, Motion e Compare.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -227,7 +227,24 @@ html:has(#theme-switch:checked) .theme-toggle .ico-sun { opacity: 1; transform: 
 /* ---------- Conteúdo ---------- */
 .content { padding: 24px 0 90px; min-width: 0; }
 .section { padding: 34px 0 10px; scroll-margin-top: calc(var(--topbar-h) + 16px); }
-.section + .section { border-top: 1px solid var(--border); margin-top: 26px; }
+/* SPA: só a página ativa fica visível */
+.spa-ready .spa-page { display: none; }
+.spa-ready .spa-page.is-active { display: block; animation: spa-in .42s cubic-bezier(.2,.7,.2,1) both; }
+.spa-ready .hero.spa-page.is-active { display: grid; }
+@keyframes spa-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 44px 0 6px; padding-top: 26px; border-top: 1px solid var(--border); }
+.pager a {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 14px;
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--text);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.pager a:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
+.pager small { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.pager b { font-size: 16px; color: var(--accent); }
+.pager .pg-next { grid-column: 2; text-align: right; }
+.pager .pg-prev { grid-column: 1; }
+@media (max-width: 560px) { .pager { grid-template-columns: 1fr; } .pager .pg-next, .pager .pg-prev { grid-column: 1; } }
+@media (prefers-reduced-motion: reduce) { .spa-ready .spa-page.is-active { animation: none; } }
 .sec-head { margin-bottom: 18px; }
 .sec-kicker {
   font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .14em;
@@ -295,6 +312,18 @@ h4.mini { font-size: 16px; margin: 22px 0 8px; color: var(--text); }
   background: var(--surface); color: var(--text); border-color: var(--border-2);
 }
 .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn-demos {
+  background: var(--accent-soft); color: var(--accent); border-color: var(--accent);
+}
+.btn-demos:hover { background: var(--accent); color: #fff; box-shadow: 0 10px 26px var(--glow-a); }
+.top-demos {
+  display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px;
+  padding: 7px 14px; border-radius: 999px; color: #fff;
+  background: linear-gradient(92deg, var(--accent), var(--accent-2)); box-shadow: 0 4px 14px var(--glow-a);
+  transition: transform .15s, box-shadow .15s;
+}
+.top-demos:hover { color: #fff; text-decoration: none; transform: translateY(-1px); box-shadow: 0 8px 20px var(--glow-a); }
+@media (max-width: 560px) { .top-demos { display: none; } }
 .hero-install {
   font-family: var(--mono); font-size: 12.5px; color: var(--text-3);
   background: var(--code-bg); border: 1px solid var(--code-border); color: var(--code-text);
@@ -711,6 +740,20 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 .mg-demo { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: center; padding: 36px 12px; }
 .mg-card { padding: 22px 26px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border-2); display: flex; flex-direction: column; gap: 6px; }
 .mg-card b { color: var(--text); } .mg-card span { color: var(--text-2); font-size: 13px; }
+.cp-demo { --emerge-compare-radius: 14px; }
+.cp-wide { max-width: 720px; margin-inline: auto; }
+.cp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+.cp-cell { display: grid; gap: 8px; align-content: start; }
+.cp-cell > small { font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+.cp-ui { display: grid; place-content: center start; gap: 8px; padding: 22px 22px 22px 7%; font: 700 18px/1.2 system-ui, sans-serif; }
+.cp-ui small { font: 400 12px system-ui; opacity: .75; }
+.cp-ui i { font-style: normal; justify-self: start; padding: 6px 14px; border-radius: 999px; font: 600 12px system-ui; }
+.cp-ui.claro { background: #f4f6fb; color: #111827; } .cp-ui.claro i { background: #111827; color: #fff; }
+.cp-ui.escuro { background: #0b1020; color: #f4f6fb; } .cp-ui.escuro i { background: #6ee7b7; color: #06281b; }
+.estilo-menta { --emerge-compare-line-color: #6ee7b7; --emerge-compare-handle-size: 54px; --emerge-compare-handle-bg: #6ee7b7; --emerge-compare-handle-color: #06281b; --emerge-compare-handle-border: 0; }
+.estilo-menta .emerge-compare-divider:hover .emerge-compare-handle { rotate: 8deg; }
+.estilo-linha { --emerge-compare-line-width: 1px; --emerge-compare-hit: 28px; }
+.estilo-linha .emerge-compare-handle { display: none; }
 .pl-demo { position: relative; height: 260px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-2); background: var(--surface-2); }
 .pl-blob { position: absolute; border-radius: 50%; }
 .pl-a { width: 120px; height: 120px; left: 12%; top: 40%; background: radial-gradient(circle, var(--accent), transparent 70%); }
@@ -911,6 +954,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
     <a href="#api">API</a>
   </nav>
   <div class="top-actions">
+    <a class="top-demos" href="demos.html"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg> Demos</a>
     <a class="top-cdn" href="https://cdn.pedrodeoliveira.me/js/emerge.js" target="_blank" rel="noopener">CDN</a>
     <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
       <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -947,10 +991,14 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <a class="sb-link" href="#efeitos"><span class="dot"></span>Galeria de efeitos</a>
         <a class="sb-link" href="#extras"><span class="dot"></span>Efeitos extras</a>
         <a class="sb-link" href="#opcoes"><span class="dot"></span>Opções &amp; atributos</a>
-        <a class="sb-link" href="#dispositivos"><span class="dot"></span>Por dispositivo <span class="tag">novo</span></a>
+        <a class="sb-link" href="#dispositivos"><span class="dot"></span>Por dispositivo</a>
         <a class="sb-link" href="#easings"><span class="dot"></span>Easings</a>
         <a class="sb-link" href="#tokens"><span class="dot"></span>Tokens CSS</a>
         <a class="sb-link" href="#eventos"><span class="dot"></span>Eventos</a>
+      </div>
+      <div class="sb-group">
+        <p class="sb-label">Demos</p>
+        <a class="sb-link" href="demos.html"><span class="dot"></span>Hub das demos</a>
       </div>
       <div class="sb-group">
         <p class="sb-label">Plugins</p>
@@ -959,15 +1007,16 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <a class="sb-link" href="#horizontal"><span class="dot"></span>Horizontal</a>
         <a class="sb-link" href="#media"><span class="dot"></span>Media</a>
         <a class="sb-link" href="#stack"><span class="dot"></span>Stack</a>
-        <a class="sb-link" href="#reel"><span class="dot"></span>Reel <span class="tag">novo</span></a>
+        <a class="sb-link" href="#reel"><span class="dot"></span>Reel</a>
         <a class="sb-link" href="#text"><span class="dot"></span>Text</a>
         <a class="sb-link" href="#spotlight"><span class="dot"></span>Spotlight</a>
         <a class="sb-link" href="#scene"><span class="dot"></span>Scene</a>
-        <a class="sb-link" href="#magnetic"><span class="dot"></span>Magnetic <span class="tag">novo</span></a>
-        <a class="sb-link" href="#parallax"><span class="dot"></span>Parallax <span class="tag">novo</span></a>
-        <a class="sb-link" href="#particles"><span class="dot"></span>Particles <span class="tag">novo</span></a>
-        <a class="sb-link" href="#smooth"><span class="dot"></span>Smooth <span class="tag">novo</span></a>
-        <a class="sb-link" href="#motion"><span class="dot"></span>Motion <span class="tag">novo</span></a>
+        <a class="sb-link" href="#magnetic"><span class="dot"></span>Magnetic</a>
+        <a class="sb-link" href="#parallax"><span class="dot"></span>Parallax</a>
+        <a class="sb-link" href="#particles"><span class="dot"></span>Particles</a>
+        <a class="sb-link" href="#smooth"><span class="dot"></span>Smooth</a>
+        <a class="sb-link" href="#motion"><span class="dot"></span>Motion</a>
+        <a class="sb-link" href="#compare"><span class="dot"></span>Compare</a>
       </div>
       <div class="sb-group">
         <p class="sb-label">Referência</p>
@@ -982,13 +1031,13 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
   <main class="content">
 
     <!-- ───────── HERO ───────── -->
-    <section class="hero">
+    <section class="hero" data-page="introducao">
       <div class="hero-copy">
         <div class="hero-badges" data-emerge="fade-up" data-emerge-delay="0">
           <span class="badge">v1.10.0</span>
           <span class="badge">zero dependências</span>
           <span class="badge">HTML declarativo</span>
-          <span class="badge">14 plugins</span>
+          <span class="badge">15 plugins</span>
         </div>
         <h1 data-emerge="fade-up" data-emerge-delay="80">Animações de scroll que <span class="grad">emergem</span> do HTML.</h1>
         <p class="hero-lead" data-emerge="fade-up" data-emerge-delay="160">
@@ -1001,6 +1050,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <a class="btn btn-primary" href="#instalacao">Começar agora
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
+          <a class="btn btn-demos" href="demos.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg> Ver demos ao vivo</a>
           <a class="btn btn-ghost" href="#efeitos">Ver os efeitos</a>
         </div>
         <div class="hero-install" data-emerge="fade-up" data-emerge-delay="320"><span class="hl">&lt;script</span> src="https://cdn.pedrodeoliveira.me/js/emerge.js"<span class="hl">&gt;&lt;/script&gt;</span></div>
@@ -1176,7 +1226,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr>
               <td><code>emerge.bundle.js</code></td>
               <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.bundle.js</a></td>
-              <td><strong>Atalho:</strong> core + os 14 plugins (Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Smooth e Motion) <strong>já registrados</strong> + auto-loader de CSS.</td>
+              <td><strong>Atalho:</strong> core + os 15 plugins (Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Smooth e Motion) <strong>já registrados</strong> + auto-loader de CSS.</td>
             </tr>
           </tbody>
         </table>
@@ -1226,7 +1276,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <code>js/emerge/</code> e é apenas uma <em>fábrica</em> exposta como global
         (<code>EmergeRange</code>, <code>EmergeDraw</code>, <code>EmergeHorizontal</code>,
         <code>EmergeMedia</code>, <code>EmergeStack</code>, <code>EmergeReel</code>, <code>EmergeText</code>,
-        <code>EmergeSpotlight</code>, <code>EmergeScene</code>, <code>EmergeMagnetic</code>, <code>EmergeParallax</code>, <code>EmergeParticles</code>, <code>EmergeSmooth</code>, <code>EmergeMotion</code>). Registrar é responsabilidade sua, com
+        <code>EmergeSpotlight</code>, <code>EmergeScene</code>, <code>EmergeMagnetic</code>, <code>EmergeParallax</code>, <code>EmergeParticles</code>, <code>EmergeSmooth</code>, <code>EmergeMotion</code>, <code>EmergeCompare</code>). Registrar é responsabilidade sua, com
         <code>Emerge.addPlugin(...)</code> — e aqui vem a regra de ouro:
       </p>
 
@@ -1270,14 +1320,14 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
           </div>
 <pre><code><span class="tk-c">// ✅ CORRETO — Range primeiro, sempre</span>
-<span class="tk-f">Emerge.addPlugin</span>(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion);
+<span class="tk-f">Emerge.addPlugin</span>(EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion, EmergeCompare);
 
 <span class="tk-c">// ✅ também vale — em chamadas separadas, mantendo a ordem</span>
 <span class="tk-f">Emerge.addPlugin</span>(EmergeRange);
-<span class="tk-f">Emerge.addPlugin</span>(EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion);
+<span class="tk-f">Emerge.addPlugin</span>(EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion, EmergeCompare);
 
 <span class="tk-c">// ❌ ERRADO — Range por último quebra os modos follow/scrub</span>
-<span class="tk-f">Emerge.addPlugin</span>(EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion, EmergeRange);</code></pre>
+<span class="tk-f">Emerge.addPlugin</span>(EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion, EmergeCompare, EmergeRange);</code></pre>
         </div>
         <p style="margin-top:12px">💡 No <strong>bundle</strong> nada disso é necessário: a ordem correta já vem embutida.</p>
       </div>
@@ -1299,6 +1349,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>EmergeParallax</code></td><td>Parallax</td><td>Deslocamento por scroll, com camadas e rotate/scale/opacity (usa o Range).</td></tr>
             <tr><td><code>EmergeParticles</code></td><td>Particles</td><td>Texto reconstruído em canvas como partículas que reagem ao ponteiro.</td></tr>
             <tr><td><code>EmergeSmooth</code></td><td>Smooth</td><td>Scroll suave tipo Lenis (opt-in): roda, âncoras e <code>scrollTo</code>, sobre o scroll nativo.</td></tr>
+            <tr><td><code>EmergeCompare</code></td><td>Compare</td><td>Comparação antes/depois com divisor interativo (imagens ou HTML). Autónomo: não usa <code>data-emerge</code> nem o Range.</td></tr>
             <tr><td><code>EmergeMotion</code></td><td>Motion</td><td>Estado inicial personalizado da entrada (deslocamento, rotação, escala, skew, blur, brilho…). Não depende do Range.</td></tr>
           </tbody>
         </table>
@@ -1332,7 +1383,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <h3 class="sub">Opção B — Bundle (atalho: tudo num arquivo)</h3>
       <p>
         O bundle embute o núcleo e os catorze plugins — <strong>mesmo os que o projeto não usa</strong>. Eles são <strong>registrados
-        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion])</code>
+        automaticamente</strong> — o arquivo termina com <code>Emerge.addPlugin([EmergeRange, EmergeDraw, EmergeHorizontal, EmergeMedia, EmergeStack, EmergeReel, EmergeText, EmergeSpotlight, EmergeScene, EmergeMagnetic, EmergeParallax, EmergeParticles, EmergeSmooth, EmergeMotion, EmergeCompare])</code>
         — então <strong>você não precisa chamar <code>addPlugin</code> manualmente</strong> ao usar o bundle.
       </p>
 
@@ -1687,7 +1738,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 <span class="tk-c">&lt;!-- tamanhos: &quot;min@1024px&quot; (≥) · &quot;max@768px&quot; (≤) · combinados por vírgula --&gt;</span></code></pre>
       </div>
 
-      <h3 class="sub">Ativando só em certos dispositivos <span class="tag">novo</span></h3>
+      <h3 class="sub">Ativando só em certos dispositivos</h3>
       <p>
         O oposto do <code>disable</code>: o efeito <strong>só</strong> roda nos dispositivos ou larguras indicados
         e fica desligado em todos os outros. Serve para <strong>trocar</strong> um efeito por outro em vez de deixar o
@@ -3267,7 +3318,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       </div>
 
       <h3 class="sub">Instalação e uso</h3>
-      <p>No bundle já vem registado. Com ficheiros separados: <code>&lt;script src="/emerge/motion.js"&gt;</code> e <code>Emerge.addPlugin(EmergeMotion)</code>. O elemento precisa de <code>data-emerge</code> (pode ir vazio) mais <code>data-emerge-motion</code> (shorthand) e/ou <code>data-emerge-motion-&lt;propriedade&gt;</code>; os atributos individuais ganham ao shorthand.</p>
+      <p>No bundle já vem registado. Com ficheiros separados: <code>&lt;script src="/emerge/motion.js"&gt;</code> e <code>Emerge.addPlugin(EmergeMotion, EmergeCompare)</code>. O elemento precisa de <code>data-emerge</code> (pode ir vazio) mais <code>data-emerge-motion</code> (shorthand) e/ou <code>data-emerge-motion-&lt;propriedade&gt;</code>; os atributos individuais ganham ao shorthand.</p>
       <div class="code-block">
         <div class="code-head"><span class="code-lang">html</span>
           <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
@@ -3376,6 +3427,215 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       <p>
         <strong>Classes:</strong> <code>emerge-motion</code>, <code>-transform</code>, <code>-filter</code>, <code>-loop</code>, <code>emerge-motion-to</code> e <code>emerge-motion-to-{opacity,translate,rotate,scale,transform,filter}</code>. Não há opções globais. Desative por dispositivo com <code>data-emerge-motion-disable[-mobile|-desktop|-tablet|-phone|-size]</code> ou ative só em certos dispositivos com <code>data-emerge-motion-only[-…]</code> (o elemento fica com a animação base do Core). Depois de mudar atributos em JS chame <code>Emerge.refresh()</code>.
         <strong>Limitações:</strong> só estado inicial e final (sem keyframes intermédios nem <code>reverse</code>); uma única duração e easing por elemento; a <code>perspective</code> vem do token CSS <code>--emerge-perspective</code>; um <code>transform</code> ou <code>filter</code> natural do elemento é substituído durante a entrada.
+      </p>
+    </section>
+
+    <section class="section" id="compare">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin</p>
+        <h2 class="sec-title">Compare <a class="anchor" href="#compare">#</a></h2>
+        <p class="sec-lead">Comparação visual <strong>antes/depois</strong>: duas camadas sobrepostas e um divisor que arrastas, clicas ou moves com o teclado. O caso principal são duas imagens, mas as camadas podem ser qualquer HTML. É um componente autónomo: <strong>não usa <code>data-emerge</code></strong>, não depende do Range e não tem animações próprias. Vê o <a href="demo/compare.html">demo</a>.</p>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · antes e depois</span></div>
+        <div class="demo-body">
+          <div class="cp-demo cp-wide" data-emerge-compare data-emerge-compare-label="Comparar paisagem original e editada">
+            <img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Paisagem original, cores apagadas"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Paisagem editada, cores vivas">
+          </div>
+          <p class="demo-hint"><span>Arrasta o divisor, clica numa posição ou prime <kbd>Tab</kbd> e usa as setas do teclado (<kbd>Home</kbd>/<kbd>End</kbd> vão às pontas).</span></p>
+        </div>
+      </div>
+
+      <h3 class="sub">Instalação e uso</h3>
+      <p>No bundle já vem registado. Com ficheiros separados: <code>&lt;script src="/emerge/compare.js"&gt;</code> e <code>Emerge.addPlugin(EmergeCompare)</code>. O <strong>1.º filho</strong> fica à esquerda (ou em cima) e o <strong>2.º</strong> à direita (ou em baixo); o plugin acrescenta só o divisor. Indica <code>width</code>/<code>height</code> nas imagens (ou <code>--emerge-compare-ratio</code>) para não haver CLS.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- 1.º filho: esquerda/topo · 2.º filho: direita/base --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-compare</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"antes.jpg"</span> <span class="tk-a">width</span>=<span class="tk-s">"1600"</span> <span class="tk-a">height</span>=<span class="tk-s">"1000"</span> <span class="tk-a">alt</span>=<span class="tk-s">"Antes"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"depois.jpg"</span> <span class="tk-a">width</span>=<span class="tk-s">"1600"</span> <span class="tk-a">height</span>=<span class="tk-s">"1000"</span> <span class="tk-a">alt</span>=<span class="tk-s">"Depois"</span><span class="tk-t">&gt;</span>
+<span class="tk-t">&lt;/div&gt;</span>
+
+<span class="tk-c">&lt;!-- vertical, a começar a 25 % --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-compare</span> <span class="tk-a">data-emerge-compare-orientation</span>=<span class="tk-s">"vertical"</span> <span class="tk-a">data-emerge-compare-position</span>=<span class="tk-s">"25"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"antes.jpg"</span> <span class="tk-a">alt</span>=<span class="tk-s">"Antes"</span><span class="tk-t">&gt;</span><span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"depois.jpg"</span> <span class="tk-a">alt</span>=<span class="tk-s">"Depois"</span><span class="tk-t">&gt;</span>
+<span class="tk-t">&lt;/div&gt;</span>
+
+<span class="tk-c">&lt;!-- HTML em vez de imagens, com indicador próprio --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-compare</span> <span class="tk-a">style</span>=<span class="tk-s">"--emerge-compare-ratio: 16 / 7"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">class</span>=<span class="tk-s">"tema-claro"</span><span class="tk-t">&gt;</span>…<span class="tk-t">&lt;/div&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">class</span>=<span class="tk-s">"tema-escuro"</span><span class="tk-t">&gt;</span>…<span class="tk-t">&lt;/div&gt;</span>
+  <span class="tk-t">&lt;span</span> <span class="tk-a">data-emerge-compare-handle</span><span class="tk-t">&gt;</span>A|B<span class="tk-t">&lt;/span&gt;</span>
+<span class="tk-t">&lt;/div&gt;</span></code></pre>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · vertical, posição inicial e conteúdo HTML</span></div>
+        <div class="demo-body">
+          <div class="cp-grid">
+            <div class="cp-cell">
+              <div class="cp-demo" data-emerge-compare data-emerge-compare-orientation="vertical" style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Depois"></div>
+              <small>orientation="vertical"</small>
+            </div>
+            <div class="cp-cell">
+              <div class="cp-demo" data-emerge-compare data-emerge-compare-position="25" style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Depois"></div>
+              <small>position="25"</small>
+            </div>
+            <div class="cp-cell">
+              <div class="cp-demo" data-emerge-compare data-emerge-compare-position="58" data-emerge-compare-label="Comparar tema claro e escuro" style="--emerge-compare-ratio: 4 / 3">
+                <div class="cp-ui claro"><span>Bom dia</span><small>Tema claro</small><i>Continuar</i></div>
+                <div class="cp-ui escuro"><span>Bom dia</span><small>Tema escuro</small><i>Continuar</i></div>
+              </div>
+              <small>camadas HTML (não só imagens)</small>
+            </div>
+          </div>
+          <p class="demo-hint"><span>As camadas ficam sempre com o mesmo enquadramento (<code>object-fit</code>); nunca são esticadas.</span></p>
+        </div>
+      </div>
+
+      <h3 class="sub">Atributos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atributo</th><th>Valores</th><th>Omissão</th><th>O que faz</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-compare</code></td><td>—</td><td>—</td><td>Ativa o comparador</td></tr>
+            <tr><td><code>-orientation</code></td><td><code>horizontal</code> | <code>vertical</code></td><td><code>horizontal</code></td><td>Horizontal: divisor vertical. Vertical: divisor horizontal</td></tr>
+            <tr><td><code>-mode</code></td><td><code>slider</code> | <code>hold</code></td><td><code>slider</code></td><td><code>hold</code>: sem divisor; <strong>segurar</strong> mostra a outra versão (<a href="#compare-hold">ver abaixo</a>)</td></tr>
+            <tr><td><code>-position</code></td><td><code>0</code>–<code>100</code> (ou <code>25%</code>)</td><td><code>50</code></td><td>Posição inicial</td></tr>
+            <tr><td><code>-step</code></td><td><code>0.1</code>–<code>50</code></td><td><code>2</code></td><td>Passo das setas, em %; <code>Shift</code>/<code>PageUp</code>/<code>PageDown</code> = 5×</td></tr>
+            <tr><td><code>-label</code></td><td>texto</td><td><code>Comparar: mover o divisor</code> (slider) · <code>Segurar para ver o original</code> (hold)</td><td><code>aria-label</code> do divisor; no modo <code>hold</code> é o texto do botão</td></tr>
+            <tr><td><code>-handle</code></td><td>—</td><td>—</td><td>Num filho extra: substitui as setas do indicador</td></tr>
+            <tr><td><code>-disable[-mobile|-desktop|-size]</code>, <code>-only-*</code></td><td>—</td><td>—</td><td><a href="#dispositivos">Desativar ou ativar só por dispositivo</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Não há opções globais. A orientação e a posição inicial são lidas quando o comparador é criado (por JS: <code>destroy(el)</code>, mudar o atributo, <code>build(el)</code>).</p>
+
+      <h3 class="sub" id="compare-hold">Modo segurar (<code>mode="hold"</code>)</h3>
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · segurar para ver a outra versão</span></div>
+        <div class="demo-body">
+          <div class="cp-grid">
+            <div class="cp-cell">
+              <div class="cp-demo" data-emerge-compare data-emerge-compare-mode="hold" style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Depois"></div>
+              <small>mode="hold"</small>
+            </div>
+            <div class="cp-cell">
+              <div class="cp-demo" data-emerge-compare data-emerge-compare-mode="hold" data-emerge-compare-orientation="vertical" data-emerge-compare-label="Segura para ver o antes" style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Depois"></div>
+              <small>vertical + label próprio</small>
+            </div>
+          </div>
+          <p class="demo-hint"><span>Mantém o rato (ou o dedo) premido sobre a imagem para ver a 1.ª camada; ao largar volta à 2.ª. Pelo teclado: foca o botão e mantém <kbd>Espaço</kbd> ou <kbd>Enter</kbd>.</span></p>
+        </div>
+      </div>
+
+      <p>Em vez de arrastar, <strong>segura</strong> para ver a outra versão: enquanto manténs premido (rato, dedo ou tecla) vês a <strong>1.ª camada</strong>; ao largar volta a <strong>2.ª</strong>. Não há divisor.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge-compare</span> <span class="tk-a">data-emerge-compare-mode</span>=<span class="tk-s">"hold"</span>
+     <span class="tk-a">data-emerge-compare-label</span>=<span class="tk-s">"Segurar para ver o original"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"antes.jpg"</span> <span class="tk-a">alt</span>=<span class="tk-s">"Antes"</span><span class="tk-t">&gt;</span><span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"depois.jpg"</span> <span class="tk-a">alt</span>=<span class="tk-s">"Depois"</span><span class="tk-t">&gt;</span>
+<span class="tk-t">&lt;/div&gt;</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Rato / toque:</strong> premir em qualquer ponto; continua seguro mesmo que o ponteiro saia do contentor. Um gesto de scroll (toque) liberta. O menu de contexto do toque longo é bloqueado só neste contentor.</li>
+        <li><strong>Teclado:</strong> o plugin acrescenta um <code>&lt;button class="emerge-compare-hold-btn"&gt;</code> focável (texto = <code>-label</code>, com <code>aria-pressed</code>). Mantém <code>Espaço</code> ou <code>Enter</code> premido; perder o foco larga.</li>
+        <li><code>orientation</code> define a direção do wipe; <code>position</code> e <code>step</code> não se aplicam. A troca é uma transição CSS de <code>--emerge-compare-pos</code> com duração em <code>--emerge-compare-hold-duration</code> (<code>.35s</code>; instantânea sem <code>@property</code> ou com <em>reduced motion</em>).</li>
+        <li>API: <code>Emerge.Compare.hold(el, true | false)</code>; <code>get(el)</code> devolve <code>0</code> (repouso) ou <code>100</code> (a segurar); <code>set()</code> é ignorado. Evento <code>emerge:compare:hold</code> (<code>{ holding, position }</code>). Classes <code>.emerge-compare-hold-mode</code>, <code>-holding</code>, <code>-hold-btn</code>.</li>
+      </ul>
+
+      <h3 class="sub">Interação e acessibilidade (modo slider)</h3>
+      <ul>
+        <li><strong>Rato, caneta e toque</strong> (Pointer Events): arrasta o divisor ou clica/toca numa posição. Agarrar o divisor não faz saltar; o arrasto continua se o ponteiro sair do contentor.</li>
+        <li><strong>O scroll da página nunca é bloqueado</strong>: <code>touch-action: pan-y</code> (horizontal) / <code>pan-x</code> (vertical). Um gesto no outro eixo faz scroll e não move o divisor.</li>
+        <li><strong>Teclado:</strong> o divisor é um <code>role="slider"</code> focável com <code>aria-valuenow</code>, <code>aria-valuetext</code>, <code>aria-orientation</code> e <code>aria-label</code>. Setas = 1 passo; <code>Shift</code>+seta, <code>PageUp</code>/<code>PageDown</code> = 5 passos; <code>Home</code>/<code>End</code> = 0 e 100. Anel de foco visível (<code>:focus-visible</code>).</li>
+        <li>Funciona com <em>prefers-reduced-motion</em>. Sem JS vê-se a imagem "depois", com o mesmo tamanho do estado ativo (sem salto de layout).</li>
+      </ul>
+
+      <h3 class="sub">Personalização por CSS</h3>
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · personalização por CSS</span></div>
+        <div class="demo-body">
+          <div class="cp-grid">
+            <div class="cp-cell">
+              <div class="cp-demo estilo-menta" data-emerge-compare style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Depois"></div>
+              <small>.estilo-menta</small>
+            </div>
+            <div class="cp-cell">
+              <div class="cp-demo estilo-linha" data-emerge-compare style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" width="1600" height="1000" alt="Antes"><img src="demo-assets/landscape-after.svg" width="1600" height="1000" alt="Depois"></div>
+              <small>.estilo-linha</small>
+            </div>
+            <div class="cp-cell">
+              <div class="cp-demo" data-emerge-compare data-emerge-compare-position="60" style="--emerge-compare-ratio: 4 / 3"><img src="demo-assets/landscape-before.svg" alt="Antes"><img src="demo-assets/landscape-after.svg" alt="Depois"><span data-emerge-compare-handle style="font:700 12px system-ui">A|B</span></div>
+              <small>&lt;span data-emerge-compare-handle&gt;</small>
+            </div>
+          </div>
+          <p class="demo-hint"><span>O código destes três estilos está logo abaixo.</span></p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variável</th><th>Omissão</th><th>O que controla</th></tr></thead>
+          <tbody>
+            <tr><td><code>--emerge-compare-ratio</code></td><td><code>auto</code></td><td>Proporção do contentor (ex.: <code>16 / 9</code>)</td></tr>
+            <tr><td><code>--emerge-compare-fit</code></td><td><code>cover</code></td><td><code>cover</code> | <code>contain</code>: as camadas nunca esticam</td></tr>
+            <tr><td><code>--emerge-compare-radius</code></td><td><code>0</code></td><td><code>border-radius</code> do contentor</td></tr>
+            <tr><td><code>-line-color</code> · <code>-line-width</code></td><td><code>#fff</code> · <code>2px</code></td><td>Linha do divisor</td></tr>
+            <tr><td><code>-handle-size</code></td><td><code>44px</code></td><td>Diâmetro do indicador</td></tr>
+            <tr><td><code>-handle-bg</code> · <code>-handle-color</code></td><td>escuro 55 % · <code>#fff</code></td><td>Fundo e cor das setas</td></tr>
+            <tr><td><code>-handle-border</code> · <code>-handle-shadow</code></td><td><code>2px solid #fff</code> · sombra</td><td>Borda e sombra</td></tr>
+            <tr><td><code>-focus-color</code></td><td><code>#60a5fa</code></td><td>Anel de foco</td></tr>
+            <tr><td><code>-hit</code></td><td><code>44px</code></td><td>Zona de agarre do divisor</td></tr>
+            <tr><td><code>-hold-duration</code></td><td><code>.35s</code></td><td>Transição do modo segurar</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>--emerge-compare-pos</code> (em %) é escrita pelo plugin; podes lê-la, não a definas.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">css</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">/* variáveis no contentor (ou em :root) */</span>
+.estilo-menta {
+  <span class="tk-a">--emerge-compare-line-color</span>: <span class="tk-s">#6ee7b7</span>;
+  <span class="tk-a">--emerge-compare-handle-size</span>: <span class="tk-s">54px</span>;
+  <span class="tk-a">--emerge-compare-handle-bg</span>: <span class="tk-s">#6ee7b7</span>;
+  <span class="tk-a">--emerge-compare-handle-color</span>: <span class="tk-s">#06281b</span>;   <span class="tk-c">/* cor das setas */</span>
+  <span class="tk-a">--emerge-compare-handle-border</span>: <span class="tk-s">0</span>;
+}
+<span class="tk-c">/* estados: hover e arrasto */</span>
+.estilo-menta .emerge-compare-divider:hover .emerge-compare-handle { rotate: 8deg; }
+.emerge-compare-dragging { cursor: grabbing; }
+
+<span class="tk-c">/* só linha fina, sem indicador */</span>
+.estilo-linha { <span class="tk-a">--emerge-compare-line-width</span>: <span class="tk-s">1px</span>; <span class="tk-a">--emerge-compare-hit</span>: <span class="tk-s">28px</span>; }
+.estilo-linha .emerge-compare-handle { display: none; }</code></pre>
+      </div>
+
+      <h3 class="sub">API (<code>Emerge.Compare</code>) e eventos</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-f">Emerge.Compare.build</span>(el | seletor);     <span class="tk-c">// cria (ignora o que já existe)</span>
+<span class="tk-f">Emerge.Compare.destroy</span>(el | seletor);   <span class="tk-c">// remove divisor, classes e variável</span>
+<span class="tk-f">Emerge.Compare.set</span>(el, <span class="tk-s">0</span>..<span class="tk-s">100</span>);        <span class="tk-c">// move o divisor (dispara change)</span>
+<span class="tk-f">Emerge.Compare.hold</span>(el, <span class="tk-s">true</span>);        <span class="tk-c">// modo hold: mostra / larga a outra versão</span>
+<span class="tk-f">Emerge.Compare.get</span>(el);                 <span class="tk-c">// posição atual ou null</span>
+<span class="tk-f">Emerge.Compare.scan</span>(raiz); <span class="tk-f">.destroyAll</span>(); <span class="tk-f">.of</span>(el); <span class="tk-f">.all</span>;
+
+<span class="tk-f">document.addEventListener</span>(<span class="tk-s">"emerge:compare:change"</span>, (e) =&gt; console.log(e.detail.position));</code></pre>
+      </div>
+      <p>
+        <strong>Classes:</strong> <code>emerge-compare</code>, <code>-vertical</code>, <code>-dragging</code>, <code>-layer</code> + <code>-before</code>/<code>-after</code>, <code>-divider</code>, <code>-line</code>, <code>-handle</code> (<code>-custom</code>).
+        <strong>Eventos</strong> (no contentor, sobem ao <code>document</code>): <code>emerge:compare:build</code>, <code>emerge:compare:change</code> (<code>{ position }</code>), <code>emerge:compare:hold</code> (<code>{ holding, position }</code>), <code>emerge:compare:destroy</code>.
+        <strong>Limitações:</strong> só 2 camadas; sem legendas embutidas; as setas <code>→</code>/<code>↓</code> aumentam sempre (também em RTL); exige <code>clip-path</code>, <code>aspect-ratio</code> e <code>translate</code>/<code>rotate</code>/<code>scale</code> individuais; na impressão só aparece o "depois".
       </p>
     </section>
 
@@ -3494,7 +3754,8 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       <div style="text-align:right">
         <a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">emerge.bundle.js</a> ·
         <a href="https://cdn.pedrodeoliveira.me/css/emerge.css" target="_blank" rel="noopener">emerge.css</a> ·
-        <a href="https://github.com/bigptlg/emerge" target="_blank" rel="noopener">GitHub</a><br>
+        <a href="https://github.com/bigptlg/emerge" target="_blank" rel="noopener">GitHub</a> ·
+        <a href="demos.html">Demos</a><br>
         <span class="mono">cdn.pedrodeoliveira.me</span>
       </div>
     </footer>
@@ -3697,21 +3958,79 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  /* ───────── 7. Scroll-spy da sidebar ───────── */
-  var links = Array.prototype.slice.call(document.querySelectorAll(".sb-link"));
-  var byId = {};
-  links.forEach(function (l) { byId[l.getAttribute("href").slice(1)] = l; });
-  var secs = Object.keys(byId)
-    .map(function (id) { return document.getElementById(id); })
-    .filter(Boolean);
-  function spy() {
-    var y = window.scrollY + 176, cur = secs.length ? secs[0].id : null;
-    secs.forEach(function (s) { if (s.offsetTop <= y) cur = s.id; });
-    links.forEach(function (l) { l.classList.toggle("active", l === byId[cur]); });
+  /* ───────── 7. SPA: roteador por hash (uma página por seção) ───────── */
+  var links = Array.prototype.slice.call(document.querySelectorAll(".sb-link[href^='#']"));
+  var order = [], titles = {};
+  links.forEach(function (l) {
+    var id = l.getAttribute("href").slice(1);
+    var sec = document.getElementById(id);
+    if (sec && sec.classList.contains("section")) {
+      order.push(id);
+      titles[id] = l.textContent.replace(/\s+/g, " ").trim();
+    }
+  });
+  var pages = {};
+  order.forEach(function (id) {
+    var el = document.getElementById(id);
+    pages[id] = [el];
+    el.classList.add("spa-page");
+  });
+  var hero = document.querySelector(".hero[data-page]");
+  if (hero) { hero.classList.add("spa-page"); pages[hero.getAttribute("data-page")].unshift(hero); }
+
+  /* Anterior / Próximo no fim de cada página */
+  order.forEach(function (id, i) {
+    var nav = document.createElement("nav");
+    nav.className = "pager"; nav.setAttribute("aria-label", "Navegação entre páginas");
+    function card(cls, tid, label) {
+      var a = document.createElement("a");
+      a.className = cls; a.href = "#" + tid;
+      a.innerHTML = "<small></small><b></b>";
+      a.firstChild.textContent = label; a.lastChild.textContent = titles[tid];
+      nav.appendChild(a);
+    }
+    if (i > 0) card("pg-prev", order[i - 1], "← Anterior");
+    if (i < order.length - 1) card("pg-next", order[i + 1], "Próximo →");
+    document.getElementById(id).appendChild(nav);
+  });
+
+  var current = null;
+  function pageOf(el) {
+    var sec = el && el.closest ? el.closest(".section") : null;
+    return sec && pages[sec.id] ? sec.id : null;
   }
-  window.addEventListener("scroll", function () { requestAnimationFrame(spy); }, { passive: true });
-  window.addEventListener("resize", spy);
-  spy();
+  function route(first) {
+    var hash = decodeURIComponent(location.hash.slice(1));
+    var target = hash && hash !== "topo" ? document.getElementById(hash) : null;
+    var id = pageOf(target) || (hero && target === hero ? "introducao" : null) || "introducao";
+    var changed = id !== current;
+    if (changed) {
+      if (current) pages[current].forEach(function (e) { e.classList.remove("is-active"); });
+      pages[id].forEach(function (e) { e.classList.add("is-active"); });
+      current = id;
+      document.title = titles[id] + " · Emerge.js";
+      /* recalcula as posições dos plugins agora que a página está visível */
+      requestAnimationFrame(function () {
+        if (window.Emerge && Emerge.refresh) Emerge.refresh();
+        window.dispatchEvent(new Event("resize"));
+      });
+    }
+    var sub = target && target.id !== id && pageOf(target) ? target : null;
+    function place() {
+      if (sub) sub.scrollIntoView({ block: "start", behavior: "auto" });
+      else if (changed || !first) window.scrollTo({ top: 0, behavior: "auto" });
+    }
+    place();
+    if (sub) setTimeout(place, 120);
+    var activeId = (hash && byHref[hash]) ? hash : id;
+    links.forEach(function (l) { l.classList.toggle("active", l.getAttribute("href") === "#" + activeId); });
+  }
+  var byHref = {};
+  links.forEach(function (l) { byHref[l.getAttribute("href").slice(1)] = l; });
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  document.documentElement.classList.add("spa-ready");
+  window.addEventListener("hashchange", function () { route(false); });
+  route(true);
 
   /* Fecha o drawer do menu ao clicar num link (mobile) */
   links.forEach(function (l) {
@@ -3741,7 +4060,8 @@ window.addEventListener("DOMContentLoaded", function () {
     ["Parallax", "parallax", "Deslocamento por scroll"],
     ["Particles", "particles", "Texto em partículas"],
     ["Smooth", "smooth", "Scroll suave tipo Lenis (opt-in)"],
-    ["Motion", "motion", "Estado inicial personalizado da entrada"]
+    ["Motion", "motion", "Estado inicial personalizado da entrada"],
+    ["Compare", "compare", "Comparação antes/depois com divisor"]
   ];
   var NEEDS_RANGE = { draw: 1, horizontal: 1, media: 1, stack: 1, reel: 1, text: 1, scene: 1, parallax: 1 };
   var BASES = {
