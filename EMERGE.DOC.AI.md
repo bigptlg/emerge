@@ -1,7 +1,7 @@
 # Emerge.js — DOC.AI.md
 
 > **Público-alvo: modelos de IA / agentes de código.** Este arquivo substitui a leitura do código-fonte (~10 mil linhas).
-> Versão documentada: **v1.7.2**. Zero dependências. 100% declarativo via atributos `data-*`.
+> Versão documentada: **v1.10.0**. Zero dependências. 100% declarativo via atributos `data-*`.
 > Se algo aqui contradizer um palpite seu, **este documento vence**. Não invente atributos: use apenas os listados.
 
 ---
@@ -28,7 +28,7 @@
 | Core isolado | `https://cdn.pedrodeoliveira.me/js/emerge.js` | Só core (efeitos de entrada, eventos, API, `addPlugin`). Sem plugins. |
 | Plugin | `https://cdn.pedrodeoliveira.me/js/emerge/<plugin>.js` | Um arquivo por plugin. **Precisa de `addPlugin`.** |
 | GitHub | `bigptlg/emerge` | Código-fonte. |
-| jsDelivr (alternativa) | `https://cdn.jsdelivr.net/gh/bigptlg/emerge@1.7.2/js/emerge.js` (e `…/css/emerge.css`, `…/js/emerge/<plugin>.js`, `…/js/emerge.bundle.js`) | Cache lento. Versão vai **depois do repo** (`@1.7.2`), nunca no fim do arquivo. Evite `@latest`/`@main` em produção. |
+| jsDelivr (alternativa) | `https://cdn.jsdelivr.net/gh/bigptlg/emerge@1.10.0/js/emerge.js` (e `…/css/emerge.css`, `…/js/emerge/<plugin>.js`, `…/js/emerge.bundle.js`) | Cache lento. Versão vai **depois do repo** (`@1.10.0`), nunca no fim do arquivo. Evite `@latest`/`@main` em produção. |
 
 **Prefira sempre a CDN oficial** (versões novas saem lá primeiro).
 
@@ -49,7 +49,7 @@ Nomes dos plugins (valor de `<plugin>` na URL): `range`, `draw`, `horizontal`, `
 ```
 
 - O bundle **registra os 14 plugins sozinho** (na ordem correta). **Não chame `addPlugin` com o bundle.**
-- O bundle tem um **auto-loader de CSS** (injeta `<link>` apontando para `<origem-do-script>/css/emerge.css@1.7.2` quando servido por HTTP).
+- O bundle tem um **auto-loader de CSS** (injeta `<link>` apontando para `<origem-do-script>/css/emerge.css@1.10.0` quando servido por HTTP).
   **Recomendação defensiva: declare o `<link>` do CSS você mesmo e coloque `data-emerge-css="false"` na tag do script**, como acima, para não depender do auto-loader nem carregar CSS duplicado.
   - `data-emerge-css="false"` → desliga o auto-loader.
   - `data-emerge-css="URL"` → usa outra folha de estilos.
@@ -284,7 +284,7 @@ document.addEventListener("emerge:in:hero", () => startHeroVideo());
 | `Emerge.addPlugin(...p)` | registra plugin(s); retorna `Emerge`. |
 | `Emerge.getPlugin(name)` | plugin registrado ou `undefined`. |
 | `Emerge.plugins` | `string[]` com nomes ativos em ordem de registro. **Use para depurar** (`console.log(Emerge.plugins)`). |
-| `Emerge.version` | `"1.7.2"`. |
+| `Emerge.version` | `"1.10.0"`. |
 | `Emerge.options` / `Emerge.defaults` | opções ativas / padrões (inclui os dos plugins). |
 | `Emerge.core` | utilitários internos para autores de plugin. |
 | `Emerge.Range` … `Emerge.Particles` | API de cada plugin. |
@@ -791,7 +791,7 @@ Regras: com `prefers-reduced-motion` fica inativo (`scrollTo` cai para o nativo)
 
 ### 5.14 Motion — estado inicial personalizado da entrada
 
-Para quando os presets de `data-emerge` não chegam: você diz **de onde o elemento parte** (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao estilo natural. Não é uma biblioteca de timeline: o Motion **só descreve o ponto de partida**; o estado final é sempre o CSS natural do elemento (como no resto do Emerge).
+Para quando os presets de `data-emerge` não chegam: você diz **de onde o elemento parte** (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao estilo natural. Não é uma biblioteca de timeline: por padrão o Motion **só descreve o ponto de partida** e o estado final é o CSS natural do elemento (como no resto do Emerge); com o prefixo `to-` você também define o **estado final** (ver abaixo).
 
 **Instalação:** bundle → nada a fazer. Modular → `<script src=".../js/emerge/motion.js">` + `Emerge.addPlugin(..., EmergeMotion)` (global `EmergeMotion`, não depende do Range, pode vir em qualquer posição).
 
@@ -823,7 +823,23 @@ Para quando os presets de `data-emerge` não chegam: você diz **de onde o eleme
 | `repeat` | inteiro ≥ 1 ou `infinite` (total de execuções) | 1 |
 | `direction` | `normal` \| `alternate` (vai e volta; sem `repeat` assume `infinite`; contagem par é arredondada para ímpar para terminar no estado natural) | `normal` |
 
-Valores inválidos são **ignorados** (nunca chegam ao CSS). Diagnóstico: `Emerge.Motion.read(el)` → `{ props, repeat, direction, invalid }`.
+Valores inválidos são **ignorados** (nunca chegam ao CSS). Diagnóstico: `Emerge.Motion.read(el)` → `{ props, to, repeat, direction, hold, invalid }`.
+
+**Estado final manual (`to-`)** — por padrão o elemento termina no estilo natural. Para definir o final, prefixe a propriedade com `to-` (início = sem prefixo; `from-` é alias):
+
+```html
+<div data-emerge data-emerge-motion="y:60 opacity:0 to-opacity:.8 to-scale:1.1"></div>
+<div data-emerge data-emerge-motion-from="x:-120 rotate:-12 blur:10"
+                 data-emerge-motion-to="x:40 rotate:6 blur:0 brightness:1.2"></div>
+<div data-emerge data-emerge-motion-y="50" data-emerge-motion-to-y="-20"></div>
+```
+
+- Mesmas propriedades/valores da tabela (menos `repeat`/`direction`). Prioridade: atributos individuais > grupos `-from`/`-to` > shorthand.
+- O elemento **permanece** no estado final após a animação; o que não tiver `to-` termina no natural.
+- Canal só com `to-` (translate, scale, rotate, opacity, transform, filter): o início vem do preset/natural; eixos não citados no canal valem 0 (scale: 1).
+- `to-opacity` com `data-emerge` vazio → faz fade até o valor. Sem `to-opacity`, continua sem fade por padrão.
+- **Pausa no meio (`hold`)**: com `to-`, `hold:N` (0<N≤100, % do percurso) faz o elemento ir do inicial ao **repouso** (identidade: opacity 1, sem translate/rotate/skew, scale 1, filtros neutros), **ficar parado** N % e só depois ir ao `to-`. `hold-at:P` (omissão 50) centra a pausa em P % (ocupa P±N/2). Ex.: `data-emerge-follow data-emerge-motion="x:50 to-x:50 hold:20"` → 50→0, pausa 20 % do scroll, 0→50. Todas as propriedades partilham a mesma janela de pausa (chegam ao repouso e partem em simultâneo; sem `to-` terminam no repouso). Exige `to-` (senão fica em `invalid`). Em `follow` as % são do percurso `data-emerge-from`→`-to`; sem `follow` são do tempo da animação. Keyframes gerados dinamicamente (`<style data-emerge-motion-keyframes>`), classe `emerge-motion-hold`. O natural do elemento não é lido: usa-se identidade.
+- Implementação: classes `emerge-motion-to-<canal>` fixam `--emerge-to-*` por CSS enquanto o elemento está `.emerge-animate`/`.emerge-follow`; logo um `:hover` do usuário não sobrepõe esse canal (use `!important`/outra propriedade). Funciona com `follow`. Em reduced motion o core não ativa nada → mostra o natural.
 
 **Regras de combinação**
 - Sem preset (`data-emerge` vazio) **não há fade por omissão**: só anima o que indicar. Com preset (`data-emerge="fade-up"`) o fade/translate do preset continuam, e o Motion **sobrepõe** só as propriedades que indicar (`x`/`y`/`z` substituem o translate do preset por inteiro; `opacity:1` remove o fade).
@@ -836,7 +852,7 @@ Valores inválidos são **ignorados** (nunca chegam ao CSS). Diagnóstico: `Emer
 - **Dinâmico:** elementos adicionados/removidos são tratados pelo core. Depois de mudar atributos Motion em JS, chame `Emerge.refresh()` (ou `Emerge.Motion.apply(el)`).
 - Desativar/ativar por dispositivo: `data-emerge-motion-disable[-mobile|-desktop|-size]`, `-only-*` (o elemento fica com a animação base do core). `prefers-reduced-motion`: o core não ativa nada → conteúdo visível, sem Motion.
 
-**API `Emerge.Motion`:** `apply(elOuSeletor)`, `clear(elOuSeletor)`, `read(el)`, `props` (nomes canónicos), `all` (elementos geridos). Classes: `emerge-motion`, `-transform`, `-filter`, `-loop`. Sem opções globais.
+**API `Emerge.Motion`:** `apply(elOuSeletor)`, `clear(elOuSeletor)`, `read(el)`, `props` (nomes canónicos), `all` (elementos geridos). Classes: `emerge-motion`, `-transform`, `-filter`, `-loop`, `emerge-motion-to` e `emerge-motion-to-{opacity,translate,rotate,scale,transform,filter}`. Sem opções globais.
 
 **Limitações:** só estado **inicial** (sem estado final nem keyframes intermédios; sem `reverse`); um único easing/duração para todas as propriedades do elemento; `perspective` vem do token CSS (`--emerge-perspective`), não de atributo; um `transform`/`filter` natural do elemento é substituído durante a entrada; precisa de navegador com `translate`/`rotate`/`scale` individuais (o mesmo requisito do core).
 
@@ -1007,7 +1023,7 @@ document.addEventListener("emerge:reel:change", ({ detail }) => console.log("pai
 | Vídeo do Media não "scrubba" | Faltam `data-emerge-from/to` ou vídeo sem `muted playsinline` | Adicione-os; confira `-media-range`. |
 | CSS carregado duas vezes | `<link>` manual + auto-loader do bundle | `data-emerge-css="false"` no `<script>` do bundle. |
 | Auto-loader não injeta CSS | Script dinâmico, `file://`, ou `document.currentScript` nulo | Use `<link>` manual. |
-| jsDelivr com versão antiga | Cache | Fixe `@1.7.2` depois do repo (nunca no fim do arquivo) ou use a CDN oficial. |
+| jsDelivr com versão antiga | Cache | Fixe `@1.10.0` depois do repo (nunca no fim do arquivo) ou use a CDN oficial. |
 | Efeito repete ao rolar para cima/baixo e o usuário não quer | `once` é `false` por padrão | `Emerge.init({ once: true })` ou `data-emerge-once="true"`. |
 
 **Depuração rápida:**

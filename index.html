@@ -903,7 +903,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <path d="M4 13h12" stroke="url(#lg-brand)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
       <path d="M4 20.5h7" stroke="url(#lg-brand)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
     </svg>
-    Emerge.js <span class="ver">v1.7.2</span>
+    Emerge.js <span class="ver">v1.10.0</span>
   </a>
   <nav class="topnav" aria-label="Atalhos">
     <a href="#efeitos">Efeitos</a>
@@ -985,7 +985,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
     <section class="hero">
       <div class="hero-copy">
         <div class="hero-badges" data-emerge="fade-up" data-emerge-delay="0">
-          <span class="badge">v1.7.2</span>
+          <span class="badge">v1.10.0</span>
           <span class="badge">zero dependências</span>
           <span class="badge">HTML declarativo</span>
           <span class="badge">14 plugins</span>
@@ -1200,7 +1200,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <code>…/css/emerge.css</code>, <code>…/js/emerge/&lt;plugin&gt;.js</code>, <code>…/js/emerge.bundle.js</code>),
           mas ele guarda cache e pode demorar a refletir uma versão nova.</p>
           <p>Para fixar a versão no jsDelivr, ela vai <em>depois do repositório</em>:
-          <code>gh/bigptlg/emerge@1.7.2/js/emerge.js</code> (exige a tag <code>1.7.2</code> no GitHub) —
+          <code>gh/bigptlg/emerge@1.10.0/js/emerge.js</code> (exige a tag <code>1.10.0</code> no GitHub) —
           nunca no fim do nome do arquivo. Evite <code>@latest</code>/<code>@main</code> em produção.</p>
         </div>
       </div>
@@ -3263,7 +3263,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       <div class="sec-head" data-emerge="fade-up">
         <p class="sec-kicker">Plugin</p>
         <h2 class="sec-title">Motion <a class="anchor" href="#motion">#</a></h2>
-        <p class="sec-lead">Estado inicial personalizado da animação de entrada. Quando os presets de <code>data-emerge</code> não chegam, indicas <strong>de onde o elemento parte</strong> (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao seu estilo natural. O Motion só descreve o ponto de partida; duração, atraso, easing, <code>once</code> e <code>mirror</code> continuam a ser do Core. Não depende do Range, mas funciona com o modo <em>follow</em> sem código extra.</p>
+        <p class="sec-lead">Estado inicial (e, opcionalmente, final) personalizado da animação de entrada. Quando os presets de <code>data-emerge</code> não chegam, indicas <strong>de onde o elemento parte</strong> (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao seu estilo natural, ou <strong>onde termina</strong>, com o prefixo <code>to-</code>. Duração, atraso, easing, <code>once</code> e <code>mirror</code> continuam a ser do Core. Não depende do Range, mas funciona com o modo <em>follow</em> sem código extra.</p>
       </div>
 
       <h3 class="sub">Instalação e uso</h3>
@@ -3310,6 +3310,50 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       </div>
       <p>Valores inválidos são ignorados e nunca chegam ao CSS (diagnóstico: <code>Emerge.Motion.read(el).invalid</code>).</p>
 
+      <h3 class="sub" id="motion-to">Estado final manual (<code>to-</code>)</h3>
+      <p>Por omissão o elemento termina no seu estilo natural. Com o prefixo <code>to-</code> escolhes tu o estado final (o inicial continua sem prefixo; <code>from-</code> é aceite como alias). O elemento <strong>permanece</strong> nesse estado depois da animação.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- sobe 60px e termina a 80 % de opacidade e escala 1.1 --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge</span> <span class="tk-a">data-emerge-motion</span>=<span class="tk-s">"y:60 opacity:0 to-opacity:.8 to-scale:1.1"</span><span class="tk-t">&gt;&lt;/div&gt;</span>
+
+<span class="tk-c">&lt;!-- grupos from / to --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge</span>
+     <span class="tk-a">data-emerge-motion-from</span>=<span class="tk-s">"x:-120 rotate:-12 blur:10"</span>
+     <span class="tk-a">data-emerge-motion-to</span>=<span class="tk-s">"x:40 rotate:6 blur:0 brightness:1.2"</span><span class="tk-t">&gt;&lt;/div&gt;</span>
+
+<span class="tk-c">&lt;!-- atributos individuais --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge</span> <span class="tk-a">data-emerge-motion-y</span>=<span class="tk-s">"50"</span> <span class="tk-a">data-emerge-motion-to-y</span>=<span class="tk-s">"-20"</span><span class="tk-t">&gt;&lt;/div&gt;</span></code></pre>
+      </div>
+      <ul>
+        <li>Aceita as mesmas propriedades e valores da tabela (exceto <code>repeat</code> e <code>direction</code>). Prioridade: atributos individuais &gt; grupos <code>-from</code> / <code>-to</code> &gt; shorthand.</li>
+        <li>Propriedades sem <code>to-</code> terminam no estilo natural. Num canal só com <code>to-</code>, o início vem do preset (ou do estado natural); eixos não indicados valem <code>0</code> (<code>scale</code>: <code>1</code>).</li>
+        <li>Com <code>to-opacity</code> e <code>data-emerge</code> vazio o elemento faz fade até esse valor.</li>
+        <li>O valor final é fixado por CSS (<code>.emerge-motion-to-&lt;canal&gt;</code>), por isso um <code>:hover</code> teu não o sobrepõe nesse canal (usa <code>!important</code> ou outra propriedade). Funciona com <em>follow</em>; com <em>reduced motion</em> o elemento mostra o estilo natural.</li>
+      </ul>
+
+      <h3 class="sub" id="motion-hold">Pausa no meio (<code>hold</code>)</h3>
+      <p>Com estado final definido, o elemento pode <strong>parar no estado natural</strong> entre o inicial e o final, em vez de seguir logo para o <code>to-</code>. Pensado para o modo <em>follow</em>: as percentagens são do percurso <code>data-emerge-from</code> → <code>data-emerge-to</code>.</p>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- x:50 → 0, fica parado 20 % do scroll, depois → x:50 --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge</span> <span class="tk-a">data-emerge-follow</span> <span class="tk-a">data-emerge-from</span>=<span class="tk-s">"top@100%"</span> <span class="tk-a">data-emerge-to</span>=<span class="tk-s">"top@0%"</span>
+     <span class="tk-a">data-emerge-motion</span>=<span class="tk-s">"x:50 to-x:50 hold:20"</span><span class="tk-t">&gt;&lt;/div&gt;</span>
+
+<span class="tk-c">&lt;!-- pausa centrada aos 35 % do percurso, com 10 % de largura --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">data-emerge</span> <span class="tk-a">data-emerge-follow</span> <span class="tk-a">data-emerge-motion</span>=<span class="tk-s">"x:50 to-x:50 hold:10 hold-at:35"</span><span class="tk-t">&gt;&lt;/div&gt;</span></code></pre>
+      </div>
+      <ul>
+        <li><code>hold</code>: largura da pausa em % do percurso (<code>0 &lt; hold ≤ 100</code>); exige pelo menos um <code>to-</code>. <code>hold-at</code>: centro da pausa em % (omissão <code>50</code>); a pausa ocupa <code>hold-at ± hold/2</code>.</li>
+        <li><strong>Várias propriedades:</strong> partilham todas a mesma janela de pausa; chegam ao repouso e partem dele em simultâneo. Uma propriedade sem <code>to-</code> termina no repouso.</li>
+        <li>Na pausa o elemento está no <strong>repouso</strong>: <code>opacity 1</code>, sem deslocamento/rotação/skew, <code>scale 1</code>, filtros neutros (o natural do teu CSS não é lido). Sem <em>follow</em>, a divisão é feita no tempo da animação.</li>
+        <li>Os keyframes são gerados pelo plugin (<code>&lt;style data-emerge-motion-keyframes&gt;</code>) e a classe é <code>.emerge-motion-hold</code>.</li>
+      </ul>
+
       <h3 class="sub">Combinar com presets, Range e Text</h3>
       <ul>
         <li><strong>Sem preset</strong> (<code>data-emerge</code> vazio) não há fade por omissão: só anima o que indicares.</li>
@@ -3326,12 +3370,12 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
         </div>
 <pre><code><span class="tk-f">Emerge.Motion.apply</span>(el | seletor);   <span class="tk-c">// relê os atributos e repinta</span>
 <span class="tk-f">Emerge.Motion.clear</span>(el | seletor);   <span class="tk-c">// remove variáveis e classes do Motion</span>
-<span class="tk-f">Emerge.Motion.read</span>(el);              <span class="tk-c">// { has, props, repeat, direction, invalid }</span>
+<span class="tk-f">Emerge.Motion.read</span>(el);              <span class="tk-c">// { has, props, to, repeat, direction, hold, invalid }</span>
 <span class="tk-f">Emerge.Motion.props</span>;  <span class="tk-f">Emerge.Motion.all</span>;</code></pre>
       </div>
       <p>
-        <strong>Classes:</strong> <code>emerge-motion</code>, <code>-transform</code>, <code>-filter</code>, <code>-loop</code>. Não há opções globais. Desative por dispositivo com <code>data-emerge-motion-disable[-mobile|-desktop|-tablet|-phone|-size]</code> ou ative só em certos dispositivos com <code>data-emerge-motion-only[-…]</code> (o elemento fica com a animação base do Core). Depois de mudar atributos em JS chame <code>Emerge.refresh()</code>.
-        <strong>Limitações:</strong> só estado inicial (sem estado final explícito, keyframes intermédios nem <code>reverse</code>); uma única duração e easing por elemento; a <code>perspective</code> vem do token CSS <code>--emerge-perspective</code>; um <code>transform</code> ou <code>filter</code> natural do elemento é substituído durante a entrada.
+        <strong>Classes:</strong> <code>emerge-motion</code>, <code>-transform</code>, <code>-filter</code>, <code>-loop</code>, <code>emerge-motion-to</code> e <code>emerge-motion-to-{opacity,translate,rotate,scale,transform,filter}</code>. Não há opções globais. Desative por dispositivo com <code>data-emerge-motion-disable[-mobile|-desktop|-tablet|-phone|-size]</code> ou ative só em certos dispositivos com <code>data-emerge-motion-only[-…]</code> (o elemento fica com a animação base do Core). Depois de mudar atributos em JS chame <code>Emerge.refresh()</code>.
+        <strong>Limitações:</strong> só estado inicial e final (sem keyframes intermédios nem <code>reverse</code>); uma única duração e easing por elemento; a <code>perspective</code> vem do token CSS <code>--emerge-perspective</code>; um <code>transform</code> ou <code>filter</code> natural do elemento é substituído durante a entrada.
       </p>
     </section>
 
@@ -3353,7 +3397,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
             <tr><td><code>Emerge.addPlugin(...p)</code></td><td>Emerge</td><td>Registra plugin(s) — <strong>Range sempre primeiro</strong> (<a href="#instalacao">ver instalação</a>).</td></tr>
             <tr><td><code>Emerge.getPlugin(name)</code></td><td>plugin | undefined</td><td>Recupera um plugin registrado pelo nome.</td></tr>
             <tr><td><code>Emerge.plugins</code></td><td>string[]</td><td>Nomes dos plugins ativos, na ordem de registro.</td></tr>
-            <tr><td><code>Emerge.version</code></td><td>"1.7.2"</td><td>Versão da biblioteca.</td></tr>
+            <tr><td><code>Emerge.version</code></td><td>"1.10.0"</td><td>Versão da biblioteca.</td></tr>
             <tr><td><code>Emerge.options</code> / <code>Emerge.defaults</code></td><td>object</td><td>Opções ativas / padrões (inclui os defaults dos plugins).</td></tr>
             <tr><td><code>Emerge.core</code></td><td>object</td><td>Utilitários internos expostos para autores de plugins.</td></tr>
             <tr><td><code>Emerge.Range</code> … <code>Emerge.Smooth</code></td><td>object</td><td>APIs dos plugins — documentadas em cada <a href="#range">seção</a>.</td></tr>
@@ -3445,7 +3489,7 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
     <footer class="foot">
       <div>
         <b style="color:var(--text-2)">Emerge.js — documentação</b><br>
-        Esta página é animada pela própria biblioteca · <span class="mono">v1.7.2</span>
+        Esta página é animada pela própria biblioteca · <span class="mono">v1.10.0</span>
       </div>
       <div style="text-align:right">
         <a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">emerge.bundle.js</a> ·

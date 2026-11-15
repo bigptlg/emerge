@@ -2,7 +2,7 @@
 
 Biblioteca leve de animações reveladas por scroll, construída sobre `IntersectionObserver` nativo, com um sistema de plugins para efeitos mais avançados (scroll ligado ao progresso, texto, SVG, pin, parallax, partículas…). Sem dependências.
 
-**Versão:** 1.7.2 · **Código-fonte:** [github.com/bigptlg/emerge](https://github.com/bigptlg/emerge) · **CDN oficial:** [cdn.pedrodeoliveira.me](https://cdn.pedrodeoliveira.me/)
+**Versão:** 1.10.0 · **Código-fonte:** [github.com/bigptlg/emerge](https://github.com/bigptlg/emerge) · **CDN oficial:** [cdn.pedrodeoliveira.me](https://cdn.pedrodeoliveira.me/)
 
 ## Índice
 
@@ -118,7 +118,7 @@ https://cdn.jsdelivr.net/gh/bigptlg/emerge@latest/js/
 Os URLs por plugin são os mesmos da tabela acima, trocando a base `https://cdn.pedrodeoliveira.me` por `https://cdn.jsdelivr.net/gh/bigptlg/emerge@latest`.
 
 - **Prefere a CDN oficial:** é atualizada primeiro, e o jsDelivr pode demorar a refletir uma versão nova (o `@latest` e as branches têm cache).
-- **Fixar versão:** a tag vai *depois do repositório* (`gh/bigptlg/emerge@1.7.2/js/emerge.js`), nunca no fim do nome do ficheiro, e exige que essa tag exista no GitHub. Evita `@main`/`@latest` em produção, para que uma alteração não parta o teu site.
+- **Fixar versão:** a tag vai *depois do repositório* (`gh/bigptlg/emerge@1.10.0/js/emerge.js`), nunca no fim do nome do ficheiro, e exige que essa tag exista no GitHub. Evita `@main`/`@latest` em produção, para que uma alteração não parta o teu site.
 - Se fizeres **fork**, troca `bigptlg/emerge` pelo teu `utilizador/repositório`, mantendo a mesma estrutura de pastas.
 
 > Com o bundle por CDN, usa `data-emerge-css="false"` e inclui o `<link>` do CSS à mão, ou aponta o carregador para o CSS com `data-emerge-css="URL"`.
@@ -134,7 +134,7 @@ Contém o core e todos os plugins. Os plugins ficam registados automaticamente e
 </script>
 ```
 
-O carregador de CSS procura `/css/emerge.css@1.7.2` na mesma origem do script (só funciona em `http(s)`). Para usar outro caminho, ou desligar o carregador:
+O carregador de CSS procura `/css/emerge.css@1.10.0` na mesma origem do script (só funciona em `http(s)`). Para usar outro caminho, ou desligar o carregador:
 
 ```html
 <!-- caminho próprio -->
@@ -381,7 +381,7 @@ Emerge.destroy()           // remove observers, listeners e classes
 Emerge.addPlugin(...p)     // regista um ou vários plugins (aceita arrays)
 Emerge.getPlugin('Range')  // devolve um plugin registado
 Emerge.plugins             // nomes dos plugins registados
-Emerge.version             // '1.7.2'
+Emerge.version             // '1.10.0'
 Emerge.core                // utilitários internos partilhados com os plugins
 ```
 
@@ -1111,7 +1111,7 @@ Se o plugin estiver inativo (por exemplo com `prefers-reduced-motion`), `Emerge.
 
 ## Motion
 
-Estado inicial personalizado da animação de entrada. Quando os presets de `data-emerge` não chegam, indicas **de onde o elemento parte** (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao seu estilo natural. O Motion só descreve o ponto de partida: o estado final é sempre o CSS natural do elemento, como no resto do Emerge.
+Estado inicial (e, opcionalmente, final) personalizado da animação de entrada. Quando os presets de `data-emerge` não chegam, indicas **de onde o elemento parte** (deslocamento, rotação, escala, skew, blur, brilho…) e ele chega ao seu estilo natural. Se precisares, indicas também **onde ele termina** (prefixo `to-`): por omissão o estado final é o CSS natural do elemento, como no resto do Emerge.
 
 **Instalação:** no bundle já vem registado. Com ficheiros separados: `<script src="/emerge/motion.js">` e `Emerge.addPlugin(EmergeMotion)` (não depende do Range e pode ser registado em qualquer posição).
 
@@ -1148,6 +1148,56 @@ Estado inicial personalizado da animação de entrada. Quando os presets de `dat
 
 Valores inválidos são ignorados e nunca chegam ao CSS.
 
+**Estado final manual (`to-`)**
+
+Por omissão o elemento termina no seu estilo natural. Para escolher tu o estado final, usa o prefixo `to-` (o estado inicial continua sem prefixo; `from-` também é aceite como alias):
+
+```html
+<!-- sobe 60px e termina a 80 % de opacidade e com escala 1.1 (fica assim) -->
+<div data-emerge data-emerge-motion="y:60 opacity:0 to-opacity:.8 to-scale:1.1"></div>
+
+<!-- grupos from / to (mais legível quando há muitas propriedades) -->
+<div data-emerge
+     data-emerge-motion-from="x:-120 rotate:-12 blur:10"
+     data-emerge-motion-to="x:40 rotate:6 blur:0 brightness:1.2"></div>
+
+<!-- atributos individuais -->
+<div data-emerge data-emerge-motion-y="50" data-emerge-motion-to-y="-20"></div>
+```
+
+- Aceita as mesmas propriedades e valores da tabela acima (exceto `repeat` e `direction`, que não têm estado final).
+- O elemento **permanece** no estado final depois da animação. Propriedades sem `to-` terminam no estilo natural, como antes.
+- Prioridade: atributos individuais > grupos `-from` / `-to` > shorthand.
+- Num canal (translate, scale, rotate, opacity, transform, filter) em que só indicas `to-`, o início é o do preset (ou o estado natural, sem preset). Eixos não indicados nesse canal valem `0` (translate/rotate/skew) ou `1` (scale).
+- Com `to-opacity` e `data-emerge` vazio o elemento faz fade até esse valor (sem `to-opacity` continua a não haver fade por omissão).
+- `to-` fixa o valor final por CSS (`.emerge-motion-to-<canal>`), por isso o `:hover` do teu CSS não sobrepõe esse canal depois da entrada (usa `!important` ou outra propriedade se precisares).
+- Funciona também com `follow` (Range): o scrub vai do estado inicial ao final.
+- Com `prefers-reduced-motion` o Core não ativa nada: o elemento mostra o estilo natural, não o estado final.
+
+**Pausa no meio (`hold`)**
+
+Com estado final definido, o elemento pode **parar no estado natural** entre o inicial e o final, em vez de seguir logo para o `to-`. Pensado para o modo `follow` (scroll): as percentagens são do percurso `data-emerge-from` → `data-emerge-to`.
+
+```html
+<!-- x:50 → 0, fica parado 20 % do scroll, depois → x:50 -->
+<div data-emerge data-emerge-follow data-emerge-from="top@100%" data-emerge-to="top@0%"
+     data-emerge-motion="x:50 to-x:50 hold:20"></div>
+
+<!-- pausa mais cedo: centrada aos 35 % do percurso, com 10 % de largura -->
+<div data-emerge data-emerge-follow data-emerge-motion="x:50 to-x:50 hold:10 hold-at:35"></div>
+
+<!-- atributos individuais -->
+<div data-emerge data-emerge-follow data-emerge-motion-x="50" data-emerge-motion-to-x="50"
+     data-emerge-motion-hold="20" data-emerge-motion-hold-at="50"></div>
+```
+
+- `hold` — largura da pausa em % do percurso total (`0 < hold ≤ 100`). Exige pelo menos um `to-`.
+- **Várias propriedades:** todas partilham a mesma janela de pausa e chegam ao repouso e partem dele em simultâneo (cada uma interpola do seu `from` ao repouso e do repouso ao seu `to-`). Uma propriedade sem `to-` termina no repouso.
+- `hold-at` — onde a pausa está centrada, em % (omissão `50`). A pausa ocupa `hold-at ± hold/2`.
+- Durante a pausa o elemento está no **estado de repouso**: identidade (`opacity 1`, sem deslocamento/rotação/skew, `scale 1`, filtros neutros). Um `transform`/`filter`/`opacity` natural diferente do CSS do elemento não é lido; é substituído por esses valores neutros.
+- Sem `follow`, a mesma divisão é feita no tempo da animação (`data-emerge-duration`).
+- Os keyframes são gerados pelo plugin (um `<style data-emerge-motion-keyframes>` no `<head>`), porque as percentagens de keyframes não aceitam variáveis CSS. Classe: `.emerge-motion-hold`.
+
 **Combinar com presets**
 - Sem preset (`data-emerge` vazio) não há fade por omissão: só anima o que indicares.
 - Com preset (`data-emerge="fade-up"`) o fade e o deslocamento do preset mantêm-se, e o Motion sobrepõe só as propriedades que indicares. `x`/`y`/`z` substituem o deslocamento do preset por inteiro; `opacity:1` remove o fade.
@@ -1164,17 +1214,17 @@ Valores inválidos são ignorados e nunca chegam ao CSS.
 ```js
 Emerge.Motion.apply(el | seletor);   // relê os atributos e repinta
 Emerge.Motion.clear(el | seletor);   // remove as variáveis e classes do Motion
-Emerge.Motion.read(el);              // { has, props, repeat, direction, invalid }
+Emerge.Motion.read(el);              // { has, props, to, repeat, direction, hold, invalid }
 Emerge.Motion.props;                 // nomes canónicos das propriedades
 Emerge.Motion.all;                   // elementos geridos
 ```
 
-**Classes:** `.emerge-motion`, `.emerge-motion-transform`, `.emerge-motion-filter`, `.emerge-motion-loop`. Não há opções globais.
+**Classes:** `.emerge-motion`, `.emerge-motion-transform`, `.emerge-motion-filter`, `.emerge-motion-loop` e, com estado final, `.emerge-motion-to` + `.emerge-motion-to-{opacity,translate,rotate,scale,transform,filter}`. Não há opções globais.
 
 **Notas**
 - Elementos adicionados ou removidos depois do `init` são tratados pelo Core; depois de mudares atributos Motion em JS chama `Emerge.refresh()` (ou `Emerge.Motion.apply(el)`).
 - Com `prefers-reduced-motion` o Core não ativa nada: o conteúdo fica visível e sem Motion.
-- Limitações: só estado **inicial** (sem estado final explícito, keyframes intermédios nem `reverse`); uma única duração e easing por elemento; a `perspective` vem do token CSS e não de atributo; um `transform` ou `filter` natural do elemento é substituído durante a entrada.
+- Limitações: só estado inicial e final (sem keyframes intermédios nem `reverse`); uma única duração e easing por elemento; a `perspective` vem do token CSS e não de atributo; um `transform` ou `filter` natural do elemento é substituído durante a entrada.
 
 ---
 
