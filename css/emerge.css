@@ -1,4 +1,4 @@
-/* Emerge.js v1.10.0 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Particles + Smooth + Motion + Compare) */
+/* Emerge.js v1.10.0 — stylesheet (core + Range, Draw, Horizontal, Media, Stack, Text, Counter + Extras + Spotlight + Scene + Magnetic + Parallax + Pointer + Particles + Smooth + Motion + Compare) */
 
 
 /* ==========================================================================
@@ -1894,4 +1894,38 @@ html.emerge-smooth-scrolling iframe {
 @media print {
   .emerge-compare > .emerge-compare-after { clip-path: none !important; }
   .emerge-compare-divider { display: none !important; }
+}
+
+
+/* ==========================================================================
+   30. Pointer — camadas e inclinação 3D ligadas ao ponteiro (v1.11.0)
+   Marcação: data-emerge-pointer no anfitrião (a área é ele por omissão) e
+   data-emerge-pointer-layer="0.5" nos filhos (factor de profundidade;
+   negativo = sentido oposto). O JS escreve `translate` (ou `transform`, nos
+   elementos que já têm outro escritor: data-emerge, parallax, magnetic) e,
+   com tilt, `transform` no anfitrião — num único rAF partilhado — e remove
+   tudo (repondo o valor inline do autor) quando regressa ao repouso.
+   Sem JS, com prefers-reduced-motion ou sem ponteiro preciso (a menos que
+   -touch), NADA é escrito. Opções por atributo data-emerge-pointer-*
+   (move, smooth, tilt, tilt-strength, perspective, axis, area, self, invert,
+   vars, touch, channel); tokens CSS homónimos --emerge-pointer-* e opções
+   globais pointerMove/Smooth/Tilt/TiltStrength/Perspective/Invert/Vars/Touch
+   no Emerge.init. Prioridade: atributo > token > global > default.
+   Os tokens NÃO têm valor por omissão aqui (um valor em :root ganharia à
+   opção global); defina-os só para um valor próprio:
+     --emerge-pointer-move: 20;  --emerge-pointer-smooth: .5;
+     --emerge-pointer-tilt-strength: 12;  --emerge-pointer-perspective: 900;
+   Com data-emerge-pointer-vars o anfitrião expõe --emerge-pointer-x/-y
+   (-1..1) para o autor desenhar (brilhos, gradientes, sombras).
+   ========================================================================== */
+.emerge-pointer-active,
+.emerge-pointer-active .emerge-pointer-layer {
+  will-change: translate, transform;
+}
+/* Sem transições no translate/transform: o movimento é desenhado pelo motor. */
+
+/* ---- Print — sempre em repouso ---- */
+@media print {
+  .emerge-pointer-active,
+  .emerge-pointer-active .emerge-pointer-layer { translate: none !important; }
 }
