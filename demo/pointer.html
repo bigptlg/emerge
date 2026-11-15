@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emerge · Pointer — demo</title>
+<script src="../demo-assets/demo.js"></script>
+<link rel="stylesheet" href="../css/emerge.css">
+<link rel="stylesheet" href="../demo-assets/demo.css">
+<style>
+  .pg { display: grid; grid-template-columns: 300px 1fr; gap: 18px; margin-top: 20px; }
+  @media (max-width: 820px) { .pg { grid-template-columns: 1fr; } }
+
+  /* área de interacção reutilizável */
+  .zone { position: relative; width: 100%; height: 260px; border-radius: 18px; overflow: hidden;
+    background: var(--card2); border: 1px solid var(--line2); }
+  .zone.tall { height: 340px; }
+  .zone.plain::before { display: none; }
+  .zone::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 40px 40px; background-position: center; opacity: .7; }
+  .zone .cross { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; pointer-events: none;
+    border: 2px dashed var(--dim2); border-radius: 50%; opacity: .6; }
+  .orb { position: absolute; left: 50%; top: 50%; border-radius: 50%; }
+  .orb.a { width: 84px; height: 84px; margin: -42px; background: var(--g1); box-shadow: 0 14px 30px rgba(11,110,242,.35); }
+  .orb.b { width: 46px; height: 46px; margin: -23px 0 0 -120px; background: var(--g2); }
+  .orb.c { width: 30px; height: 30px; margin: 40px 0 0 90px; background: var(--g3); }
+  .lbl { position: absolute; left: 12px; bottom: 10px; font: 600 11px/1 'JetBrains Mono', monospace; color: var(--dim); pointer-events: none; }
+  .zone.hot { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(11,110,242,.15); }
+
+  /* cena em camadas */
+  .scene { position: relative; height: 420px; border-radius: 22px; overflow: hidden; isolation: isolate;
+    background: linear-gradient(180deg, #1b1f5e 0%, #5b3b9c 45%, #f08a6b 100%); box-shadow: var(--shadow-lg); }
+  .scene .ly { position: absolute; inset: -40px; pointer-events: none; }
+  .scene .stars { background-image:
+    radial-gradient(2px 2px at 12% 18%, #fff, transparent), radial-gradient(1.5px 1.5px at 30% 38%, #fff, transparent),
+    radial-gradient(2px 2px at 52% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 70% 30%, #fff, transparent),
+    radial-gradient(2px 2px at 88% 16%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 60%, #fff8, transparent),
+    radial-gradient(1.5px 1.5px at 78% 55%, #fff8, transparent); }
+  .scene .sun { inset: auto; left: 58%; top: 70px; width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff4c4, #ffb36b 60%, #ff7a59); box-shadow: 0 0 80px 20px rgba(255,160,100,.45); }
+  .scene .m1, .scene .m2, .scene .m3 { inset: auto -40px -40px -40px; }
+  .scene .m1 { height: 230px; background: #6b4aa8; clip-path: polygon(0 60%, 14% 30%, 27% 55%, 42% 20%, 58% 52%, 74% 26%, 88% 50%, 100% 34%, 100% 100%, 0 100%); }
+  .scene .m2 { height: 190px; background: #3e2a78; clip-path: polygon(0 55%, 18% 25%, 34% 58%, 52% 28%, 68% 60%, 84% 30%, 100% 55%, 100% 100%, 0 100%); }
+  .scene .m3 { height: 130px; background: #1a1342; clip-path: polygon(0 50%, 12% 20%, 30% 56%, 46% 14%, 64% 52%, 80% 18%, 100% 46%, 100% 100%, 0 100%); }
+  .scene .title { position: absolute; z-index: 5; left: 0; right: 0; top: 34%; text-align: center; color: #fff;
+    font: 800 clamp(30px, 6vw, 56px)/1 Inter, sans-serif; letter-spacing: -.02em; text-shadow: 0 6px 30px rgba(0,0,0,.35); pointer-events: none; }
+  .scene .title small { display: block; margin-top: 10px; font: 500 14px/1.3 Inter, sans-serif; opacity: .85; letter-spacing: 0; }
+  .depthkey { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+  .depthkey span { font: 600 11px/1 'JetBrains Mono', monospace; color: var(--dim); background: var(--card); border: 1px solid var(--line); padding: 6px 9px; border-radius: 99px; }
+
+  /* cartão 3D */
+  .tcard { position: relative; width: min(300px, 86%); height: 200px; border-radius: 22px; padding: 22px; color: #fff;
+    background: var(--g2); box-shadow: 0 30px 60px rgba(124,92,245,.38); transform-style: preserve-3d;
+    background-image: radial-gradient(circle at calc(50% + var(--emerge-pointer-x, 0) * 45%) calc(50% + var(--emerge-pointer-y, 0) * 45%), rgba(255,255,255,.45), transparent 55%), linear-gradient(135deg, #7c5cf5, #e75aa4); }
+  .tcard h4 { margin: 0; font: 800 20px/1.1 Inter, sans-serif; }
+  .tcard p { margin: 6px 0 0; font-size: 13px; opacity: .9; }
+  .tcard .chip3 { position: absolute; right: 18px; bottom: 18px; width: 54px; height: 54px; border-radius: 16px; background: rgba(255,255,255,.28); backdrop-filter: blur(6px); display: grid; place-items: center; font-weight: 800; }
+  .tcard .ring { position: absolute; left: 18px; bottom: 16px; width: 64px; height: 64px; border-radius: 50%; border: 3px solid rgba(255,255,255,.7); }
+  .stage.p3d { perspective: none; }
+
+  /* comparações */
+  .tri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 820px) { .tri { grid-template-columns: 1fr; } }
+  .tri .zone { height: 200px; }
+  .tri .card { padding: 14px; }
+  .trail { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px; border-radius: 16px; background: var(--g1); }
+
+  .state { display: inline-flex; gap: 8px; align-items: center; font: 600 12px/1 'JetBrains Mono', monospace; padding: 8px 12px; border-radius: 99px; background: var(--card); border: 1px solid var(--line2); color: var(--dim); }
+  .state i { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+  .state.off i { background: #f59e0b; }
+
+  /* parallax + pointer */
+  .tallhero { height: 70vh; min-height: 380px; position: relative; overflow: hidden; border-radius: 22px; background: linear-gradient(160deg, #0b3b7a, #0aa2c0); box-shadow: var(--shadow-lg); }
+  .tallhero .ly { position: absolute; inset: -60px; pointer-events: none; }
+  .tallhero .blob { border-radius: 50%; filter: blur(2px); }
+  .tallhero .b1 { inset: auto; left: 12%; top: 18%; width: 170px; height: 170px; background: radial-gradient(circle at 30% 30%, #fff6, #7cc7ff33); }
+  .tallhero .b2 { inset: auto; left: 62%; top: 46%; width: 110px; height: 110px; background: radial-gradient(circle at 30% 30%, #fff8, #e75aa455); }
+  .tallhero .b3 { inset: auto; left: 40%; top: 66%; width: 70px; height: 70px; background: #fff; opacity: .85; }
+  .tallhero .txt { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; text-align: center; color: #fff; padding: 20px; pointer-events: none; }
+  .tallhero .txt b { font: 800 clamp(26px, 5vw, 46px)/1.05 Inter, sans-serif; }
+  .tallhero .txt span { display: block; margin-top: 10px; opacity: .85; font-size: 14px; }
+  .spacer-tall { height: 30vh; }
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-switch" class="switch-input" aria-label="Alternar tema claro/escuro">
+
+<nav class="topnav">
+  <a class="brand" href="../demos.html">
+    <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs><linearGradient id="lg-b" x1="0" y1="26" x2="26" y2="0"><stop offset="0" stop-color="#0b6ef2"/><stop offset="1" stop-color="#0aa2c0"/></linearGradient></defs>
+      <path d="M4 5.5h18" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M4 13h12" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M4 20.5h7" stroke="url(#lg-b)" stroke-width="3.4" stroke-linecap="round" opacity=".4"/>
+    </svg>
+    Emerge <span class="ver">v1.11.0</span>
+  </a>
+  <a href="../demos.html">Todas as demos</a>
+  <b>Pointer</b>
+  <label class="theme-toggle" for="theme-switch" title="Alternar tema claro/escuro">
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </label>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="kicker" data-emerge="fade-right">Plugin · Pointer</p>
+  <h1 data-emerge="fade-up">A cena responde ao rato.</h1>
+  <p class="lead" data-emerge="fade-up" data-emerge-delay="150">O Pointer lê a posição do cursor <em>dentro de uma área</em> (−1 … 1, centro = 0) e transforma-a em deslocamento, camadas de profundidade e inclinação 3D. Um único <code class="i">rAF</code> partilhado, estilos repostos no fim, toque ignorado por defeito. <b>Usa o rato nas áreas abaixo.</b></p>
+  <div class="facts" data-emerge="fade-up" data-emerge-delay="300">
+    <span class="fact"><b>área</b> self · parent · window · seletor</span>
+    <span class="fact"><b>movimento</b> move · axis · invert · self</span>
+    <span class="fact"><b>camadas</b> data-emerge-pointer-layer</span>
+    <span class="fact"><b>3d</b> tilt · tilt-strength · perspective</span>
+    <span class="fact"><b>fluidez</b> smooth 0 … 1</span>
+  </div>
+  <p style="margin-top:14px"><span class="state" id="dev"><i></i><span>a detetar dispositivo…</span></span></p>
+</header>
+
+<!-- 1 · MOVIMENTO -->
+<section class="demo">
+  <h2><span class="num">1</span> Movimento X / Y relativo ao cursor</h2>
+  <p class="lead">Cada zona é um anfitrião. Sem camadas, o próprio elemento acompanha o cursor até <code class="i">move</code> pixels nos extremos. Cursor no centro = repouso. <code class="i">axis</code> bloqueia um eixo.</p>
+  <div class="tri">
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="30" data-emerge-pointer-vars>
+        <span class="cross"></span><div class="orb a"></div><span class="lbl">xy · move 30</span></div>
+      <code>data-emerge-pointer data-emerge-pointer-move="30"</code></div>
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="60" data-emerge-pointer-axis="x">
+        <span class="cross"></span><div class="orb a"></div><span class="lbl">só x · move 60</span></div>
+      <code>data-emerge-pointer-axis="x" · move 60</code></div>
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="40" data-emerge-pointer-axis="y" data-emerge-pointer-invert>
+        <span class="cross"></span><div class="orb a"></div><span class="lbl">só y · invertido</span></div>
+      <code>data-emerge-pointer-axis="y" · invert</code></div>
+  </div>
+<pre class="code">&lt;div <b>data-emerge-pointer</b> <b>data-emerge-pointer-move="30"</b>&gt;
+  &lt;div class="orb"&gt;&lt;/div&gt;       &lt;!-- sem camadas: o próprio anfitrião move --&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<!-- 2 · CAMADAS -->
+<section class="demo">
+  <h2><span class="num">2</span> Camadas com profundidade</h2>
+  <p class="lead">Cada filho com <code class="i">data-emerge-pointer-layer="f"</code> move <code class="i">move × f</code> px. Factores maiores ficam mais perto de ti; <b>negativos</b> deslocam-se em sentido oposto. O anfitrião não se move (tem camadas).</p>
+  <div class="scene" data-emerge-pointer data-emerge-pointer-move="30" data-emerge-pointer-smooth="0.6">
+    <div class="ly stars" data-emerge-pointer-layer="-0.15"></div>
+    <div class="ly sun"   data-emerge-pointer-layer="-0.35"></div>
+    <div class="ly m1"    data-emerge-pointer-layer="0.4"></div>
+    <div class="ly m2"    data-emerge-pointer-layer="0.8"></div>
+    <div class="ly m3"    data-emerge-pointer-layer="1.3"></div>
+    <div class="title" data-emerge-pointer-layer="0.25">Camadas<small>move o rato — o céu vai para um lado, as montanhas para o outro</small></div>
+  </div>
+  <div class="depthkey"><span>estrelas −0.15</span><span>sol −0.35</span><span>montanha 0.4</span><span>montanha 0.8</span><span>primeiro plano 1.3</span><span>título 0.25</span></div>
+<pre class="code">&lt;div class="scene" <b>data-emerge-pointer</b> data-emerge-pointer-move="30"&gt;
+  &lt;div class="stars" <b>data-emerge-pointer-layer="-0.15"</b>&gt;&lt;/div&gt;  &lt;!-- longe, sentido oposto --&gt;
+  &lt;div class="sun"   <b>data-emerge-pointer-layer="-0.35"</b>&gt;&lt;/div&gt;
+  &lt;div class="m2"    <b>data-emerge-pointer-layer="0.8"</b>&gt;&lt;/div&gt;
+  &lt;div class="m3"    <b>data-emerge-pointer-layer="1.3"</b>&gt;&lt;/div&gt;   &lt;!-- perto --&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<!-- 3 · TILT 3D -->
+<section class="demo">
+  <h2><span class="num">3</span> Inclinação 3D + camadas + <code class="i">--emerge-pointer-x/y</code></h2>
+  <p class="lead">Com <code class="i">tilt</code> o anfitrião inclina-se (perspetiva + rotateX/Y) e as camadas internas deslocam-se por cima. Com <code class="i">-vars</code> o plugin expõe <code class="i">--emerge-pointer-x / -y</code> para o brilho seguir o cursor.</p>
+  <div class="stage" style="min-height:330px">
+    <div class="zone tall plain" style="display:grid;place-items:center;background:transparent;border:0"
+         data-emerge-pointer data-emerge-pointer-area="parent" data-emerge-pointer-tilt data-emerge-pointer-tilt-strength="16"
+         data-emerge-pointer-perspective="800" data-emerge-pointer-move="16" data-emerge-pointer-vars id="tiltzone">
+      <div class="tcard" id="tc">
+        <h4 data-emerge-pointer-layer="0.6">Cartão 3D</h4>
+        <p data-emerge-pointer-layer="0.35">inclinação + profundidade</p>
+        <div class="ring" data-emerge-pointer-layer="1.2"></div>
+        <div class="chip3" data-emerge-pointer-layer="1.8">3D</div>
+      </div>
+    </div>
+  </div>
+<pre class="code">&lt;div <b>data-emerge-pointer</b> <b>data-emerge-pointer-tilt</b> data-emerge-pointer-tilt-strength="16"
+     data-emerge-pointer-perspective="800" <b>data-emerge-pointer-vars</b>&gt;
+  &lt;h4 data-emerge-pointer-layer="0.6"&gt;…&lt;/h4&gt;
+  &lt;div data-emerge-pointer-layer="1.8"&gt;3D&lt;/div&gt;
+&lt;/div&gt;
+/* CSS: o brilho segue o cursor */
+.card { background: radial-gradient(circle at calc(50% + var(--emerge-pointer-x) * 45%)
+                                           calc(50% + var(--emerge-pointer-y) * 45%), #fff6, transparent 55%); }</pre>
+</section>
+
+<!-- 4 · INTENSIDADE -->
+<section class="demo">
+  <h2><span class="num">4</span> Diferentes intensidades</h2>
+  <p class="lead">O mesmo gesto com <code class="i">move</code> 8, 24 e 60 px. Passa o rato pelas três zonas.</p>
+  <div class="tri">
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="8"><span class="cross"></span><div class="trail"></div><span class="lbl">move 8</span></div><code>data-emerge-pointer-move="8"</code></div>
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="24"><span class="cross"></span><div class="trail" style="background:var(--g4)"></div><span class="lbl">move 24</span></div><code>data-emerge-pointer-move="24"</code></div>
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="60"><span class="cross"></span><div class="trail" style="background:var(--g2)"></div><span class="lbl">move 60</span></div><code>data-emerge-pointer-move="60"</code></div>
+  </div>
+</section>
+
+<!-- 5 · SUAVIZAÇÃO -->
+<section class="demo">
+  <h2><span class="num">5</span> Suavização e regresso ao repouso</h2>
+  <p class="lead"><code class="i">smooth</code> vai de 0 (instantâneo) a 1 (muito lento). Entra, mexe depressa e sai da zona: o elemento volta ao centro sem saltos nem oscilações (alisamento exponencial).</p>
+  <div class="tri">
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="40" data-emerge-pointer-smooth="0"><span class="cross"></span><div class="trail" style="background:var(--g3)"></div><span class="lbl">smooth 0</span></div><code>smooth="0" — segue colado</code></div>
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="40" data-emerge-pointer-smooth="0.5"><span class="cross"></span><div class="trail" style="background:var(--g1)"></div><span class="lbl">smooth 0.5 (padrão)</span></div><code>smooth="0.5"</code></div>
+    <div class="card"><div class="zone" data-emerge-pointer data-emerge-pointer-move="40" data-emerge-pointer-smooth="0.92"><span class="cross"></span><div class="trail" style="background:var(--g5)"></div><span class="lbl">smooth 0.92</span></div><code>smooth="0.92" — flutua</code></div>
+  </div>
+</section>
+
+<!-- 6 · POINTER + PARALLAX -->
+<section class="demo">
+  <h2><span class="num">6</span> Pointer + Parallax no mesmo elemento</h2>
+  <p class="lead">Faz scroll: as camadas deslocam-se com o <b>Parallax</b>; mexe o rato e elas respondem ao <b>Pointer</b>. Como cada camada tem <code class="i">parallax-layer</code>, o Pointer escreve em <code class="i">transform</code> (canal automático) e o Parallax em <code class="i">translate</code> — compõem-se, não se esmagam.</p>
+  <div class="spacer-tall"></div>
+  <div class="tallhero" data-emerge-parallax="0.3" data-emerge-pointer data-emerge-pointer-area="window" data-emerge-pointer-move="40">
+    <div class="ly blob b1" data-emerge-parallax-layer="0.2" data-emerge-pointer-layer="-0.6"></div>
+    <div class="ly blob b2" data-emerge-parallax-layer="0.7" data-emerge-pointer-layer="1.2"></div>
+    <div class="ly blob b3" data-emerge-parallax-layer="1.2" data-emerge-pointer-layer="2"></div>
+    <div class="txt"><div><b>Scroll + rato</b><span>área = janela inteira · duas fontes de movimento, zero conflitos</span></div></div>
+  </div>
+  <div class="spacer-tall"></div>
+<pre class="code">&lt;div <b>data-emerge-parallax="0.3"</b> <b>data-emerge-pointer</b> data-emerge-pointer-area="window"&gt;
+  &lt;div <b>data-emerge-parallax-layer="0.7"</b> <b>data-emerge-pointer-layer="1.2"</b>&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- Parallax → translate · Pointer → transform (canal "auto") --&gt;</pre>
+</section>
+
+<!-- 7 · PLAYGROUND -->
+<section class="demo">
+  <h2><span class="num">7</span> Playground</h2>
+  <div class="pg">
+    <div class="panel ctl">
+      <div class="row"><label>move</label><input id="a" type="range" min="0" max="120" value="30"><output id="ao">30</output></div>
+      <div class="row"><label>smooth</label><input id="b" type="range" min="0" max="1" step=".05" value=".5"><output id="bo">.5</output></div>
+      <div class="row"><label>tilt</label><input id="c" type="range" min="0" max="40" value="14"><output id="co">14</output></div>
+      <div class="row"><label>persp.</label><input id="d" type="range" min="300" max="2000" step="50" value="900"><output id="do">900</output></div>
+      <div class="row"><label>axis</label><select id="e"><option>xy</option><option>x</option><option>y</option></select></div>
+      <div class="row"><label>invert</label><input id="f" type="checkbox"></div>
+    </div>
+    <div>
+      <div class="stage" style="min-height:300px">
+        <div class="zone tall" id="pgz" style="display:grid;place-items:center;background:transparent;border:0" data-emerge-pointer data-emerge-pointer-area="parent">
+          <div class="tcard" id="pgc2"><h4 data-emerge-pointer-layer="0.6">Brinca comigo</h4><p data-emerge-pointer-layer="0.3">playground</p><div class="chip3" data-emerge-pointer-layer="1.6">✦</div></div>
+        </div>
+      </div>
+      <div class="hud" id="hud" style="position:static;margin-top:12px">eventos: —</div>
+    </div>
+  </div>
+<pre class="code" id="pgcode"></pre>
+</section>
+
+<!-- 8 · TOQUE -->
+<section class="demo">
+  <h2><span class="num">8</span> Dispositivos tácteis</h2>
+  <p class="lead">Em ecrãs sem rato (<code class="i">hover: none</code> / sem <code class="i">pointer: fine</code>) o Pointer não se instala: as camadas ficam na posição natural e o scroll nunca é afetado. Para quem quiser, <code class="i">data-emerge-pointer-touch</code> faz o dedo guiar o efeito durante o toque.</p>
+  <div class="stage" style="min-height:240px;flex-direction:column;gap:14px">
+    <div class="zone" id="tz" style="max-width:520px" data-emerge-pointer data-emerge-pointer-move="40" data-emerge-pointer-axis="x"><span class="cross"></span><div class="trail"></div><span class="lbl" id="tzl">zona de teste</span></div>
+    <div class="btns"><button id="tbtn" class="small">Ativar toque (-touch)</button></div>
+  </div>
+<pre class="code">&lt;div data-emerge-pointer <b>data-emerge-pointer-touch</b>&gt;…&lt;/div&gt;
+&lt;!-- ou: data-emerge-pointer-disable-mobile  /  data-emerge-pointer-only-desktop --&gt;</pre>
+</section>
+
+<nav class="nextprev" aria-label="Navegação entre demos">
+  <a href="parallax.html"><small>← anterior</small><b>Parallax</b></a>
+  <a class="nx" href="particles.html"><small>próxima demo →</small><b>Particles</b></a>
+</nav>
+</main>
+
+<script src="../js/emerge.bundle.js" data-emerge-css="false"></script>
+<script>
+  Emerge.init();
+
+  /* estado do dispositivo */
+  var fine = window.matchMedia && matchMedia("(any-hover: hover) and (any-pointer: fine)").matches;
+  var dev = document.getElementById("dev");
+  dev.className = "state" + (fine ? "" : " off");
+  dev.lastChild.textContent = fine ? "ponteiro preciso detetado — Pointer ativo" : "sem rato — Pointer em repouso (toque ignorado)";
+
+  /* zona ativa */
+  document.addEventListener("emerge:pointer:enter", function (e) { e.detail.el.classList.add("hot"); });
+  document.addEventListener("emerge:pointer:leave", function (e) { e.detail.el.classList.remove("hot"); });
+
+  /* playground */
+  var host = document.getElementById("pgz"), hud = document.getElementById("hud");
+  function apply() {
+    var g = function (id) { return document.getElementById(id); };
+    ["a", "b", "c", "d"].forEach(function (k) { g(k + "o").textContent = g(k).value; });
+    var tilt = Number(g("c").value) > 0, inv = g("f").checked;
+    Emerge.Pointer.destroy(host);
+    host.setAttribute("data-emerge-pointer-move", g("a").value);
+    host.setAttribute("data-emerge-pointer-smooth", g("b").value);
+    host.setAttribute("data-emerge-pointer-perspective", g("d").value);
+    host.setAttribute("data-emerge-pointer-axis", g("e").value);
+    tilt ? (host.setAttribute("data-emerge-pointer-tilt", ""), host.setAttribute("data-emerge-pointer-tilt-strength", g("c").value))
+         : (host.removeAttribute("data-emerge-pointer-tilt"), host.removeAttribute("data-emerge-pointer-tilt-strength"));
+    inv ? host.setAttribute("data-emerge-pointer-invert", "") : host.removeAttribute("data-emerge-pointer-invert");
+    Emerge.Pointer.build(host);
+    var c = ['<div data-emerge-pointer data-emerge-pointer-area="parent"',
+      '     data-emerge-pointer-move="' + g("a").value + '" data-emerge-pointer-smooth="' + g("b").value + '"',
+      '     data-emerge-pointer-axis="' + g("e").value + '"' + (inv ? " data-emerge-pointer-invert" : "")];
+    if (tilt) c.push('     data-emerge-pointer-tilt data-emerge-pointer-tilt-strength="' + g("c").value + '" data-emerge-pointer-perspective="' + g("d").value + '"');
+    document.getElementById("pgcode").textContent = c.join("\n") + ">…</div>";
+  }
+  document.querySelectorAll(".ctl input, .ctl select").forEach(function (x) { x.addEventListener("input", apply); });
+  apply();
+  ["enter", "leave"].forEach(function (n) {
+    document.addEventListener("emerge:pointer:" + n, function (e) {
+      if (e.detail && e.detail.el === host) hud.innerHTML = "emerge:pointer:<b>" + n + "</b>";
+    });
+  });
+
+  /* toque */
+  var tbtn = document.getElementById("tbtn"), tz = document.getElementById("tz"), on = false;
+  tbtn.addEventListener("click", function () {
+    on = !on;
+    Emerge.Pointer.destroy(tz);
+    on ? tz.setAttribute("data-emerge-pointer-touch", "") : tz.removeAttribute("data-emerge-pointer-touch");
+    Emerge.Pointer.build(tz);
+    tbtn.classList.toggle("on", on);
+    tbtn.textContent = on ? "Toque ativo — arrasta na zona" : "Ativar toque (-touch)";
+    document.getElementById("tzl").textContent = on ? "toque ativo" : "zona de teste";
+  });
+</script>
+</body>
+</html>
