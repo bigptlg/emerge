@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emerge.js — Documentação</title>
-<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 15 plugins: Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Smooth, Motion e Compare.">
+<meta name="description" content="Documentação do Emerge.js: animações de scroll declarativas em HTML puro. Core + 16 plugins: Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Pointer, Particles, Smooth, Motion e Compare.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -740,6 +740,12 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
 .mg-demo { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: center; padding: 36px 12px; }
 .mg-card { padding: 22px 26px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border-2); display: flex; flex-direction: column; gap: 6px; }
 .mg-card b { color: var(--text); } .mg-card span { color: var(--text-2); font-size: 13px; }
+.pt-demo { display: grid; place-items: center; min-height: 240px; padding: 24px; }
+.pt-card { position: relative; width: min(320px, 90%); height: 170px; padding: 22px; border-radius: 20px; display: flex; flex-direction: column; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--border-2); box-shadow: 0 18px 40px rgba(14,42,80,.12); }
+.pt-card b { color: var(--text); font-size: 18px; } .pt-card span { color: var(--text-2); font-size: 13px; }
+.pt-dot { position: absolute; right: 22px; bottom: 20px; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #0b6ef2, #0aa2c0); }
+.pt-dot2 { right: auto; left: 22px; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #7c5cf5, #e75aa4); }
 .cp-demo { --emerge-compare-radius: 14px; }
 .cp-wide { max-width: 720px; margin-inline: auto; }
 .cp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
@@ -1013,6 +1019,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
         <a class="sb-link" href="#scene"><span class="dot"></span>Scene</a>
         <a class="sb-link" href="#magnetic"><span class="dot"></span>Magnetic</a>
         <a class="sb-link" href="#parallax"><span class="dot"></span>Parallax</a>
+        <a class="sb-link" href="#pointer"><span class="dot"></span>Pointer</a>
         <a class="sb-link" href="#particles"><span class="dot"></span>Particles</a>
         <a class="sb-link" href="#smooth"><span class="dot"></span>Smooth</a>
         <a class="sb-link" href="#motion"><span class="dot"></span>Motion</a>
@@ -1037,7 +1044,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
           <span class="badge">v1.10.0</span>
           <span class="badge">zero dependências</span>
           <span class="badge">HTML declarativo</span>
-          <span class="badge">15 plugins</span>
+          <span class="badge">16 plugins</span>
         </div>
         <h1 data-emerge="fade-up" data-emerge-delay="80">Animações de scroll que <span class="grad">emergem</span> do HTML.</h1>
         <p class="hero-lead" data-emerge="fade-up" data-emerge-delay="160">
@@ -1221,12 +1228,12 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr>
               <td><code>emerge/&lt;plugin&gt;.js</code></td>
               <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge/range.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge/range.js</a></td>
-              <td>Um arquivo por plugin (<code>range</code>, <code>draw</code>, <code>horizontal</code>, <code>media</code>, <code>stack</code>, <code>reel</code>, <code>text</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>particles</code>, <code>smooth</code>, <code>motion</code>). Exemplo: <code>range.js</code>. Precisam de <code>Emerge.addPlugin()</code>.</td>
+              <td>Um arquivo por plugin (<code>range</code>, <code>draw</code>, <code>horizontal</code>, <code>media</code>, <code>stack</code>, <code>reel</code>, <code>text</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>pointer</code>, <code>particles</code>, <code>smooth</code>, <code>motion</code>). Exemplo: <code>range.js</code>. Precisam de <code>Emerge.addPlugin()</code>.</td>
             </tr>
             <tr>
               <td><code>emerge.bundle.js</code></td>
               <td style="white-space:normal"><a href="https://cdn.pedrodeoliveira.me/js/emerge.bundle.js" target="_blank" rel="noopener">https://cdn.pedrodeoliveira.me/js/emerge.bundle.js</a></td>
-              <td><strong>Atalho:</strong> core + os 15 plugins (Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Particles, Smooth e Motion) <strong>já registrados</strong> + auto-loader de CSS.</td>
+              <td><strong>Atalho:</strong> core + os 16 plugins (Range, Draw, Horizontal, Media, Stack, Reel, Text, Spotlight, Scene, Magnetic, Parallax, Pointer, Particles, Smooth e Motion) <strong>já registrados</strong> + auto-loader de CSS.</td>
             </tr>
           </tbody>
         </table>
@@ -1717,7 +1724,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
       <h3 class="sub" id="dispositivos">Desabilitando por dispositivo ou largura</h3>
       <p>
         Cada "feature" (core, <code>range</code>, <code>draw</code>, <code>horizontal</code>,
-        <code>media</code>, <code>stack</code>, <code>reel</code>, <code>split</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>particles</code>, <code>smooth</code>, <code>motion</code>) aceita
+        <code>media</code>, <code>stack</code>, <code>reel</code>, <code>split</code>, <code>spotlight</code>, <code>scene</code>, <code>magnetic</code>, <code>parallax</code>, <code>pointer</code>, <code>particles</code>, <code>smooth</code>, <code>motion</code>) aceita
         desativadores individuais — úteis para poupar bateria em telas pequenas. No core o prefixo some:
         <code>data-emerge-disable…</code> e <code>data-emerge-only…</code>. O dispositivo vem do
         <em>user agent</em> (<code>mobile</code> = <code>phone</code> + <code>tablet</code>).
@@ -1870,6 +1877,7 @@ td .req { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: var
             <tr><td><code>emerge-media-ready</code> / <code>emerge-media-progress</code></td><td>Canvas de frames pronto / progresso de pré-load — <a href="#media">ver Media</a>.</td></tr>
             <tr><td><code>emerge:magnetic:build</code> / <code>:engage</code> / <code>:release</code> / <code>:destroy</code></td><td>Ciclo de vida do Magnetic — <a href="#magnetic">ver Magnetic</a>.</td></tr>
             <tr><td><code>emerge:parallax:build</code> / <code>:destroy</code></td><td>Parallax ligado / desmontado — <a href="#parallax">ver Parallax</a>.</td></tr>
+            <tr><td><code>emerge:pointer:build</code> / <code>:enter</code> / <code>:leave</code> / <code>:destroy</code></td><td>Ciclo de vida do Pointer (<code>detail.el</code>) — <a href="#pointer">ver Pointer</a>.</td></tr>
             <tr><td><code>emerge:particles:build</code> / <code>:destroy</code> / <code>:settle</code></td><td>Partículas montadas, removidas ou estabilizadas — <a href="#particles">ver Particles</a>.</td></tr>
             <tr><td><code>emerge:smooth:enable</code> / <code>:disable</code></td><td>Scroll suave ligado / desligado — <a href="#smooth">ver Smooth</a>.</td></tr>
             <tr><td><code>emerge:scene:build</code> / <code>:progress</code> / <code>:enter</code> / <code>:leave</code></td><td>Ciclo de vida das cenas pinadas: construção, progresso 0–1 e entrada/saída do pin — <a href="#scene">ver Scene</a>.</td></tr>
@@ -3174,6 +3182,160 @@ el.<span class="tk-f">setAttribute</span>(<span class="tk-s">"data-emerge-scene"
       </div>
     </section>
 
+    <!-- ───────── PLUGIN: POINTER ───────── -->
+    <section class="section" id="pointer">
+      <div class="sec-head" data-emerge="fade-up">
+        <p class="sec-kicker">Plugin</p>
+        <h2 class="sec-title">Pointer <a class="anchor" href="#pointer">#</a></h2>
+        <p class="sec-lead">Interatividade por camadas guiada pela posição do mouse <em>dentro de uma área</em>. O plugin normaliza o cursor para <code>−1 … 1</code> (centro = 0) e transforma isso em deslocamento, profundidade e inclinação 3D. Autônomo: não depende de nenhum outro plugin, usa um único <em>rAF</em> compartilhado e devolve tudo ao estado original no fim. Toque é ignorado por padrão.</p>
+      </div>
+
+      <div class="demo-shell">
+        <div class="demo-head"><span class="dh-title">Demo · pointer</span></div>
+        <div class="demo-body">
+          <div class="pt-demo" data-emerge-pointer data-emerge-pointer-tilt data-emerge-pointer-tilt-strength="14" data-emerge-pointer-move="22">
+            <div class="pt-card">
+              <b data-emerge-pointer-layer="0.5">Camadas + tilt</b>
+              <span data-emerge-pointer-layer="0.25">cada filho com seu fator</span>
+              <i class="pt-dot" data-emerge-pointer-layer="1.6"></i>
+              <i class="pt-dot pt-dot2" data-emerge-pointer-layer="-0.8"></i>
+            </div>
+          </div>
+          <p class="demo-hint">Passe o cursor sobre o cartão — em telas de toque o efeito fica desligado. <a href="demo/pointer.html">Ver demo completa</a>.</p>
+        </div>
+      </div>
+
+      <h3 class="sub">Como funciona</h3>
+      <ul>
+        <li><strong>Anfitrião</strong> (<code>data-emerge-pointer</code>) define a <em>área</em> (por padrão, ele mesmo) e as opções.</li>
+        <li><strong>Camadas</strong> (<code>data-emerge-pointer-layer="f"</code>) são filhos que se deslocam <code>move × f</code> px nos extremos da área. <code>f</code> maior fica "mais perto"; <strong>negativo</strong> anda no sentido oposto.</li>
+        <li><strong>Tilt</strong> inclina o anfitrião (<code>perspective + rotateX/Y</code>) e pode ser combinado com deslocamento e camadas.</li>
+        <li>O cursor fora da área devolve tudo ao repouso com a mesma suavização, sem saltos nem oscilação (alisamento exponencial). Em repouso nada fica escrito no DOM.</li>
+        <li>Diferença do <a href="#magnetic">Magnetic</a>: ele <em>atrai um elemento</em> pela proximidade à sua borda; o Pointer lê uma <em>área</em> inteira e compõe várias camadas. Diferença do <a href="#parallax">Parallax</a>: o motor é o ponteiro, não o scroll.</li>
+      </ul>
+
+      <h3 class="sub">Instalação e uso</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- Bundle: já registra o Pointer. Com arquivos soltos: emerge.js + pointer.js + Emerge.addPlugin(EmergePointer) --&gt;</span>
+<span class="tk-t">&lt;div</span> <span class="tk-a">class</span>=<span class="tk-s">"scene"</span> <span class="tk-a">data-emerge-pointer</span> <span class="tk-a">data-emerge-pointer-move</span>=<span class="tk-s">"30"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">class</span>=<span class="tk-s">"sky"</span>  <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"-0.3"</span><span class="tk-t">&gt;&lt;/div&gt;</span>   <span class="tk-c">&lt;!-- longe, sentido oposto --&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">class</span>=<span class="tk-s">"hills"</span> <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"0.8"</span><span class="tk-t">&gt;&lt;/div&gt;</span>
+  <span class="tk-t">&lt;div</span> <span class="tk-a">class</span>=<span class="tk-s">"front"</span> <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"1.5"</span><span class="tk-t">&gt;&lt;/div&gt;</span>   <span class="tk-c">&lt;!-- perto --&gt;</span>
+<span class="tk-t">&lt;/div&gt;</span>
+<span class="tk-t">&lt;script</span> <span class="tk-a">src</span>=<span class="tk-s">".../emerge.bundle.js"</span><span class="tk-t">&gt;&lt;/script&gt;</span>
+<span class="tk-t">&lt;script&gt;</span>Emerge.init();<span class="tk-t">&lt;/script&gt;</span></code></pre>
+      </div>
+
+      <h3 class="sub">Atributos (<code>data-emerge-pointer-*</code>)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atributo</th><th>Padrão</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><code>data-emerge-pointer</code></td><td><code>""</code></td><td>Ativa o anfitrião.</td></tr>
+            <tr><td><code>-area</code></td><td><code>self</code></td><td>Área que lê o cursor: <code>self</code> (o próprio), <code>parent</code>, <code>window</code> (viewport inteiro) ou um seletor CSS (<code>"#hero"</code>).</td></tr>
+            <tr><td><code>-move</code></td><td><code>20</code></td><td>Deslocamento máximo (px) com fator 1, nas bordas da área.</td></tr>
+            <tr><td><code>-self</code></td><td><code>1</code>/<code>0</code></td><td>Fator de deslocamento do próprio anfitrião. Padrão <code>1</code> sem camadas e sem tilt; <code>0</code> quando há camadas ou tilt.</td></tr>
+            <tr><td><code>-axis</code></td><td><code>xy</code></td><td><code>x</code>, <code>y</code> ou <code>xy</code>.</td></tr>
+            <tr><td><code>-invert</code></td><td><code>false</code></td><td>Inverte o sentido (deslocamento e tilt).</td></tr>
+            <tr><td><code>-smooth</code></td><td><code>0.5</code></td><td><code>0</code>–<code>1</code>: <code>0</code> instantâneo, <code>0.5</code> ≈ 125 ms, <code>1</code> ≈ 670 ms. Vale também para o retorno.</td></tr>
+            <tr><td><code>-tilt</code></td><td><code>false</code></td><td>Inclinação 3D do anfitrião.</td></tr>
+            <tr><td><code>-tilt-strength</code></td><td><code>12</code></td><td>Ângulo máximo em graus (limitado a ±89).</td></tr>
+            <tr><td><code>-perspective</code></td><td><code>900</code></td><td>Perspectiva do tilt (px); <code>0</code> desliga a perspectiva.</td></tr>
+            <tr><td><code>-vars</code></td><td><code>false</code></td><td>Expõe <code>--emerge-pointer-x</code> / <code>-y</code> (−1…1, já suavizados) no anfitrião, para brilhos e gradientes no seu CSS.</td></tr>
+            <tr><td><code>-touch</code></td><td><code>false</code></td><td>Permite que o dedo guie o efeito durante o toque (e instala o plugin mesmo sem mouse).</td></tr>
+            <tr><td><code>-channel</code></td><td><code>auto</code></td><td><code>translate</code> | <code>transform</code> | <code>auto</code>. Ver <a href="#pointer-compat">Compatibilidade</a>.</td></tr>
+            <tr><td><code>data-emerge-pointer-layer</code></td><td><code>1</code></td><td>Em filhos: fator de profundidade (negativo = sentido oposto, <code>0</code> = parado).</td></tr>
+            <tr><td><code>data-emerge-pointer-layer-axis</code></td><td>do anfitrião</td><td>Eixo próprio da camada (<code>x</code>, <code>y</code>, <code>xy</code>).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>Tokens CSS</strong> (<code>--emerge-pointer-move · smooth · tilt · tilt-strength · perspective · invert · vars · touch</code>) não têm valor padrão: defina-os só para um valor próprio. Prioridade: atributo &gt; token &gt; opção global &gt; padrão.
+        <strong>Globais</strong> (<code>Emerge.init</code>): <code>pointerMove · Smooth · Tilt · TiltStrength · Perspective · Invert · Vars · Touch</code>.
+        <strong>Classes:</strong> <code>emerge-pointer</code>, <code>emerge-pointer-active</code> (cursor dentro / em movimento), <code>emerge-pointer-layer</code>.
+        <strong>Eventos:</strong> <code>emerge:pointer:build</code> / <code>:enter</code> / <code>:leave</code> / <code>:destroy</code> (<code>detail.el</code>).
+        Desative por dispositivo com <code>data-emerge-pointer-disable[-mobile|-desktop|-tablet|-phone|-size]</code> ou ative só em certos dispositivos com <code>data-emerge-pointer-only[-mobile|-desktop|-tablet|-phone|-size]</code>.
+      </p>
+
+      <h3 class="sub">Exemplo prático · múltiplas camadas</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-c">&lt;!-- A janela inteira é a área; só o eixo X nas camadas de fundo --&gt;</span>
+<span class="tk-t">&lt;header</span> <span class="tk-a">class</span>=<span class="tk-s">"hero"</span> <span class="tk-a">data-emerge-pointer</span> <span class="tk-a">data-emerge-pointer-area</span>=<span class="tk-s">"window"</span> <span class="tk-a">data-emerge-pointer-move</span>=<span class="tk-s">"40"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"bg.svg"</span>   <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"-0.2"</span> <span class="tk-a">data-emerge-pointer-layer-axis</span>=<span class="tk-s">"x"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"mid.svg"</span>  <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"0.6"</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;h1</span>  <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"0.3"</span><span class="tk-t">&gt;</span>Título<span class="tk-t">&lt;/h1&gt;</span>
+<span class="tk-t">&lt;/header&gt;</span></code></pre>
+      </div>
+
+      <h3 class="sub">Exemplo prático · inclinação 3D + brilho</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">html + css</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-t">&lt;article</span> <span class="tk-a">class</span>=<span class="tk-s">"card"</span> <span class="tk-a">data-emerge-pointer</span> <span class="tk-a">data-emerge-pointer-tilt</span> <span class="tk-a">data-emerge-pointer-tilt-strength</span>=<span class="tk-s">"14"</span>
+         <span class="tk-a">data-emerge-pointer-perspective</span>=<span class="tk-s">"800"</span> <span class="tk-a">data-emerge-pointer-vars</span><span class="tk-t">&gt;</span>
+  <span class="tk-t">&lt;h3</span> <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"0.5"</span><span class="tk-t">&gt;</span>Título<span class="tk-t">&lt;/h3&gt;</span>
+  <span class="tk-t">&lt;img</span> <span class="tk-a">src</span>=<span class="tk-s">"icon.svg"</span> <span class="tk-a">data-emerge-pointer-layer</span>=<span class="tk-s">"1.6"</span><span class="tk-t">&gt;</span>
+<span class="tk-t">&lt;/article&gt;</span>
+
+<span class="tk-c">/* brilho que segue o cursor */</span>
+.card { background: radial-gradient(circle at calc(50% + var(--emerge-pointer-x, 0) * 45%)
+                                       calc(50% + var(--emerge-pointer-y, 0) * 45%), #fff6, transparent 55%); }</code></pre>
+      </div>
+
+      <h3 class="sub">Suavização</h3>
+      <p><code>data-emerge-pointer-smooth</code> controla a rapidez com que o elemento persegue o alvo — e também o retorno ao repouso. <code>0</code> cola no cursor; <code>0.3</code> é ágil; <code>0.5</code> (padrão) é natural; <code>0.9</code> flutua. É um alisamento exponencial dependente do tempo (independe do FPS) e nunca oscila.</p>
+
+      <h3 class="sub">API programática</h3>
+      <div class="code-block">
+        <div class="code-head"><span class="code-lang">js</span>
+          <button class="copy-btn" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copiar</button>
+        </div>
+<pre><code><span class="tk-f">Emerge.Pointer.build</span>(el);       <span class="tk-c">// monta (el precisa de data-emerge-pointer); devolve a instância ou null</span>
+<span class="tk-f">Emerge.Pointer.destroy</span>(el);     <span class="tk-c">// desmonta UM anfitrião e repõe estilos, classes e camadas</span>
+<span class="tk-f">Emerge.Pointer.destroyAll</span>();    <span class="tk-c">// desmonta todos</span>
+<span class="tk-f">Emerge.Pointer.scan</span>(root);      <span class="tk-c">// monta os anfitriões ainda não montados</span>
+<span class="tk-f">Emerge.Pointer.refresh</span>();       <span class="tk-c">// relê atributos, camadas e medidas (após mudar atributos/DOM/layout)</span>
+<span class="tk-f">Emerge.Pointer.measure</span>();       <span class="tk-c">// só remede as áreas (após mudar o layout)</span>
+<span class="tk-f">Emerge.Pointer.release</span>();       <span class="tk-c">// devolve tudo ao repouso agora</span>
+<span class="tk-f">Emerge.Pointer.of</span>(el);          <span class="tk-c">// instância do anfitrião (ou null)</span>
+<span class="tk-f">Emerge.Pointer.all</span>;              <span class="tk-c">// lista de instâncias</span></code></pre>
+      </div>
+      <p><strong>Destruição e atualização:</strong> <code>Emerge.destroy()</code> desmonta o plugin (listeners, observers e <em>rAF</em>). Elementos adicionados ou removidos depois do <code>init</code> são tratados por um <code>MutationObserver</code> próprio (respeita <code>disableMutationObserver</code>). Alterou atributos de um anfitrião em tempo de execução? Use <code>Emerge.Pointer.refresh()</code> ou <code>destroy(el)</code> + <code>build(el)</code>.</p>
+
+      <h3 class="sub" id="pointer-compat">Compatibilidade com outros plugins</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriedade</th><th>Quem escreve</th><th>Regra</th></tr></thead>
+          <tbody>
+            <tr><td><code>translate</code></td><td>Pointer (canal padrão), Parallax, Magnetic, entradas do core</td><td>O Pointer só usa <code>translate</code> em elementos <em>sem</em> outro escritor.</td></tr>
+            <tr><td><code>transform</code></td><td>Pointer (tilt, canal <code>transform</code>), Magnetic (só com tilt), entradas <code>flip-*</code></td><td>O valor inline do autor é guardado e mantido no fim; é reposto no repouso.</td></tr>
+            <tr><td><code>rotate · scale · opacity</code></td><td>Parallax</td><td>O Pointer nunca os escreve.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>Canal <code>auto</code>:</strong> elementos com <code>data-emerge</code>, <code>data-emerge-parallax[-layer]</code> ou <code>data-emerge-magnetic[-child]</code> recebem o deslocamento via <code>transform: translate3d()</code>. O CSS aplica <code>translate → rotate → scale → transform</code>, então Pointer e Parallax <strong>somam</strong> em vez de se sobrescreverem (veja a demo, seção 6).</li>
+        <li><strong>Limitações:</strong> não use <code>data-emerge-magnetic-tilt</code> e <code>data-emerge-pointer-tilt</code> no mesmo elemento (ambos escrevem <code>transform</code>); um <code>transform</code> vindo de uma folha de estilo é sobreposto enquanto o canal <code>transform</code> está ativo (aninhe um elemento ou use o canal <code>translate</code>); um elemento que é ao mesmo tempo camada (canal <code>transform</code>) e anfitrião com tilt não é suportado — aninhe.</li>
+        <li><strong>Scene, Motion, Spotlight, Range:</strong> convivem desde que não escrevam as mesmas propriedades no mesmo elemento; na dúvida, aninhe o elemento do Pointer.</li>
+        <li>Nunca há <code>preventDefault</code>, nem alteração de layout, cliques, scroll ou seleção de texto.</li>
+      </ul>
+
+      <h3 class="sub">Dispositivos móveis e acessibilidade</h3>
+      <ul>
+        <li>Sem ponteiro preciso (<code>(any-hover: hover) and (any-pointer: fine)</code> falso) o plugin <strong>não se instala</strong> — nada é escrito e nenhum listener é criado — a menos que o elemento use <code>-touch</code>.</li>
+        <li>Com <code>-touch</code>, o dedo guia o efeito enquanto toca; <code>pointercancel</code>/<code>pointerup</code> devolvem ao repouso. O scroll nativo continua ativo (o navegador pode cancelar o gesto).</li>
+        <li><code>prefers-reduced-motion: reduce</code> é respeitado (opção <code>respectReducedMotion</code>), inclusive quando a preferência muda com a página aberta.</li>
+        <li>Fora da tela (a área não está no viewport) o plugin não mede nem anima.</li>
+      </ul>
+    </section>
+
     <!-- ───────── PLUGIN: PARTICLES ───────── -->
     <section class="section" id="particles">
       <div class="sec-head" data-emerge="fade-up">
@@ -4058,6 +4220,7 @@ window.addEventListener("DOMContentLoaded", function () {
     ["Scene", "scene", "Cenas de hero pinadas"],
     ["Magnetic", "magnetic", "Atração magnética ao ponteiro"],
     ["Parallax", "parallax", "Deslocamento por scroll"],
+    ["Pointer", "pointer", "Camadas e tilt 3D guiados pelo ponteiro"],
     ["Particles", "particles", "Texto em partículas"],
     ["Smooth", "smooth", "Scroll suave tipo Lenis (opt-in)"],
     ["Motion", "motion", "Estado inicial personalizado da entrada"],

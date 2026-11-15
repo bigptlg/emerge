@@ -22,7 +22,7 @@ Biblioteca leve de animações reveladas por scroll, construída sobre `Intersec
   - [Eventos](#eventos)
 - [Plugins](#plugins)
   - [Range](#range) · [Draw](#draw) · [Horizontal](#horizontal) · [Media](#media) · [Stack](#stack) · [Reel](#reel) · [Text](#text)
-  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Particles](#particles) · [Smooth](#smooth) · [Motion](#motion) · [Compare](#compare)
+  - [Spotlight](#spotlight) · [Scene](#scene) · [Magnetic](#magnetic) · [Parallax](#parallax) · [Pointer](#pointer) · [Particles](#particles) · [Smooth](#smooth) · [Motion](#motion) · [Compare](#compare)
 - [Desativar ou ativar só por dispositivo ou largura](#desativar-ou-ativar-só-por-dispositivo-ou-largura)
 - [Criar um plugin](#criar-um-plugin)
 - [Conteúdo dinâmico](#conteúdo-dinâmico)
@@ -49,7 +49,7 @@ Os ficheiros estão organizados nas mesmas rotas em qualquer CDN (e iguais à es
 /js/emerge.bundle.js          ← core + todos os plugins
 /js/emerge/range.js           ← plugins
 /js/emerge/draw.js  horizontal.js  media.js  stack.js  reel.js  text.js
-/js/emerge/spotlight.js  scene.js  magnetic.js  parallax.js  particles.js
+/js/emerge/spotlight.js  scene.js  magnetic.js  parallax.js  pointer.js  particles.js
 ```
 
 #### CDN oficial (recomendada)
@@ -72,6 +72,7 @@ Base: `https://cdn.pedrodeoliveira.me` — as rotas são `/css`, `/js` e `/js/em
 | Scene      | `https://cdn.pedrodeoliveira.me/js/emerge/scene.js` |
 | Magnetic   | `https://cdn.pedrodeoliveira.me/js/emerge/magnetic.js` |
 | Parallax   | `https://cdn.pedrodeoliveira.me/js/emerge/parallax.js` |
+| Pointer    | `https://cdn.pedrodeoliveira.me/js/emerge/pointer.js` |
 | Particles  | `https://cdn.pedrodeoliveira.me/js/emerge/particles.js` |
 
 Bundle (tudo incluído):
@@ -166,7 +167,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 /emerge.js
 /emerge.css
 /emerge/range.js  draw.js  horizontal.js  media.js  stack.js  reel.js  text.js
-        spotlight.js  scene.js  magnetic.js  parallax.js  particles.js  smooth.js  motion.js  compare.js
+        spotlight.js  scene.js  magnetic.js  parallax.js  pointer.js  particles.js  smooth.js  motion.js  compare.js
 ```
 
 ```html
@@ -182,7 +183,7 @@ O core fica na raiz e cada plugin na pasta `emerge/`. Aqui **nada é registado n
 </script>
 ```
 
-Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergeParticles`, `EmergeSmooth`, `EmergeMotion`, `EmergeCompare`).
+Cada plugin expõe um global `EmergeNome` (`EmergeRange`, `EmergeDraw`, `EmergeHorizontal`, `EmergeMedia`, `EmergeStack`, `EmergeReel`, `EmergeText`, `EmergeSpotlight`, `EmergeScene`, `EmergeMagnetic`, `EmergeParallax`, `EmergePointer`, `EmergeParticles`, `EmergeSmooth`, `EmergeMotion`, `EmergeCompare`).
 
 ### CommonJS / AMD
 
@@ -210,6 +211,7 @@ Emerge.addPlugin(require('./emerge/range.js'));
 | `Text`       | opcional: Range (modo ligado ao scroll)     |
 | `Spotlight`  | —                                           |
 | `Magnetic`   | —                                           |
+| `Pointer`    | — (autónomo)                                |
 | `Particles`  | — (não combinar com `data-emerge-split`)    |
 | `Smooth`     | —                                           |
 | `Motion`     | — (funciona com o modo `follow` do Range e com o Text sem configuração extra) |
@@ -931,6 +933,61 @@ Escreve a propriedade `translate` (e `transform` só com tilt), por isso compõe
 
 ---
 
+## Pointer
+
+**Camadas, deslocamento e inclinação 3D guiados pelo rato dentro de uma área.** O plugin normaliza o cursor para `−1 … 1` (centro = 0) em cada eixo e usa esse valor para mover o elemento, mover filhos com profundidades diferentes e inclinar o anfitrião em 3D. É autónomo (não depende de Range, `data-emerge` nem de outros plugins), usa um único `requestAnimationFrame` partilhado que adormece em repouso e **repõe os estilos originais** quando o cursor sai ou o plugin é destruído. Não usa `preventDefault`: cliques, scroll e seleção de texto nunca são afetados.
+
+> **Magnetic vs Pointer vs Parallax:** o Magnetic *atrai um elemento* pela proximidade à sua borda; o Pointer lê uma *área* e compõe várias camadas; o Parallax é guiado pelo scroll.
+
+```html
+<div class="scene" data-emerge-pointer data-emerge-pointer-move="30">
+  <div class="sky"   data-emerge-pointer-layer="-0.3"></div>  <!-- longe, sentido oposto -->
+  <div class="hills" data-emerge-pointer-layer="0.8"></div>
+  <div class="front" data-emerge-pointer-layer="1.5"></div>   <!-- perto -->
+</div>
+
+<!-- inclinação 3D + brilho que segue o cursor -->
+<article class="card" data-emerge-pointer data-emerge-pointer-tilt
+         data-emerge-pointer-tilt-strength="14" data-emerge-pointer-vars>
+  <h3 data-emerge-pointer-layer="0.5">Título</h3>
+</article>
+```
+
+```css
+.card { background: radial-gradient(circle at calc(50% + var(--emerge-pointer-x, 0) * 45%)
+                                       calc(50% + var(--emerge-pointer-y, 0) * 45%), #fff6, transparent 55%); }
+```
+
+| Atributo (`data-emerge-pointer-…`) | Default | Descrição |
+| ---------------------------------- | ------- | --------- |
+| *(atributo principal)*             | *(vazio)* | Ativa o anfitrião |
+| `area`                             | `self`  | Onde o cursor é lido: `self`, `parent`, `window` ou um seletor CSS |
+| `move`                             | `20`    | Deslocamento máximo (px) com fator 1, nos extremos da área |
+| `self`                             | `1` sem camadas e sem tilt; `0` caso contrário | Fator de deslocamento do próprio anfitrião |
+| `axis`                             | `xy`    | `x`, `y` ou `xy` |
+| `invert`                           | `false` | Inverte deslocamento e tilt |
+| `smooth`                           | `0.5`   | `0`–`1`: `0` instantâneo, `0.5` ≈ 125 ms, `1` ≈ 670 ms; vale também para o regresso ao repouso |
+| `tilt`                             | `false` | Inclinação 3D do anfitrião |
+| `tilt-strength`                    | `12`    | Ângulo máximo (graus, ±89) |
+| `perspective`                      | `900`   | Perspetiva do tilt (px); `0` desliga |
+| `vars`                             | `false` | Expõe `--emerge-pointer-x` / `-y` (−1…1) no anfitrião |
+| `touch`                            | `false` | O dedo guia o efeito; instala o plugin mesmo sem rato |
+| `channel`                          | `auto`  | `translate`, `transform` ou `auto` |
+| `layer` *(nos filhos)*             | `1`     | Fator de profundidade (negativo = sentido oposto) |
+| `layer-axis` *(nos filhos)*        | do anfitrião | Eixo próprio da camada |
+
+Opções por token CSS (`--emerge-pointer-move`, `-smooth`, `-tilt`, `-tilt-strength`, `-perspective`, `-invert`, `-vars`, `-touch`; sem valor por omissão) ou globais (`pointerMove`, `pointerSmooth`, `pointerTilt`, `pointerTiltStrength`, `pointerPerspective`, `pointerInvert`, `pointerVars`, `pointerTouch`). O atributo ganha sempre. Desativar/ativar por dispositivo: `data-emerge-pointer-disable[-mobile|-desktop|-tablet|-phone|-size]` e `data-emerge-pointer-only[-…]`.
+
+**Compatibilidade.** O Pointer escreve `translate` nos elementos sem outro escritor e, nos que já têm um (`data-emerge`, `data-emerge-parallax[-layer]`, `data-emerge-magnetic[-child]`), escreve `transform: translate3d()`. Como o CSS aplica `translate → rotate → scale → transform`, **Pointer e Parallax somam-se** em vez de se esmagarem. O `transform`/`translate` inline do autor é guardado e reposto no fim. Limitações: não combines `-pointer-tilt` com `-magnetic-tilt` no mesmo elemento; um `transform` vindo de uma folha de estilo é sobreposto enquanto o canal `transform` está ativo (aninha um elemento); uma camada em canal `transform` que é também anfitrião com tilt não é suportada.
+
+**Dispositivos.** Sem ponteiro preciso (`(any-hover: hover) and (any-pointer: fine)` falso) o plugin não se instala e não escreve nada, a menos que uses `data-emerge-pointer-touch`. Respeita `prefers-reduced-motion` (também quando muda com a página aberta). Áreas fora do viewport não são medidas nem animadas.
+
+**Eventos:** `emerge:pointer:build`, `:enter`, `:leave`, `:destroy` (`detail.el`). **Classes:** `emerge-pointer`, `emerge-pointer-active`, `emerge-pointer-layer`.
+
+**API** (`Emerge.Pointer`): `build(el)`, `destroy(el)`, `destroyAll()`, `scan(raiz?)`, `refresh()`, `measure()`, `release()`, `of(el)`, `all`. Para mudar atributos em runtime: `refresh()` ou `destroy(el)` + `build(el)`.
+
+---
+
 ## Parallax
 
 **Deslocamento ligado ao scroll**, com camadas em profundidade. O deslocamento é centrado: a meio do percurso o elemento está na posição natural.
@@ -1449,11 +1506,11 @@ No `core` tens: `attr` / `numAttr` / `hasAttr` (leitura de `data-emerge-*`), `di
 
 ## Conteúdo dinâmico
 
-Elementos `[data-emerge]` inseridos no DOM depois de `Emerge.init()` são detetados via `MutationObserver`. Os plugins Spotlight, Magnetic, Parallax e Particles mantêm um observador próprio, por isso os seus elementos também são apanhados. Nada disto é necessário chamar à mão, a menos que `disableMutationObserver: true` esteja ativo; nesse caso usa `Emerge.refresh()`.
+Elementos `[data-emerge]` inseridos no DOM depois de `Emerge.init()` são detetados via `MutationObserver`. Os plugins Spotlight, Magnetic, Parallax, Pointer e Particles mantêm um observador próprio, por isso os seus elementos também são apanhados. Nada disto é necessário chamar à mão, a menos que `disableMutationObserver: true` esteja ativo; nesse caso usa `Emerge.refresh()`.
 
 ## prefers-reduced-motion
 
-Por omissão (`respectReducedMotion: true`), se o utilizador tiver a preferência de movimento reduzido ativa, a Emerge desativa-se: os elementos ficam visíveis, sem animação e sem configuração extra. Os plugins fazem o mesmo (Scene fica estática, Particles mostra o texto normal, Magnetic e Parallax não escrevem nada, Media mostra os controlos).
+Por omissão (`respectReducedMotion: true`), se o utilizador tiver a preferência de movimento reduzido ativa, a Emerge desativa-se: os elementos ficam visíveis, sem animação e sem configuração extra. Os plugins fazem o mesmo (Scene fica estática, Particles mostra o texto normal, Magnetic, Pointer e Parallax não escrevem nada, Media mostra os controlos).
 
 ## Problemas comuns
 
@@ -1473,7 +1530,7 @@ Por omissão (`respectReducedMotion: true`), se o utilizador tiver a preferênci
 ## Compatibilidade
 
 - **Core e plugins de scroll:** `IntersectionObserver` e `MutationObserver` nativos (todos os browsers modernos). Não há polyfill.
-- **Magnetic e Parallax:** precisam de transformações individuais em CSS (`translate`, `rotate`, `scale`); sem suporte ficam inertes.
+- **Magnetic, Pointer e Parallax:** precisam de transformações individuais em CSS (`translate`, `rotate`, `scale`); sem suporte ficam inertes.
 - **Particles:** precisa de canvas 2D; sem suporte mostra o texto normal.
 - **Spotlight:** usa `mask-image`; Safari/WebKit tem tratamento próprio (máscara inline, `focus` sem desfoque de fundo).
 
