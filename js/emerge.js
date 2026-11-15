@@ -1,4 +1,4 @@
-/*! Emerge.js v1.7.2 — core */
+/*! Emerge.js v1.10.0 — core */
 (function (
   i,
   d,
@@ -10,7 +10,7 @@
       : (i.Emerge = d());
 })(this, function () {
   "use strict";
-  const i = "1.7.2",
+  const i = "1.10.0",
     d = {
       offset: 120,
       delay: 0,

@@ -1,4 +1,4 @@
-/*! Emerge.js v1.8.0 — bundle organizado: core + 14 plugins + registo + carregador de CSS */
+/*! Emerge.js v1.10.0 — bundle organizado: core + 14 plugins + registo + carregador de CSS */
 
 /* ######################################################################## */
 /*  COMO ESTE FICHEIRO ESTÁ ORGANIZADO  (LEIA ANTES DE EDITAR)
@@ -53,7 +53,7 @@
       : (i.Emerge = d());
 })(this, function () {
   "use strict";
-  const i = "1.7.2",
+  const i = "1.10.0",
     d = {
       offset: 120,
       delay: 0,
@@ -2455,7 +2455,7 @@
 /*  painel por cima do movimento (data-emerge-reel + data-emerge-reel-*).
 /*  Depende de: Range
 /* ======================================================================== */
-/*! Emerge.js v1.7.2 — plugin Reel (global: EmergeReel) */
+/*! Emerge.js v1.10.0 — plugin Reel (global: EmergeReel) */
 (function (i, d) {
     typeof exports == "object" && typeof module != "undefined"
       ? (module.exports = d())
@@ -10327,7 +10327,7 @@
 
 /* ======================================================================== */
 /*  BEGIN PLUGIN: Motion  (global: EmergeMotion)
-/*  Estado inicial personalizado da animação (data-emerge-motion).
+/*  Estado inicial (e, opcionalmente, final) personalizado da animação (data-emerge-motion).
 /*  Depende de: Core. Opcional: Range (follow) e Text (partes do split)
 /* ======================================================================== */
 (function (i, d) {
@@ -10340,12 +10340,14 @@
   "use strict";
 
   /* ------------------------------------------------------------------------
-     Motion — estado INICIAL personalizado para a animação de entrada.
+     Motion — estado INICIAL (e, opcionalmente, FINAL) personalizado para a
+     animação de entrada.
 
-     Princípio (igual ao resto do Emerge): o Motion só descreve o ponto de
-     PARTIDA; o estado final é sempre o estilo natural do elemento. Tempo,
-     atraso, easing, once e mirror continuam a ser do Core
-     (data-emerge-duration / -delay / -easing / -once / -mirror).
+     Por omissão (igual ao resto do Emerge) o Motion só descreve o ponto de
+     PARTIDA e o estado final é o estilo natural do elemento. Quando indicas
+     um estado final (prefixo to-: to-x, to-opacity… ou data-emerge-motion-to),
+     o elemento CHEGA e FICA nesse estado. Tempo, atraso, easing, once e mirror
+     continuam a ser do Core (data-emerge-duration / -delay / -easing / …).
 
      Como funciona (sem keyframes novos, sem rAF, sem listeners):
        - opacity / translate / rotate / scale  → escreve as variáveis
@@ -10354,6 +10356,10 @@
          (--emerge-from/to-transform + keyframe emerge-flip);
        - blur, brightness, saturate, grayscale → slot de filter do Core
          (--emerge-from-filter + keyframe emerge-blur).
+     Estado final (to-*): o plugin escreve --emerge-to-* e uma classe por canal
+     (.emerge-motion-to-opacity, …). O CSS fixa esse valor enquanto o elemento
+     está .emerge-animate / .emerge-follow; como os keyframes do Core só têm
+     "from", a animação interpola até ao valor final.
      Como é tudo CSS do Core, o modo "follow" do Range (scroll-linked) e o
      split de texto funcionam sem código extra.
      ------------------------------------------------------------------------ */
@@ -10364,6 +10370,11 @@
   const CLS_TF = "emerge-motion-transform";
   const CLS_FX = "emerge-motion-filter";
   const CLS_LOOP = "emerge-motion-loop";
+  const CLS_TO = "emerge-motion-to";
+  const TO_CH = ["opacity", "translate", "rotate", "scale", "transform", "filter"];
+  const CLS_TO_CH = TO_CH.map((c) => CLS_TO + "-" + c);
+  const CLS_HOLD = "emerge-motion-hold";
+  const ALL_CLS = [CLS, CLS_TF, CLS_FX, CLS_LOOP, CLS_TO, CLS_HOLD].concat(CLS_TO_CH);
 
   const LEN_UNITS = ["px", "%", "em", "rem", "vw", "vh", "vmin", "vmax"];
   const SIZE_UNITS = ["px", "em", "rem", "vw", "vh", "vmin", "vmax"];
@@ -10398,6 +10409,7 @@
   ALIAS.rotatez = "rotate";
 
   const FILTER_ORDER = ["blur", "brightness", "saturate", "grayscale"];
+  const FILTER_ID = { blur: "0px", brightness: "1", saturate: "1", grayscale: "0" };
   const TRANSFORM_ORDER = ["rotate-x", "rotate-y", "skew-x", "skew-y"];
   const CSS_FN = {
     "rotate-x": "rotateX",
@@ -10448,39 +10460,60 @@
     return isFinite(n) && n > 0 ? Math.floor(n) || 1 : null;
   }
 
+  // "10" ou "10%" -> número em [min,max] (min exclusivo quando incl=false)
+  function parsePercent(raw, min, max, incl) {
+    const m = /^([+-]?(?:\d+\.?\d*|\.\d+))%?$/.exec(String(raw).trim());
+    if (!m) return null;
+    const n = parseFloat(m[1]);
+    if (!isFinite(n) || n > max || n < min || (!incl && n === min)) return null;
+    return n;
+  }
+
   function parseDirection(raw) {
     const s = String(raw).trim().toLowerCase();
     return s === "normal" || s === "alternate" ? s : null;
   }
 
-  // Lê data-emerge-motion="x:-60 rotate:8 …" e data-emerge-motion-<prop>="…".
-  // Os atributos individuais têm prioridade sobre o shorthand.
+  // Lê data-emerge-motion="x:-60 to-x:0 …", data-emerge-motion-<prop>="…",
+  // data-emerge-motion-to-<prop>="…" e os grupos data-emerge-motion-from|to="x:0 …".
+  // Prioridade (menor → maior): shorthand < grupos from/to < atributos individuais.
   function read(el) {
-    const raw = {};
+    const raw = { from: {}, to: {} };
     const invalid = [];
 
-    function put(key, value, from) {
-      const k = ALIAS[String(key).toLowerCase().replace(/[-_]/g, "")];
-      if (k) {
-        raw[k] = value;
-      } else if (/^(repeat|direction)$/i.test(key)) {
-        raw[key.toLowerCase()] = value;
-      } else if (from === "shorthand") {
-        invalid.push(key);
+    // O prefixo from-/to- na chave escolhe a fase; sem prefixo vale a fase por omissão.
+    function put(key, value, phase, strict) {
+      let k = String(key).toLowerCase();
+      const m = /^(from|to)[-_](.+)$/.exec(k);
+      if (m) {
+        phase = m[1];
+        k = m[2];
       }
+      const canon = ALIAS[k.replace(/[-_]/g, "")];
+      if (canon) raw[phase][canon] = value;
+      else if (!m && /^(repeat|direction|hold|hold[-_]at)$/.test(k))
+        raw[k.replace("_", "-")] = value;
+      else if (strict) invalid.push(key);
     }
 
-    const shorthand = el.getAttribute(ATTR);
-    if (shorthand) {
-      shorthand
+    function tokens(str, phase) {
+      String(str)
         .split(/[;,\s]+/)
         .filter(Boolean)
         .forEach((tok) => {
           const ix = tok.indexOf(":");
           if (ix < 1) return invalid.push(tok);
-          put(tok.slice(0, ix), tok.slice(ix + 1), "shorthand");
+          put(tok.slice(0, ix), tok.slice(ix + 1), phase, true);
         });
     }
+
+    const shorthand = el.getAttribute(ATTR);
+    if (shorthand) tokens(shorthand, "from");
+
+    ["from", "to"].forEach((ph) => {
+      const g = el.getAttribute(ATTR + "-" + ph);
+      if (g) tokens(g, ph);
+    });
 
     const pre = ATTR + "-";
     for (let a = 0; a < el.attributes.length; a++) {
@@ -10489,15 +10522,22 @@
       const key = at.name.slice(pre.length);
       // disable-* / only-* pertencem ao core.isDisabledFor, não são propriedades
       if (/^(disable|only)(-|$)/.test(key)) continue;
-      put(key, at.value, "attr");
+      if (key === "from" || key === "to") continue; // grupos: já lidos acima
+      put(key, at.value, "from", false);
     }
 
     const props = {};
-    Object.keys(raw).forEach((k) => {
-      if (k === "repeat" || k === "direction") return;
-      const v = parseValue(PROPS[k], raw[k]);
-      if (v == null) invalid.push(k);
-      else props[k] = v;
+    const to = {};
+    [
+      ["from", props],
+      ["to", to],
+    ].forEach((pair) => {
+      const ph = pair[0];
+      Object.keys(raw[ph]).forEach((k) => {
+        const v = parseValue(PROPS[k], raw[ph][k]);
+        if (v == null) invalid.push((ph === "to" ? "to-" : "") + k);
+        else pair[1][k] = v;
+      });
     });
 
     let repeat = raw.repeat != null ? parseRepeat(raw.repeat) : null;
@@ -10505,58 +10545,158 @@
     let direction = raw.direction != null ? parseDirection(raw.direction) : null;
     if (raw.direction != null && direction == null) invalid.push("direction");
 
+    // hold: pausa no ponto de repouso (estado natural) entre o inicial e o final
+    let hold = null;
+    if (raw.hold != null) {
+      const hn = parsePercent(raw.hold, 0, 100, false);
+      const at = raw["hold-at"] != null ? parsePercent(raw["hold-at"], 0, 100, true) : 50;
+      if (hn == null) invalid.push("hold");
+      else if (at == null) invalid.push("hold-at");
+      else if (!Object.keys(to).length) invalid.push("hold (precisa de to-)");
+      else hold = { size: hn, at };
+    } else if (raw["hold-at"] != null) invalid.push("hold-at (precisa de hold)");
+
     // ping-pong sem repetição não faz nada: assume infinito
     if (direction === "alternate" && repeat == null) repeat = "infinite";
     // alternate com contagem par terminaria no estado inicial; força ímpar
     if (direction === "alternate" && typeof repeat === "number" && repeat % 2 === 0)
       repeat += 1;
 
-    const has = Object.keys(props).length > 0 || repeat != null || direction != null;
-    return { has, props, repeat, direction, invalid };
+    const has =
+      Object.keys(props).length > 0 ||
+      Object.keys(to).length > 0 ||
+      repeat != null ||
+      direction != null ||
+      hold != null;
+    return { has, props, to, repeat, direction, hold, invalid };
   }
 
   /* ---- CSS ------------------------------------------------------------- */
 
+  // @keyframes dinâmicos (as percentagens não aceitam var()): um por configuração
+  let kfSheet = null;
+  const kfCache = {};
+  function keyframesFor(body) {
+    if (kfCache[body]) return kfCache[body];
+    try {
+      if (!kfSheet) {
+        const st = document.createElement("style");
+        st.setAttribute("data-emerge-motion-keyframes", "");
+        document.head.appendChild(st);
+        kfSheet = st.sheet;
+      }
+      let h = 5381;
+      for (let i = 0; i < body.length; i++) h = ((h << 5) + h + body.charCodeAt(i)) | 0;
+      const name = "emerge-motion-hold-" + (h >>> 0).toString(36);
+      kfSheet.insertRule("@keyframes " + name + "{" + body + "}", kfSheet.cssRules.length);
+      return (kfCache[body] = name);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function translateOf(p, withZ) {
+    if (p.x == null && p.y == null && p.z == null) return null;
+    return (p.x || "0px") + " " + (p.y || "0px") + (withZ ? " " + (p.z || "0px") : "");
+  }
+
+  function scaleOf(p) {
+    if (p.scale == null && p["scale-x"] == null && p["scale-y"] == null) return null;
+    const sx = p["scale-x"] != null ? p["scale-x"] : p.scale != null ? p.scale : "1";
+    const sy = p["scale-y"] != null ? p["scale-y"] : p.scale != null ? p.scale : "1";
+    return p["scale-x"] == null && p["scale-y"] == null ? sx : sx + " " + sy;
+  }
+
   // Converte a configuração em { vars:{--x:valor}, classes:[…] }
   function compile(cfg) {
-    const p = cfg.props;
+    const p = cfg.props; // estado inicial (from)
+    const q = cfg.to; // estado final (to), opcional
     const vars = {};
     const classes = [CLS];
+    const frames = []; // [propriedade, from, repouso, to] — só usado com hold
 
-    if (p.opacity != null) vars["--emerge-from-opacity"] = p.opacity;
-
-    if (p.x != null || p.y != null || p.z != null) {
-      vars["--emerge-from-translate"] =
-        (p.x || "0px") + " " + (p.y || "0px") + (p.z != null ? " " + p.z : "");
+    // define from e/ou to de um canal simples (opacity, translate, rotate, scale)
+    function channel(ch, from, to, rest) {
+      if (from != null) vars["--emerge-from-" + ch] = from;
+      if (to != null) {
+        vars["--emerge-to-" + ch] = to;
+        classes.push(CLS_TO + "-" + ch);
+      }
+      if (from != null || to != null)
+        frames.push([
+          ch,
+          "var(--emerge-from-" + ch + ")",
+          rest,
+          to != null ? "var(--emerge-to-" + ch + ")" : rest,
+        ]);
     }
 
-    if (p.rotate != null) vars["--emerge-from-rotate"] = p.rotate;
+    channel("opacity", p.opacity, q.opacity, "1");
 
-    if (p.scale != null || p["scale-x"] != null || p["scale-y"] != null) {
-      const sx = p["scale-x"] != null ? p["scale-x"] : p.scale != null ? p.scale : "1";
-      const sy = p["scale-y"] != null ? p["scale-y"] : p.scale != null ? p.scale : "1";
-      vars["--emerge-from-scale"] =
-        p["scale-x"] == null && p["scale-y"] == null ? sx : sx + " " + sy;
-    }
+    const withZ = p.z != null || q.z != null;
+    channel("translate", translateOf(p, withZ), translateOf(q, withZ), "0px 0px");
+    channel("rotate", p.rotate, q.rotate, "0deg");
+    channel("scale", scaleOf(p), scaleOf(q), "1");
 
-    const tf = TRANSFORM_ORDER.filter((k) => p[k] != null);
+    const tf = TRANSFORM_ORDER.filter((k) => p[k] != null || q[k] != null);
     if (tf.length) {
       const persp = tf.some((k) => k === "rotate-x" || k === "rotate-y")
         ? "perspective(var(--emerge-perspective, 2500px)) "
         : "";
-      vars["--emerge-from-transform"] =
-        persp + tf.map((k) => CSS_FN[k] + "(" + p[k] + ")").join(" ");
-      vars["--emerge-to-transform"] =
-        persp + tf.map((k) => CSS_FN[k] + "(0deg)").join(" ");
+      const build = (s) =>
+        persp + tf.map((k) => CSS_FN[k] + "(" + (s[k] != null ? s[k] : "0deg") + ")").join(" ");
+      vars["--emerge-from-transform"] = build(p);
+      vars["--emerge-to-transform"] = build(q);
       vars["--emerge-a-transform"] = "emerge-flip";
       classes.push(CLS_TF);
+      const hasToTf = tf.some((k) => q[k] != null);
+      if (hasToTf) classes.push(CLS_TO + "-transform");
+      frames.push([
+        "transform",
+        "var(--emerge-from-transform)",
+        build({}),
+        hasToTf ? "var(--emerge-to-transform)" : build({}),
+      ]);
     }
 
-    const fx = FILTER_ORDER.filter((k) => p[k] != null);
+    const fx = FILTER_ORDER.filter((k) => p[k] != null || q[k] != null);
     if (fx.length) {
-      vars["--emerge-from-filter"] = fx.map((k) => k + "(" + p[k] + ")").join(" ");
+      const hasTo = fx.some((k) => q[k] != null);
+      // com estado final, as duas listas têm de ter as mesmas funções (valores neutros no resto)
+      const build = (s) =>
+        fx
+          .filter((k) => hasTo || s[k] != null)
+          .map((k) => k + "(" + (s[k] != null ? s[k] : FILTER_ID[k]) + ")")
+          .join(" ");
+      vars["--emerge-from-filter"] = build(p);
       vars["--emerge-a-filter"] = "emerge-blur";
       classes.push(CLS_FX);
+      if (hasTo) {
+        vars["--emerge-to-filter"] = build(q);
+        classes.push(CLS_TO + "-filter");
+      }
+      const restFx = fx.map((k) => k + "(" + FILTER_ID[k] + ")").join(" ");
+      frames.push([
+        "filter",
+        "var(--emerge-from-filter)",
+        restFx,
+        hasTo ? "var(--emerge-to-filter)" : restFx,
+      ]);
+    }
+
+    if (classes.some((c) => c.indexOf(CLS_TO + "-") === 0)) classes.push(CLS_TO);
+
+    if (cfg.hold && frames.length) {
+      const a = Math.max(0, cfg.hold.at - cfg.hold.size / 2);
+      const b = Math.min(100, cfg.hold.at + cfg.hold.size / 2);
+      const at = (i) => frames.map((f) => f[0] + ":" + f[i] + ";").join("");
+      const body =
+        "0%{" + at(1) + "}" + num(a) + "%," + num(b) + "%{" + at(2) + "}100%{" + at(3) + "}";
+      const name = keyframesFor(body);
+      if (name) {
+        vars["--emerge-a-hold"] = name;
+        classes.push(CLS_HOLD);
+      }
     }
 
     if (cfg.repeat != null) {
@@ -10585,7 +10725,7 @@
   function wipe(rec) {
     rec.written.forEach((names, t) => {
       names.forEach((n) => t.style.removeProperty(n));
-      t.classList.remove(CLS, CLS_TF, CLS_FX, CLS_LOOP);
+      ALL_CLS.forEach((c) => t.classList.remove(c));
     });
     rec.written.clear();
   }
@@ -10605,8 +10745,10 @@
     targets.forEach((t) => {
       const vars = Object.assign({}, out.vars);
       // sem preset no data-emerge → animação "pura": não faz fade por omissão
+      // (excepto se indicares to-opacity: aí o elemento faz fade até esse valor)
       if (
         vars["--emerge-from-opacity"] == null &&
+        vars["--emerge-to-opacity"] == null &&
         (t.getAttribute("data-emerge") || "").trim() === ""
       )
         vars["--emerge-from-opacity"] = "1";
@@ -10617,7 +10759,7 @@
         if (names.indexOf(n) < 0) t.style.removeProperty(n);
       });
       names.forEach((n) => t.style.setProperty(n, vars[n]));
-      [CLS, CLS_TF, CLS_FX, CLS_LOOP].forEach((c) =>
+      ALL_CLS.forEach((c) =>
         t.classList.toggle(c, out.classes.indexOf(c) >= 0),
       );
       rec.written.set(t, names);
@@ -10762,7 +10904,7 @@ if (typeof EmergeMotion !== "undefined") Emerge.addPlugin(EmergeMotion);
       return;
     }
     const url = new URL(scriptURL);
-    cssURL = `${url.origin}/css/emerge.css@1.7.2`;
+    cssURL = `${url.origin}/css/emerge.css@1.10.0`;
   }
   const link = document.createElement("link");
   link.rel = "stylesheet";
