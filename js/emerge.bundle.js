@@ -12281,7 +12281,7 @@ if (typeof EmergeCompare !== "undefined") Emerge.addPlugin(EmergeCompare);
       return;
     }
     const url = new URL(scriptURL);
-    cssURL = `${url.origin}/css/emerge.css@1.10.0`;
+    cssURL = `${url.origin}/css/emerge.css`;
   }
   const link = document.createElement("link");
   link.rel = "stylesheet";
